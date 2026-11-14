@@ -758,6 +758,149 @@ export const RECORDS = {
       ],
     },
   },
+
+  profiles: {
+    form: true,
+    section: 'setup',
+    title: 'Contract profiles',
+    noun: 'contract profiles',
+    doctype: 'Sidra Contract Profile',
+    path: '/setup/profiles',
+    icon: 'lucide-sliders-horizontal',
+    orderBy: 'profile_name asc',
+    search: ['name', 'profile_name'],
+    searchLabel: 'Profile',
+    list: [
+      { field: 'profile_name', label: 'Profile', type: 'id' },
+      { field: 'installments', label: 'Installments', type: 'int' },
+      { field: 'due_day', label: 'Due day', type: 'int' },
+      { field: 'down_payment_type', label: 'Down payment' },
+      { field: 'active', label: 'Active', type: 'check' },
+      { field: 'legal_hold', label: 'Legal hold', type: 'check' },
+    ],
+    detail: {
+      title: 'profile_name',
+      groups: [
+        {
+          title: 'Profile',
+          fields: [
+            { field: 'profile_name', label: 'Name' },
+            { field: 'is_default', label: 'Default', type: 'check' },
+            { field: 'active', label: 'Active', type: 'check' },
+            { field: 'legal_hold', label: 'Legal hold', type: 'check' },
+            { field: 'legal_hold_reason', label: 'Legal hold reason', type: 'longtext' },
+          ],
+        },
+        {
+          title: 'Installments',
+          fields: [
+            { field: 'installments', label: 'Installments', type: 'int' },
+            { field: 'due_day', label: 'Due day', type: 'int' },
+            { field: 'grace_months', label: 'Grace months', type: 'int' },
+            { field: 'down_payment_type', label: 'Down payment' },
+            { field: 'down_payment_value', label: 'Down payment value', type: 'number' },
+            { field: 'early_payment', label: 'Early payment' },
+          ],
+        },
+        {
+          title: 'Penalty, refund and title (recorded only)',
+          fields: [
+            { field: 'penalty_type', label: 'Penalty type' },
+            { field: 'penalty_per_day', label: 'Amount per day', type: 'money' },
+            { field: 'penalty_monthly_cap', label: 'Monthly cap', type: 'money' },
+            { field: 'penalty_fixed_amount', label: 'Fixed amount', type: 'money' },
+            { field: 'notice_days', label: 'Notice days', type: 'int' },
+            { field: 'refund_retention_type', label: 'Refund retention' },
+            { field: 'title_deadline_days', label: 'Title deadline (days)', type: 'int' },
+            { field: 'title_penalty_type', label: 'Title delay penalty' },
+          ],
+        },
+      ],
+    },
+  },
+  clauses: {
+    form: true,
+    section: 'setup',
+    title: 'Contract clauses',
+    noun: 'contract clauses',
+    doctype: 'Sidra Contract Clause',
+    path: '/setup/clauses',
+    icon: 'lucide-scroll-text',
+    orderBy: 'clause_code asc',
+    search: ['name', 'clause_code', 'title'],
+    searchLabel: 'Code or title',
+    list: [
+      { field: 'clause_code', label: 'Code', type: 'id' },
+      { field: 'title', label: 'Title' },
+      { field: 'active', label: 'Active', type: 'check' },
+      { field: 'approved', label: 'Approved', type: 'check' },
+    ],
+    detail: {
+      title: 'title',
+      subtitle: 'clause_code',
+      groups: [
+        {
+          title: 'Clause',
+          fields: [
+            { field: 'clause_code', label: 'Code' },
+            { field: 'title', label: 'Title' },
+            { field: 'active', label: 'Active', type: 'check' },
+            { field: 'approved', label: 'Approved', type: 'check' },
+            { field: 'approved_by', label: 'Approved by', type: 'user' },
+          ],
+        },
+        { title: 'Somali', fields: [{ field: 'text_so', label: 'Wording', type: 'longtext' }] },
+        { title: 'English', fields: [{ field: 'text_en', label: 'Wording', type: 'longtext' }] },
+      ],
+    },
+  },
+  imports: {
+    form: true,
+    section: 'setup',
+    title: 'Contract imports',
+    noun: 'contract imports',
+    doctype: 'Sidra Contract Import',
+    path: '/setup/imports',
+    icon: 'lucide-file-up',
+    company: true,
+    orderBy: 'creation desc',
+    search: ['name'],
+    searchLabel: 'Import',
+    status: { Draft: 'muted', Validated: 'current', Imported: 'completed', Failed: 'blocked' },
+    list: [
+      { field: 'name', label: 'Import', type: 'id' },
+      { field: 'company', label: 'Company' },
+      { field: 'status', label: 'Status', type: 'status' },
+      { field: 'contracts_found', label: 'Contracts found', type: 'int' },
+      { field: 'contracts_created', label: 'Created', type: 'int' },
+    ],
+    detail: {
+      status: 'status',
+      groups: [
+        {
+          title: 'Import',
+          fields: [
+            { field: 'company', label: 'Company' },
+            { field: 'import_file', label: 'File', type: 'file' },
+            { field: 'create_missing_customers', label: 'Create missing customers', type: 'check' },
+            { field: 'status', label: 'Status', type: 'status' },
+            { field: 'contracts_found', label: 'Contracts found', type: 'int' },
+            { field: 'contracts_created', label: 'Contracts created', type: 'int' },
+          ],
+        },
+        { title: 'Log', fields: [{ field: 'log', label: 'Last run', type: 'longtext' }] },
+      ],
+    },
+  },
+  contract_settings: {
+    form: true,
+    single: true,
+    section: 'setup',
+    title: 'Contract settings',
+    doctype: 'Sidra Contract Settings',
+    path: '/setup/contract-settings',
+    icon: 'lucide-settings',
+  },
 }
 
 const BOQ_COLUMNS = [
@@ -779,10 +922,11 @@ export const SECTIONS = {
   sales: ['reservations', 'sale_quotations'],
   contracts: ['contracts', 'title_transfers'],
   construction: ['jobs', 'construction_quotations', 'boq_revisions', 'variations', 'inspections'],
+  setup: ['profiles', 'clauses', 'imports', 'contract_settings'],
 }
 
 /** Lists that use the generic list and detail screens (the others have pages of their own). */
-export const GENERIC = Object.keys(RECORDS).filter((key) => !RECORDS[key].page)
+export const GENERIC = Object.keys(RECORDS).filter((key) => !RECORDS[key].page && !RECORDS[key].single)
 
 export const listRoute = (key) => (RECORDS[key].page ? RECORDS[key].page : `${key}-list`)
 export const detailRoute = (key) => RECORDS[key].detailRoute || `${key}-detail`

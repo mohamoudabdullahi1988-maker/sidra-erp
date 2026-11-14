@@ -86,8 +86,8 @@ const construction = {
     ],
     widgets: [
       {
-        type: 'gantt', title: 'Hargeisa North Ridge: milestone plan', span: 8, from: '2025-08-01', until: '2027-06-01', milestones: true,
-        rows: D.MILESTONES.filter((m) => m.project === 'Hargeisa North Ridge').map((m, i, all) => ({
+        type: 'gantt', title: 'Rayan Gardens: milestone plan', span: 8, from: '2025-08-01', until: '2027-06-01', milestones: true,
+        rows: D.MILESTONES.filter((m) => m.project === 'Rayan Gardens').map((m, i, all) => ({
           label: m.milestone, start: i ? all[i - 1].planned : '2025-08-01', end: m.forecast,
           tone: { Completed: 'green', 'On track': 'blue', 'At risk': 'amber', Delayed: 'rose', Upcoming: 'slate' }[m.status],
           sub: m.status, to: set('milestones', { project: m.project, milestone: m.milestone }),
@@ -338,7 +338,7 @@ function designTab(discipline, tone, flowTitle) {
 const design = {
   overview: {
     title: 'Design and engineering',
-    subtitle: 'Architecture, civil engineering and inspection services',
+    subtitle: 'End-to-end design and construction for the local climate: architecture, civil engineering and inspections',
     kpis: [
       { label: 'Open jobs', value: D.DESIGN_JOBS.filter((j) => !['Completed', 'Issued'].includes(j.stage)).length, kind: 'count', tone: 'purple', to: set('design_jobs') },
       { label: 'Fees agreed', value: D.sum(D.DESIGN_JOBS, 'fee'), kind: 'money', tone: 'blue', to: set('design_jobs') },
@@ -380,7 +380,7 @@ const STATUS_TONE = { Available: 'green', Reserved: 'amber', Sold: 'blue' }
 const realestate = {
   inventory: {
     title: 'Inventory',
-    subtitle: 'Plots, villas and apartments in Sidra’s gated communities',
+    subtitle: 'Masalaha Hagbad plots ($14,300 full, $7,150 half, from $325 a month over 22 months interest-free), Rayan Gardens, Safa Housing and Berbera Townhouses',
     kpis: [
       { label: 'Plots and units', value: inventory.total, kind: 'count', tone: 'blue', to: set('units') },
       { label: 'Available', value: inventory.available, kind: 'count', tone: 'green', to: set('units', { status: 'Available' }) },
@@ -433,6 +433,15 @@ const realestate = {
         ],
       },
       { type: 'table', title: 'Sales agents', span: 5, set: 'agents', columns: ['agent', 'leads', 'contracts', 'conversion', 'value'] },
+      {
+        type: 'hbars', title: 'Diaspora buyer support', note: 'Overseas buyers helped to choose, view and buy remotely (90 days)', span: 7, kind: 'count', funnel: true,
+        series: [{ name: 'Buyers', tone: 'purple' }],
+        rows: D.DIASPORA_STEPS.map(([label, value], i) => ({ label, values: [value], tone: ['sky', 'blue', 'teal', 'purple', 'green'][i], to: set('leads', { source: 'Diaspora referral' }) })),
+      },
+      {
+        type: 'donut', title: 'Diaspora buyers by country', span: 5, centre: 'buyers', kind: 'count', to: set('leads', { source: 'Diaspora referral' }),
+        segments: Object.entries(D.DIASPORA_COUNTRIES).map(([label, value], i) => ({ label, value, tone: ['blue', 'rose', 'orange', 'teal', 'amber', 'slate'][i], to: set('leads', { source: 'Diaspora referral' }) })),
+      },
     ],
     workflow: {
       title: 'Plot or home sale',
@@ -476,7 +485,7 @@ const realestate = {
       },
       {
         type: 'donut', title: 'Payment plans', span: 4, centre: 'contracts', kind: 'count', to: set('sale_contracts'),
-        segments: Object.entries(D.PLAN_MIX).map(([label, value], i) => ({ label, value, tone: ['green', 'blue', 'teal', 'purple'][i], to: set('sale_contracts', { plan: label }) })),
+        segments: Object.entries(D.PLAN_MIX).map(([label, value], i) => ({ label, value, tone: ['green', 'sky', 'orange', 'teal', 'purple'][i], to: set('sale_contracts', { plan: label }) })),
       },
       { type: 'table', title: 'Latest contracts', span: 8, set: 'sale_contracts', columns: ['contract', 'customer', 'community', 'plan', 'value', 'status'], limit: 6 },
     ],
@@ -514,7 +523,7 @@ const commissionDue = D.sum(D.DEALS.filter((d) => d.status === 'Commission due')
 const brokerage = {
   overview: {
     title: 'Brokerage',
-    subtitle: 'Owners’ properties Sidra sells for a 2.5% commission',
+    subtitle: 'Verified off-market plots and owners’ properties, sold for a 2.5% commission, with title deed transfer once paid',
     kpis: [
       { label: 'Active listings', value: D.LISTINGS.filter((l) => l.status === 'Active').length, kind: 'count', tone: 'blue', to: set('listings', { status: 'Active' }) },
       { label: 'Under offer', value: D.LISTINGS.filter((l) => l.status === 'Under offer').length, kind: 'count', tone: 'amber', to: set('listings', { status: 'Under offer' }) },
@@ -549,6 +558,7 @@ const brokerage = {
         { label: 'Offer accepted', state: 'current' },
         { label: 'Sale agreement', state: 'next' },
         { label: 'Commission due on buyer’s first payment', state: 'next', note: '2.5% of the price (draft brokerage spec)' },
+        { label: 'Title deed transferred once paid', state: 'next' },
       ],
     },
   },

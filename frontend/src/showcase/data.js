@@ -3,8 +3,11 @@
 // go-ahead. Every figure here is fictional. Nothing is read from or written to the server, and no
 // business rule is decided here; screens that show real records are unchanged.
 //
-// Project and community names reuse the names in the test site's fictional dataset where one
-// exists (Hargeisa North Ridge, Hagbad East, Berbera Coastal); the rest are invented.
+// Sidra's own projects carry their public names (Masalaha Hagbad, Rayan Gardens, Safa Housing,
+// Berbera Townhouses). Masalaha Hagbad uses 9 m x 24 m plots at the standard price (Mohamoud,
+// 14 Nov 2026: the published $11,000 / $5,500 was a friends-and-family discount; standard is 30%
+// more): $14,300 full / $7,150 half, interest-free from $325 a month over 22 months. Every other
+// figure, and every client project and person, is invented.
 
 export const TODAY = '2026-11-14'
 
@@ -41,10 +44,10 @@ function person(rand) {
 // ---------------------------------------------------------------- construction projects
 
 export const PROJECTS = [
-  { id: 'P-01', name: 'Hargeisa North Ridge', scope: 'Gated community, 64 villas', client: 'Sidra development', city: 'Hargeisa', phase: 'Construction', budget: 4200000, committed: 3350000, forecast: 4380000, paid: 2610000, progress: 64, start: '2025-08-01', end: '2027-04-30', health: { scope: 'G', time: 'A', cost: 'A', quality: 'G', safety: 'G' } },
-  { id: 'P-02', name: 'Hagbad East', scope: 'Plot servicing: roads, water, power', client: 'Sidra development', city: 'Hargeisa', phase: 'Construction', budget: 1650000, committed: 1420000, forecast: 1610000, paid: 1180000, progress: 78, start: '2025-06-15', end: '2026-12-20', health: { scope: 'G', time: 'G', cost: 'G', quality: 'G', safety: 'G' } },
-  { id: 'P-03', name: 'Berbera Coastal', scope: '40 sea-view apartments', client: 'Sidra development', city: 'Berbera', phase: 'Procurement', budget: 3100000, committed: 1240000, forecast: 3260000, paid: 520000, progress: 18, start: '2026-05-01', end: '2028-02-28', health: { scope: 'G', time: 'A', cost: 'R', quality: 'G', safety: 'G' } },
-  { id: 'P-04', name: 'Burao Central Plaza', scope: 'Mixed-use: shops and offices', client: 'Client contract', city: 'Burao', phase: 'Construction', budget: 2450000, committed: 2050000, forecast: 2520000, paid: 1620000, progress: 71, start: '2025-10-01', end: '2027-01-31', health: { scope: 'A', time: 'G', cost: 'A', quality: 'A', safety: 'G' } },
+  { id: 'P-01', name: 'Rayan Gardens', scope: 'Mid-market homes, Masalaha', client: 'Sidra development', city: 'Hargeisa', phase: 'Construction', budget: 4200000, committed: 3350000, forecast: 4380000, paid: 2610000, progress: 64, start: '2025-08-01', end: '2027-04-30', health: { scope: 'G', time: 'A', cost: 'A', quality: 'G', safety: 'G' } },
+  { id: 'P-02', name: 'Masalaha Hagbad', scope: 'Plot servicing: roads, water, power', client: 'Sidra development', city: 'Hargeisa', phase: 'Construction', budget: 1650000, committed: 1420000, forecast: 1610000, paid: 1180000, progress: 78, start: '2025-06-15', end: '2026-12-20', health: { scope: 'G', time: 'G', cost: 'G', quality: 'G', safety: 'G' } },
+  { id: 'P-03', name: 'Berbera Townhouses', scope: 'Off-plan coastal townhouses: stone walls, raised foundations, insulated', client: 'Sidra development', city: 'Berbera', phase: 'Procurement', budget: 3100000, committed: 1240000, forecast: 3260000, paid: 520000, progress: 18, start: '2026-05-01', end: '2028-02-28', health: { scope: 'G', time: 'A', cost: 'R', quality: 'G', safety: 'G' } },
+  { id: 'P-04', name: 'Safa Housing', scope: 'Affordable homes built to be extended', client: 'Sidra development', city: 'Hargeisa', phase: 'Construction', budget: 2450000, committed: 2050000, forecast: 2520000, paid: 1620000, progress: 71, start: '2025-10-01', end: '2027-01-31', health: { scope: 'A', time: 'G', cost: 'A', quality: 'A', safety: 'G' } },
   { id: 'P-05', name: 'Gabiley Road Villas', scope: '6 private villas', client: 'Client contract', city: 'Gabiley', phase: 'Handover', budget: 980000, committed: 975000, forecast: 1010000, paid: 905000, progress: 96, start: '2025-03-01', end: '2026-11-30', health: { scope: 'G', time: 'A', cost: 'A', quality: 'G', safety: 'G' } },
   { id: 'P-06', name: 'Borama Clinic Extension', scope: 'Clinic wing and civil works', client: 'Client contract', city: 'Borama', phase: 'Design', budget: 760000, committed: 120000, forecast: 760000, paid: 64000, progress: 6, start: '2026-09-15', end: '2027-08-31', health: { scope: 'G', time: 'G', cost: 'G', quality: 'G', safety: 'G' } },
   { id: 'P-07', name: 'Sheikh Road Culverts', scope: 'Road drainage and box culverts', client: 'Municipal contract', city: 'Sheikh', phase: 'Construction', budget: 1460000, committed: 1180000, forecast: 1540000, paid: 860000, progress: 55, start: '2026-01-10', end: '2027-03-15', health: { scope: 'G', time: 'R', cost: 'A', quality: 'G', safety: 'A' } },
@@ -104,53 +107,53 @@ export const COST_BUDGET = [
 ]
 
 export const VARIATIONS = [
-  ['VO-0141', 'Hargeisa North Ridge', 'Boundary wall raised to 2.4 m', 18500, 'Approved', 'General Manager', '2026-09-02', 6],
-  ['VO-0142', 'Hargeisa North Ridge', 'Solar water heaters, block C', 42600, 'Approved', 'General Manager', '2026-09-18', 9],
-  ['VO-0143', 'Burao Central Plaza', 'Extra ground-floor shop front', 27400, 'Approved', 'General Manager', '2026-09-25', 4],
+  ['VO-0141', 'Rayan Gardens', 'Boundary wall raised to 2.4 m', 18500, 'Approved', 'General Manager', '2026-09-02', 6],
+  ['VO-0142', 'Rayan Gardens', 'Solar water heaters, block C', 42600, 'Approved', 'General Manager', '2026-09-18', 9],
+  ['VO-0143', 'Safa Housing', 'Extra bedroom on ground floor, type B', 27400, 'Approved', 'General Manager', '2026-09-25', 4],
   ['VO-0144', 'Gabiley Road Villas', 'Additional power sockets, villa 3', 860, 'Approved', 'Project Manager', '2026-10-01', 1],
   ['VO-0145', 'Sheikh Road Culverts', 'Extra box culvert at km 4.2', 64800, 'Awaiting approval', 'General Manager', '2026-10-08', null],
-  ['VO-0146', 'Burao Central Plaza', 'Upgraded lift to 8 persons', 31200, 'Awaiting approval', 'General Manager', '2026-10-15', null],
-  ['VO-0147', 'Hagbad East', 'Additional street lighting, phase 2', 22900, 'Approved', 'General Manager', '2026-10-17', 7],
+  ['VO-0146', 'Safa Housing', 'Roof slab ready for a second storey', 31200, 'Awaiting approval', 'General Manager', '2026-10-15', null],
+  ['VO-0147', 'Masalaha Hagbad', 'Additional street lighting, phase 2', 22900, 'Approved', 'General Manager', '2026-10-17', 7],
   ['VO-0148', 'Gabiley Road Villas', 'Perimeter landscaping', 9400, 'Approved', 'General Manager', '2026-10-21', 3],
-  ['VO-0149', 'Hargeisa North Ridge', 'Mosque access road', 38700, 'Awaiting approval', 'General Manager', '2026-10-29', null],
-  ['VO-0150', 'Berbera Coastal', 'Deeper piles after soil report', 96500, 'Under review', 'Project Manager', '2026-11-03', null],
-  ['VO-0151', 'Hagbad East', 'Water tank stand reinforcement', 740, 'Approved', 'Project Manager', '2026-11-05', 1],
+  ['VO-0149', 'Rayan Gardens', 'Mosque access road', 38700, 'Awaiting approval', 'General Manager', '2026-10-29', null],
+  ['VO-0150', 'Berbera Townhouses', 'Deeper foundations after soil report', 96500, 'Under review', 'Project Manager', '2026-11-03', null],
+  ['VO-0151', 'Masalaha Hagbad', 'Water tank stand reinforcement', 740, 'Approved', 'Project Manager', '2026-11-05', 1],
   ['VO-0152', 'Sheikh Road Culverts', 'Gabion protection, river bend', 18200, 'Under review', 'Project Manager', '2026-11-09', null],
-  ['VO-0153', 'Burao Central Plaza', 'Rooftop water storage', 12600, 'Draft', 'Project Manager', '2026-11-11', null],
-  ['VO-0154', 'Hargeisa North Ridge', 'Gatehouse CCTV', 7900, 'Draft', 'Project Manager', '2026-11-13', null],
+  ['VO-0153', 'Safa Housing', 'Rooftop water storage', 12600, 'Draft', 'Project Manager', '2026-11-11', null],
+  ['VO-0154', 'Rayan Gardens', 'Gatehouse CCTV', 7900, 'Draft', 'Project Manager', '2026-11-13', null],
 ].map(([id, project, description, value, status, approver, raised, days]) => ({ id, project, description, type: 'Addition', value, status, approver, raised, days_to_approve: days }))
 
 export const INSPECTIONS = [
-  ['IR-0311', 'Hargeisa North Ridge', 'Foundations, block D', 'Pass', '2026-09-04', 0],
-  ['IR-0312', 'Burao Central Plaza', 'Second-floor slab', 'Pass with remarks', '2026-09-11', 1],
-  ['IR-0313', 'Hagbad East', 'Water main pressure test', 'Pass', '2026-09-16', 0],
+  ['IR-0311', 'Rayan Gardens', 'Foundations, block D', 'Pass', '2026-09-04', 0],
+  ['IR-0312', 'Safa Housing', 'Ground-floor slab, block 2', 'Pass with remarks', '2026-09-11', 1],
+  ['IR-0313', 'Masalaha Hagbad', 'Water main pressure test', 'Pass', '2026-09-16', 0],
   ['IR-0314', 'Sheikh Road Culverts', 'Culvert C2 reinforcement', 'Fail', '2026-09-22', 2],
   ['IR-0315', 'Gabiley Road Villas', 'Electrical first fix, villa 4', 'Pass', '2026-09-29', 0],
-  ['IR-0316', 'Hargeisa North Ridge', 'Structure, block B', 'Pass', '2026-10-03', 0],
-  ['IR-0317', 'Burao Central Plaza', 'Fire stopping, level 2', 'Pass with remarks', '2026-10-08', 1],
-  ['IR-0318', 'Hagbad East', 'Road base compaction, section 3', 'Pass', '2026-10-14', 0],
+  ['IR-0316', 'Rayan Gardens', 'Structure, block B', 'Pass', '2026-10-03', 0],
+  ['IR-0317', 'Safa Housing', 'Blockwork, homes 14-20', 'Pass with remarks', '2026-10-08', 1],
+  ['IR-0318', 'Masalaha Hagbad', 'Road base compaction, section 3', 'Pass', '2026-10-14', 0],
   ['IR-0319', 'Sheikh Road Culverts', 'Culvert C2 re-inspection', 'Pass', '2026-10-17', 0],
-  ['IR-0320', 'Hargeisa North Ridge', 'Roofing, villas 21-28', 'Fail', '2026-10-21', 3],
+  ['IR-0320', 'Rayan Gardens', 'Roofing, villas 21-28', 'Fail', '2026-10-21', 3],
   ['IR-0321', 'Gabiley Road Villas', 'Final snag list, villas 1-3', 'Pass with remarks', '2026-10-27', 2],
-  ['IR-0322', 'Burao Central Plaza', 'Facade glazing', 'Pass', '2026-11-02', 0],
-  ['IR-0323', 'Berbera Coastal', 'Site set-out and levels', 'Pass', '2026-11-05', 0],
-  ['IR-0324', 'Hagbad East', 'Power poles, section 4', 'Pass', '2026-11-09', 0],
+  ['IR-0322', 'Safa Housing', 'Windows and doors, homes 1-8', 'Pass', '2026-11-02', 0],
+  ['IR-0323', 'Berbera Townhouses', 'Raised foundations, townhouses 1-6', 'Pass', '2026-11-05', 0],
+  ['IR-0324', 'Masalaha Hagbad', 'Power poles, section 4', 'Pass', '2026-11-09', 0],
   ['IR-0325', 'Sheikh Road Culverts', 'Culvert C4 formwork', 'Fail', '2026-11-11', 1],
-  ['IR-0326', 'Hargeisa North Ridge', 'Plastering, villas 9-16', 'Pass', '2026-11-13', 0],
+  ['IR-0326', 'Rayan Gardens', 'Plastering, villas 9-16', 'Pass', '2026-11-13', 0],
 ].map(([id, project, item, result, date, defects]) => ({ id, project, item, result, date, open_defects: defects, inspector: 'Site Engineer' }))
 
 export const RISKS = [
-  ['R-01', 'Regulatory compliance', 'Permit for Berbera Coastal phase 2 not yet issued', 'Berbera Coastal', 'Project Manager', 'High', 'Open'],
-  ['R-02', 'Design errors', 'Structural drawings revision for lift shaft', 'Burao Central Plaza', 'Design Lead', 'Medium', 'Mitigating'],
-  ['R-03', 'Scope creep', 'Client requests for extra shop fronts', 'Burao Central Plaza', 'Project Manager', 'Medium', 'Open'],
-  ['R-04', 'Labour shortages', 'Skilled tilers scarce during Hajj season', 'Hargeisa North Ridge', 'Site Manager', 'Low', 'Monitoring'],
+  ['R-01', 'Regulatory compliance', 'Permit for Berbera Townhouses phase 2 not yet issued', 'Berbera Townhouses', 'Project Manager', 'High', 'Open'],
+  ['R-02', 'Design errors', 'Drawings revision for the extension option', 'Safa Housing', 'Design Lead', 'Medium', 'Mitigating'],
+  ['R-03', 'Scope creep', 'Buyer requests for early extensions', 'Safa Housing', 'Project Manager', 'Medium', 'Open'],
+  ['R-04', 'Labour shortages', 'Skilled tilers scarce during Hajj season', 'Rayan Gardens', 'Site Manager', 'Low', 'Monitoring'],
   ['R-05', 'Material delivery', 'Cement shipments delayed at Berbera port', 'All projects', 'Procurement Officer', 'High', 'Mitigating'],
   ['R-06', 'Schedule delays', 'Culvert C4 behind after failed inspection', 'Sheikh Road Culverts', 'Project Manager', 'High', 'Open'],
   ['R-07', 'Cost overruns', 'Steel price up 9% since budget', 'All projects', 'Quantity Surveyor', 'Medium', 'Monitoring'],
-  ['R-08', 'Equipment downtime', 'Concrete pump due for overhaul', 'Hargeisa North Ridge', 'Plant Manager', 'Low', 'Monitoring'],
+  ['R-08', 'Equipment downtime', 'Concrete pump due for overhaul', 'Rayan Gardens', 'Plant Manager', 'Low', 'Monitoring'],
   ['R-09', 'Weather disruption', 'Gu rains may flood Sheikh river crossing', 'Sheikh Road Culverts', 'Site Manager', 'Medium', 'Open'],
-  ['R-10', 'Safety hazards', 'Work at height on Burao level 4', 'Burao Central Plaza', 'Safety Officer', 'Medium', 'Mitigating'],
-  ['R-11', 'Stakeholder disputes', 'Neighbour boundary claim, Hagbad section 5', 'Hagbad East', 'Legal Officer', 'Low', 'Open'],
+  ['R-10', 'Safety hazards', 'Work at height on townhouse roofs', 'Safa Housing', 'Safety Officer', 'Medium', 'Mitigating'],
+  ['R-11', 'Stakeholder disputes', 'Neighbour boundary claim, Masalaha section 5', 'Masalaha Hagbad', 'Legal Officer', 'Low', 'Open'],
   ['R-12', 'Currency movement', 'Shilling movement on local labour rates', 'All projects', 'Finance Manager', 'Low', 'Monitoring'],
 ].map(([id, category, description, project, owner, rating, status]) => ({ id, category, description, project, owner, rating, status }))
 
@@ -175,7 +178,7 @@ export const STOCK = [
 }))
 
 /** Materials issued to each site this month, by value. */
-export const ISSUED_BY_SITE = { 'Hargeisa North Ridge': 61200, 'Hagbad East': 18400, 'Berbera Coastal': 22900, 'Burao Central Plaza': 39800, 'Gabiley Road Villas': 6100, 'Sheikh Road Culverts': 27300 }
+export const ISSUED_BY_SITE = { 'Rayan Gardens': 61200, 'Masalaha Hagbad': 18400, 'Berbera Townhouses': 22900, 'Safa Housing': 39800, 'Gabiley Road Villas': 6100, 'Sheikh Road Culverts': 27300 }
 
 export const SUBCONTRACTORS = [
   ['SC-01', 'Ridge Steel Works', 'Steel fixing', 3, 486000, 352000, 4.6],
@@ -192,18 +195,18 @@ export const SUBCONTRACTORS = [
 
 export const DESIGN_JOBS = [
   ['DE-201', 'Architecture', 'Villa for a diaspora client, Jigjiga Yar', 'Concept', 'Architect 1', 8500, 4250, '2026-12-05'],
-  ['DE-202', 'Architecture', 'Hargeisa North Ridge phase 2 masterplan', 'Design development', 'Architect 2', 24000, 12000, '2027-01-20'],
-  ['DE-203', 'Architecture', 'Berbera Coastal interiors', 'Construction drawings', 'Architect 1', 18000, 13500, '2026-11-28'],
+  ['DE-202', 'Architecture', 'Rayan Gardens phase 2 masterplan', 'Design development', 'Architect 2', 24000, 12000, '2027-01-20'],
+  ['DE-203', 'Architecture', 'Berbera Townhouses interiors', 'Construction drawings', 'Architect 1', 18000, 13500, '2026-11-28'],
   ['DE-204', 'Architecture', 'Office fit-out, Burao', 'Permit drawings', 'Architect 3', 6200, 3100, '2026-12-12'],
-  ['DE-205', 'Architecture', 'Duplex, Masalaha', 'Brief', 'Architect 2', 5400, 0, '2027-01-10'],
+  ['DE-205', 'Architecture', 'Diaspora client villa, Masalaha', 'Brief', 'Architect 2', 5400, 0, '2027-01-10'],
   ['DE-206', 'Architecture', 'School block, Gabiley', 'Completed', 'Architect 3', 11800, 11800, '2026-10-30'],
   ['DE-207', 'Architecture', 'Hotel facade refresh, Hargeisa', 'Concept', 'Architect 1', 9600, 2880, '2026-12-22'],
   ['DE-208', 'Civil engineering', 'Sheikh Road culvert hydraulics', 'Review', 'Engineer 1', 21500, 15050, '2026-11-25'],
-  ['DE-209', 'Civil engineering', 'Hagbad East drainage design', 'Issued', 'Engineer 2', 16400, 16400, '2026-10-18'],
+  ['DE-209', 'Civil engineering', 'Masalaha Hagbad drainage design', 'Issued', 'Engineer 2', 16400, 16400, '2026-10-18'],
   ['DE-210', 'Civil engineering', 'Borama clinic structural design', 'Calculations', 'Engineer 1', 14200, 5680, '2026-12-15'],
   ['DE-211', 'Civil engineering', 'Warehouse slab, Berbera', 'Design', 'Engineer 3', 7300, 2190, '2026-12-08'],
   ['DE-212', 'Civil engineering', 'Topographic survey, Erigavo', 'Survey', 'Surveyor', 4800, 1440, '2026-11-30'],
-  ['DE-213', 'Civil engineering', 'Retaining wall, North Ridge', 'Issued', 'Engineer 2', 6900, 6900, '2026-10-22'],
+  ['DE-213', 'Civil engineering', 'Retaining wall, Rayan Gardens', 'Issued', 'Engineer 2', 6900, 6900, '2026-10-22'],
   ['DE-214', 'Inspection services', 'Pre-purchase inspection, villa', 'Report', 'Inspector 1', 650, 650, '2026-11-18'],
   ['DE-215', 'Inspection services', 'Structural audit, 3-storey block', 'On site', 'Inspector 2', 2400, 1200, '2026-11-21'],
   ['DE-216', 'Inspection services', 'Bank valuation support, plots', 'Scheduled', 'Inspector 1', 900, 0, '2026-11-24'],
@@ -227,10 +230,10 @@ export const DESIGN_FEES = {
 // ---------------------------------------------------------------- real estate sales
 
 export const COMMUNITIES = [
-  { name: 'Hargeisa North Ridge', kind: 'Villas', city: 'Hargeisa', total: 64, sold: 38, reserved: 9, price: 118000 },
-  { name: 'Hagbad East', kind: 'Serviced plots', city: 'Hargeisa', total: 180, sold: 141, reserved: 12, price: 14500 },
-  { name: 'Berbera Coastal', kind: 'Apartments', city: 'Berbera', total: 40, sold: 11, reserved: 6, price: 86000 },
-  { name: 'Masalaha Gardens', kind: 'Plots', city: 'Hargeisa', total: 128, sold: 105, reserved: 4, price: 11800 },
+  { name: 'Masalaha Hagbad', kind: 'Plots, 9 × 24 m', city: 'Hargeisa', total: 240, sold: 186, reserved: 14, price: 14300, fixed: [['Full plot', 14300], ['Half plot', 7150]] },
+  { name: 'Rayan Gardens', kind: 'Homes', city: 'Hargeisa', total: 72, sold: 41, reserved: 8, price: 68000 },
+  { name: 'Safa Housing', kind: 'Expandable homes', city: 'Hargeisa', total: 60, sold: 44, reserved: 6, price: 38000 },
+  { name: 'Berbera Townhouses', kind: 'Townhouses (off-plan)', city: 'Berbera', total: 40, sold: 11, reserved: 6, price: 86000 },
 ].map((c) => ({ ...c, available: c.total - c.sold - c.reserved }))
 
 export const UNITS = COMMUNITIES.flatMap((c, ci) => {
@@ -238,7 +241,12 @@ export const UNITS = COMMUNITIES.flatMap((c, ci) => {
   const prefix = c.name.split(' ').map((w) => w[0]).join('')
   return Array.from({ length: c.total }, (_, i) => {
     const status = i < c.sold ? 'Sold' : i < c.sold + c.reserved ? 'Reserved' : 'Available'
-    const size = c.kind === 'Apartments' ? 90 + Math.round(rand() * 60) : c.kind === 'Villas' ? 300 + Math.round(rand() * 150) : 200 + Math.round(rand() * 200)
+    if (c.fixed) {
+      // The published offer: full plots 9 x 24 m, half plots 9 x 12 m, fixed prices.
+      const [type, price] = c.fixed[i % 3 === 2 ? 1 : 0]
+      return { unit: `${prefix}-${String(i + 1).padStart(3, '0')}`, community: c.name, type, size_sqm: type === 'Full plot' ? 216 : 108, price, status }
+    }
+    const size = c.kind.startsWith('Townhouses') ? 140 + Math.round(rand() * 60) : 90 + Math.round(rand() * 110)
     const price = Math.round((c.price * (0.85 + rand() * 0.3)) / 100) * 100
     return { unit: `${prefix}-${String(i + 1).padStart(3, '0')}`, community: c.name, type: c.kind, size_sqm: size, price, status }
   })
@@ -272,6 +280,16 @@ export const LEADS = (() => {
   return rows.sort((a, b) => (a.created < b.created ? 1 : -1))
 })()
 
+/** Diaspora buyer support: where overseas buyers live, and remote steps completed (90 days). */
+export const DIASPORA_COUNTRIES = { 'United Kingdom': 54, 'United States': 38, Canada: 21, 'Nordic countries': 29, 'Gulf states': 17, Other: 6 }
+export const DIASPORA_STEPS = [
+  ['Enquiries from abroad', 165],
+  ['Video viewings', 74],
+  ['Plots or homes chosen remotely', 39],
+  ['Contracts signed remotely', 23],
+  ['Title deeds handed over', 9],
+]
+
 export const AGENTS = [
   ['Sales agent 1', 118, 14, 1420000],
   ['Sales agent 2', 104, 11, 1180000],
@@ -292,7 +310,7 @@ export const AGEING = [
   { bucket: '90+ days', amount: 36000, contracts: 5 },
 ]
 
-export const PLAN_MIX = { Cash: 47, '12 months': 66, '24 months': 71, '36 months': 30 }
+export const PLAN_MIX = { Cash: 47, '12 months': 38, '22 months, interest-free': 58, '24 months': 49, '36 months': 22 }
 
 export const CONTRACT_TOTALS = { active: 214, value: 9420000, collected: 6310000 }
 
@@ -316,8 +334,9 @@ export const SALE_CONTRACTS = (() => {
   const plans = Object.keys(PLAN_MIX)
   return Array.from({ length: 40 }, (_, i) => {
     const c = pick(rand, COMMUNITIES)
-    const value = Math.round((c.price * (0.85 + rand() * 0.3)) / 100) * 100
-    const plan = pick(rand, plans)
+    const land = Boolean(c.fixed)
+    const value = land ? c.fixed[rand() < 0.35 ? 1 : 0][1] : Math.round((c.price * (0.85 + rand() * 0.3)) / 100) * 100
+    const plan = land ? '22 months, interest-free' : pick(rand, plans.filter((p) => p !== '22 months, interest-free'))
     const paidShare = plan === 'Cash' ? 1 : 0.2 + rand() * 0.6
     return {
       contract: `SC-2026-${String(380 - i).padStart(5, '0')}`,
@@ -380,7 +399,7 @@ export const INCOME = {
 
 export const ATTENTION = [
   { tone: 'red', text: 'Sheikh Road Culverts is three weeks behind on culvert C4', to: { set: 'milestones', filter: { project: 'Sheikh Road Culverts' } } },
-  { tone: 'red', text: 'Berbera Coastal forecast is 5% over budget', to: { set: 'projects', filter: { name: 'Berbera Coastal' } } },
+  { tone: 'red', text: 'Berbera Townhouses forecast is 5% over budget', to: { set: 'projects', filter: { name: 'Berbera Townhouses' } } },
   { tone: 'amber', text: '4 materials are below their reorder level', to: { set: 'stock', filter: { below_reorder: 'Yes' } } },
   { tone: 'amber', text: '3 variation orders await General Manager approval', to: { set: 'variations', filter: { status: 'Awaiting approval' } } },
   { tone: 'amber', text: '5 contracts are more than 90 days overdue', to: { set: 'overdue', filter: { bucket: '90+ days' } } },

@@ -14,6 +14,7 @@ const ICONS = {
   contracts: 'lucide-file-text',
   collections: 'lucide-wallet',
   construction: 'lucide-hard-hat',
+  setup: 'lucide-settings-2',
   finance: 'lucide-landmark',
 }
 

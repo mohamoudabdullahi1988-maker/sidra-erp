@@ -41,6 +41,10 @@ LISTS = {
 	"boq_revisions": "Sidra BOQ Revision",
 	"variations": "Sidra Variation Order",
 	"inspections": "Sidra Inspection Report",
+	"profiles": "Sidra Contract Profile",
+	"clauses": "Sidra Contract Clause",
+	"imports": "Sidra Contract Import",
+	"contract_settings": "Sidra Contract Settings",
 }
 
 # (key, label, lists whose read permission opens the section). Dashboard is open to all staff; it
@@ -59,6 +63,7 @@ NAV = (
 		"Construction",
 		("jobs", "construction_quotations", "boq_revisions", "variations", "inspections"),
 	),
+	("setup", "Setup", ("profiles", "clauses", "imports", "contract_settings")),
 	("finance", "Finance", ("ledger",)),
 )
 LEDGER = "GL Entry"

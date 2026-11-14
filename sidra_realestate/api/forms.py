@@ -373,7 +373,83 @@ def _run_approve_contract(doc, args):
 	return {"message": _("Contract approved; the job's contract value is set")}
 
 
+IMPORT_TEMPLATE = "/assets/sidra_realestate/templates/sidra_contract_import_template.csv"
+
+
+def _profile_notes(doc):
+	return [
+		{
+			"text": _(
+				"{0} monthly installments; due day {1}. Agreed-price sales with no additional markup. Penalty, refund and title terms are recorded for the contract document, not calculated or posted by the system."
+			).format(doc.installments or 0, doc.due_day or 0)
+		}
+	]
+
+
+def _clause_notes(doc):
+	if (doc.text_so or "").strip() and (doc.text_en or "").strip():
+		return []
+	return [
+		{
+			"text": _(
+				"Wording is incomplete. Sidra must supply both Somali and English text before General Manager approval. Do not use this clause as approved wording."
+			),
+			"tone": "warning",
+		}
+	]
+
+
+def _import_notes(doc):
+	return [
+		{
+			"text": _(
+				"Import dates use YYYY-MM-DD or DD/MM/YYYY, independently of your display settings. Imported records are registered installment contracts."
+			),
+			"link": {"label": _("Download template"), "url": IMPORT_TEMPLATE},
+		}
+	]
+
+
+def _import_actions(doc):
+	"""Desk's Validate (any time a file is attached) and Import (only after a successful Validate)."""
+	if not doc.import_file or not doc.has_permission("write"):
+		return []
+	actions = [
+		{
+			"key": "validate_import",
+			"label": _("Validate"),
+			"confirm": _("Check every contract in the file? Nothing is kept."),
+			"tone": "secondary",
+		}
+	]
+	if doc.status == "Validated":
+		actions.append(
+			{
+				"key": "run_import",
+				"label": _("Import"),
+				"confirm": _("Create the draft registered contracts from this file? All or nothing."),
+			}
+		)
+	return actions
+
+
+def _run_import_step(method):
+	def run(doc, args):
+		from sidra_realestate.sidra_sales.doctype.sidra_contract_import import sidra_contract_import
+
+		result = getattr(sidra_contract_import, method)(doc.name) or {}
+		return {
+			"message": result.get("status") or _("Done"),
+			"detail": result.get("log"),
+			"failed": result.get("status") == "Failed",
+		}
+
+	return run
+
+
 RUNNERS = {
+	"validate_import": _run_import_step("validate_import"),
+	"run_import": _run_import_step("run_import"),
 	"certify_stage": _run_certify_stage,
 	"approve_contract": _run_approve_contract,
 	"reserve_unit": _run_reserve,
@@ -431,6 +507,10 @@ FORMS = {
 	"Sidra BOQ Revision": {},
 	"Sidra Variation Order": {},
 	"Sidra Inspection Report": {},
+	"Sidra Contract Profile": {"notes": _profile_notes},
+	"Sidra Contract Clause": {"notes": _clause_notes},
+	"Sidra Contract Settings": {},
+	"Sidra Contract Import": {"notes": _import_notes, "actions": _import_actions},
 }
 
 
@@ -460,6 +540,7 @@ def get_form(doctype: str, name: str | None = None) -> dict:
 		"values": values,
 		"layout": _layout(meta, config, editable, doc),
 		"permissions": _permissions(doc, config, is_new=not name),
+		"notes": (config.get("notes") or (lambda d: []))(doc),
 		"actions": [_public_action(action) for action in (config.get("actions") or (lambda d: []))(doc)]
 		if name
 		else [],
@@ -757,7 +838,9 @@ def _permissions(doc, config, is_new):
 			and not (config.get("submit_refused") or (lambda d: None))(doc)
 		),
 		"cancel": bool(meta.is_submittable and doc.docstatus == 1 and doc.has_permission("cancel")),
-		"delete": bool(editable_type and doc.docstatus != 1 and doc.has_permission("delete")),
+		"delete": bool(
+			editable_type and not meta.issingle and doc.docstatus != 1 and doc.has_permission("delete")
+		),
 	}
 
 
@@ -853,6 +936,9 @@ class StaleRecord(frappe.ValidationError):
 
 
 def _locked(doctype, name):
+	if frappe.get_meta(doctype).issingle:
+		# A single record (e.g. Contract Settings) has no row to lock; its version check still applies.
+		return frappe.get_doc(doctype)
 	if not frappe.db.get_value(doctype, name, "name", for_update=True):
 		frappe.throw(_("{0} {1} not found").format(_(doctype), name), frappe.DoesNotExistError)
 	return frappe.get_doc(doctype, name)

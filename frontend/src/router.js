@@ -17,11 +17,15 @@ const generic = GENERIC.flatMap((key) => [
 // Create and edit pages for every list the server's form engine serves (G23), and the generic
 // record page for a list whose list is a page of its own (units).
 const forms = Object.keys(RECORDS)
-  .filter((key) => RECORDS[key].form)
+  .filter((key) => RECORDS[key].form && !RECORDS[key].single)
   .flatMap((key) => [
     { path: RECORDS[key].formPaths?.new ?? `${RECORDS[key].path}/new`, name: `${key}-new`, component: RecordEdit, meta: { list: key, section: RECORDS[key].section, create: true } },
     { path: RECORDS[key].formPaths?.edit ?? `${RECORDS[key].path}/:name/edit`, name: `${key}-edit`, component: RecordEdit, meta: { list: key, section: RECORDS[key].section } },
   ])
+// A single record (Contract settings) is its own page: its form.
+const singles = Object.keys(RECORDS)
+  .filter((key) => RECORDS[key].single)
+  .map((key) => ({ path: RECORDS[key].path, name: listRoute(key), component: RecordEdit, meta: { list: key, section: RECORDS[key].section } }))
 const pageDetails = Object.keys(RECORDS)
   .filter((key) => RECORDS[key].page && RECORDS[key].detail && !RECORDS[key].detailRoute)
   .map((key) => ({ path: `${RECORDS[key].path}/:name`, name: detailRoute(key), component: RecordDetail, meta: { list: key, section: RECORDS[key].section } }))
@@ -46,6 +50,7 @@ const routes = [
   { path: '/properties', name: 'properties', component: () => import('./pages/Properties.vue'), meta: { list: 'units', section: 'properties' } },
   { path: '/customers-section', name: 'customers', redirect: () => firstList('customers') },
   { path: '/sales', name: 'sales', redirect: () => firstList('sales') },
+  { path: '/setup', name: 'setup', redirect: () => firstList('setup') },
   { path: '/contracts', name: 'contracts', component: () => import('./pages/Contracts.vue'), meta: { list: 'contracts', section: 'contracts' } },
   { path: '/contracts/new', name: 'contract-new', component: () => import('./pages/ContractEdit.vue'), meta: { list: 'contracts', section: 'contracts', create: true } },
   { path: '/contracts/:name/edit', name: 'contract-edit', component: () => import('./pages/ContractEdit.vue'), meta: { list: 'contracts', section: 'contracts' } },
@@ -55,6 +60,7 @@ const routes = [
   { path: '/construction/:name', name: 'construction-detail', component: () => import('./pages/ConstructionDetail.vue'), meta: { section: 'construction' } },
   { path: '/finance', name: 'finance', component: () => import('./pages/Finance.vue'), meta: { section: 'finance' } },
   ...forms,
+  ...singles,
   ...generic,
   ...pageDetails,
   { path: '/no-access', name: 'no-access', component: () => import('./pages/NoAccess.vue') },

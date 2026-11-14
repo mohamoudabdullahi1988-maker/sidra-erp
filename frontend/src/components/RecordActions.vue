@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 
 import { ApiError } from '../api'
 import FormField from './FormField.vue'
+import FormNotes from './FormNotes.vue'
 import { changeState, fieldsOf, loadForm, runAction } from '../forms'
 import { RECORDS, recordRoute } from '../records'
 
@@ -26,6 +27,8 @@ const askValues = reactive({})
 const busy = ref(false)
 const error = ref(null)
 const done = ref('')
+const doneDetail = ref('') // e.g. an import's log
+const doneFailed = ref(false)
 let request = 0
 
 const canEdit = computed(() => form.value?.permissions.write && fieldsOf(form.value).some((field) => field.editable))
@@ -61,6 +64,8 @@ function ask(kind, item) {
   }
   error.value = null
   done.value = ''
+  doneDetail.value = ''
+  doneFailed.value = false
   for (const key of Object.keys(askValues)) delete askValues[key]
   if (kind === 'action') {
     for (const field of item.ask) askValues[field.fieldname] = field.default ?? ''
@@ -77,6 +82,8 @@ async function go() {
     if (pending.value.kind === 'action') {
       const result = await runAction(form.value, pending.value.action, { ...askValues })
       done.value = result?.message || `${pending.value.title}: done.`
+      doneDetail.value = result?.detail || ''
+      doneFailed.value = Boolean(result?.failed)
       // An action that made another record (Revise draft) opens it.
       if (result?.open) {
         const key = Object.keys(RECORDS).find((name) => RECORDS[name].doctype === result.open.doctype)
@@ -134,7 +141,14 @@ defineExpose({ reload: load })
       </button>
     </div>
 
-    <p v-if="done" class="bj-note ra__ok" role="status"><span class="lucide-circle-check-big" aria-hidden="true" />{{ done }}</p>
+    <FormNotes v-if="form" :notes="form.notes" />
+    <div v-if="done" class="bj-note ra__ok" :class="{ 'ra__ok--failed': doneFailed }" role="status">
+      <span :class="doneFailed ? 'lucide-triangle-alert' : 'lucide-circle-check-big'" aria-hidden="true" />
+      <div>
+        <p class="ra__done">{{ done }}</p>
+        <pre v-if="doneDetail" class="ra__log">{{ doneDetail }}</pre>
+      </div>
+    </div>
 
     <section v-if="pending" class="page__card bj-card ra__panel" :class="{ 'ra__panel--danger': pending.tone === 'danger' }" aria-labelledby="ra-title">
       <h2 id="ra-title">{{ pending.title }}: {{ name }}</h2>
@@ -206,6 +220,20 @@ defineExpose({ reload: load })
 }
 .ra__ok > span {
   color: var(--bj-state-completed);
+}
+.ra__ok--failed > span {
+  color: var(--bj-state-blocked);
+}
+.ra__done {
+  margin: 0;
+}
+.ra__log {
+  margin: 8px 0 0;
+  max-height: 320px;
+  overflow: auto;
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .ra__spin {
   width: 14px;

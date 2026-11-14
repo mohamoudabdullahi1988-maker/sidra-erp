@@ -67,11 +67,11 @@ const uploading = ref(false)
 const uploadError = ref('')
 async function upload(event) {
   const file = event.target.files?.[0]
-  if (!file || !props.docname) return
+  if (!file) return
   uploading.value = true
   uploadError.value = ''
   try {
-    const saved = await apiUpload(file, { doctype: props.doctype, docname: props.docname, fieldname: props.field.fieldname, isPrivate: true })
+    const saved = await apiUpload(file, props.docname ? { doctype: props.doctype, docname: props.docname, fieldname: props.field.fieldname, isPrivate: true } : { isPrivate: true })
     if (!saved?.file_url) throw new Error('The server did not return the uploaded file.')
     value.value = saved.file_url
   } catch (err) {
@@ -143,11 +143,8 @@ const display = computed(() => {
       <div v-else-if="type === 'Attach' || type === 'Attach Image'" class="ff__attach">
         <a v-if="fileLink(value)" class="bj-link" :href="fileLink(value)" target="_blank" rel="noopener">{{ String(value).split('/').pop() }}</a>
         <span v-else class="bj-muted">No file</span>
-        <template v-if="docname">
-          <input :id="id" type="file" :aria-label="name" :disabled="uploading" @change="upload" />
-          <span v-if="uploading" class="bj-muted" role="status">Uploading…</span>
-        </template>
-        <span v-else class="bj-muted">Save first, then attach the file.</span>
+        <input :id="id" type="file" :aria-label="name" :disabled="uploading" @change="upload" />
+        <span v-if="uploading" class="bj-muted" role="status">Uploading…</span>
         <span v-if="uploadError" class="ff__error" role="alert">{{ uploadError }}</span>
       </div>
       <input v-else :id="id" v-model="value" class="bj-input ff__input" :type="type === 'Phone' ? 'tel' : 'text'" :aria-label="name" :required="required" autocomplete="off" />

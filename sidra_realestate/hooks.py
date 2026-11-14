@@ -75,3 +75,6 @@ scheduler_events = {
 
 # Scoped Desk presentation fixes, loaded without changing Frappe core.
 app_include_js = ["/assets/sidra_realestate/js/desk_forms.js"]
+
+# Decision G24: Sidra staff opening Desk are sent to Berjaya; administrators and finance keep Desk.
+before_request = ["sidra_realestate.cutover.before_request"]

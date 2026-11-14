@@ -1,4 +1,5 @@
 <script setup>
+import ListInsights from '../components/ListInsights.vue'
 import { computed, onMounted, ref } from 'vue'
 import { LoadingIndicator } from 'frappe-ui'
 
@@ -96,6 +97,7 @@ onMounted(() => load())
         <RouterLink v-if="newLink" class="bj-btn" :to="{ name: 'contracts-new' }"><span class="lucide-plus" aria-hidden="true" />New contract</RouterLink>
       </form>
     </header>
+    <ListInsights :rows="rows" group="source" :columns="[{field:'name',label:'Contract'},{field:'customer',label:'Customer'},{field:'source',label:'Source'},{field:'contract_type',label:'Type'}]" :busy="loading || !!error" />
 
     <SectionTabs section="contracts" current="contracts" />
 

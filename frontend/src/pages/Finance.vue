@@ -1,4 +1,5 @@
 <script setup>
+import ListInsights from '../components/ListInsights.vue'
 import { computed, ref, watch } from 'vue'
 import { LoadingIndicator } from 'frappe-ui'
 
@@ -100,6 +101,8 @@ watch(company, reloadAll, { immediate: true })
         <button type="button" class="bj-btn" :disabled="summaryLoading" @click="reloadAll">Refresh</button>
       </div>
     </header>
+    <ListInsights v-if="tab === 'invoices'" :rows="invoices.rows.value" :busy="invoices.loading.value || !!invoices.error.value" :columns="[{field:'name',label:'Invoice'},{field:'customer',label:'Customer'},{field:'status',label:'Status'},{field:'due_date',label:'Due date'}]" />
+    <ListInsights v-else :rows="receipts.rows.value" :busy="receipts.loading.value || !!receipts.error.value" group="mode_of_payment" :columns="[{field:'name',label:'Receipt'},{field:'party',label:'Party'},{field:'posting_date',label:'Date'},{field:'mode_of_payment',label:'Payment method'}]" />
 
     <div v-if="!company" class="page__card">
       <StatePanel icon="lucide-building" title="No Company is available to you" message="Finance is shown for one Company at a time, and your account can read none." />

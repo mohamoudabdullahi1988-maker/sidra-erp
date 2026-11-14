@@ -4,10 +4,11 @@ import { useRoute } from 'vue-router'
 import { LoadingIndicator } from 'frappe-ui'
 
 import { ApiError, apiGet } from '../api'
+import RecordActions from '../components/RecordActions.vue'
 import StatePanel from '../components/StatePanel.vue'
 import { canRead } from '../boot'
 import { JOB_DOCTYPE, jobTone, stageTone } from '../construction'
-import { dateText, dateTimeText, deskLink, isAmount, money, percentText, textValue } from '../format'
+import { dateText, dateTimeText, isAmount, money, percentText, textValue } from '../format'
 
 const route = useRoute()
 const doc = ref(null)
@@ -23,7 +24,7 @@ const done = computed(() => stages.value?.filter((stage) => stage.status === 'Co
 
 async function load() {
   const id = ++request
-  doc.value = null
+  if (doc.value?.name !== route.params.name) doc.value = null // the same job reloads in place
   error.value = null
   loading.value = true
   try {
@@ -49,9 +50,9 @@ onBeforeUnmount(() => ++request)
       <span>{{ route.params.name }}</span>
     </nav>
 
-    <div v-if="loading" class="page__card bj-loading" role="status"><LoadingIndicator /><span>Loading job…</span></div>
+    <div v-if="loading && !doc" class="page__card bj-loading" role="status"><LoadingIndicator /><span>Loading job…</span></div>
 
-    <div v-else-if="error" class="page__card">
+    <div v-else-if="error && !doc" class="page__card">
       <StatePanel v-if="error.kind === 'denied'" icon="lucide-lock" title="This job is unavailable to you" message="Your account does not have permission to read this construction job." />
       <StatePanel
         v-else
@@ -73,9 +74,18 @@ onBeforeUnmount(() => ++request)
         <div class="bj-toolbar">
           <span v-if="doc.service_type" class="bj-pill">{{ doc.service_type }}</span>
           <span class="bj-pill bj-chip" :class="'bj-chip--' + jobTone(doc.status)">{{ doc.status || 'Status not recorded' }}</span>
-          <a class="bj-btn" :href="deskLink(JOB_DOCTYPE, doc.name)"><span class="lucide-external-link" aria-hidden="true" />Open in Desk</a>
         </div>
       </header>
+
+      <p v-if="route.query.saved" class="bj-note saved-note" role="status"><span class="lucide-circle-check-big" aria-hidden="true" />Saved.</p>
+      <RecordActions
+        :doctype="JOB_DOCTYPE"
+        :name="doc.name"
+        :edit-route="{ name: 'jobs-edit', params: { name: doc.name } }"
+        :list-route="{ name: 'construction' }"
+        :reload-key="doc.modified"
+        @changed="load"
+      />
 
       <div class="bj-grid">
         <article class="bj-card">
@@ -170,3 +180,12 @@ onBeforeUnmount(() => ++request)
     </template>
   </section>
 </template>
+
+<style scoped>
+.saved-note {
+  margin: 12px 0;
+}
+.saved-note > span {
+  color: var(--bj-state-completed);
+}
+</style>

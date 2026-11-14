@@ -4,13 +4,13 @@ import { LoadingIndicator } from 'frappe-ui'
 
 import { ApiError, apiGet } from '../api'
 import SectionTabs from '../components/SectionTabs.vue'
-import { deskNewLink, textValue } from '../format'
+import { textValue } from '../format'
 import StatePanel from '../components/StatePanel.vue'
 import { canCreate } from '../boot'
 import { CONTRACT, sourceText, statusText, statusTone } from '../contracts'
 
 const PAGE = 25
-const newLink = canCreate('contracts') ? deskNewLink('Sidra Sale Contract') : null
+const newLink = canCreate('contracts')
 const LIST_FIELDS = ['name', 'customer', 'docstatus', 'source', 'contract_type', 'external_reference']
 
 const rows = ref([])

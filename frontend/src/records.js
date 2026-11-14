@@ -512,6 +512,7 @@ export const RECORDS = {
   },
 
   jobs: {
+    form: true,
     section: 'construction',
     title: 'Jobs',
     noun: 'construction jobs',
@@ -533,6 +534,7 @@ export const RECORDS = {
     },
   },
   construction_quotations: {
+    form: true,
     section: 'construction',
     title: 'Quotations',
     noun: 'construction quotations',
@@ -597,6 +599,7 @@ export const RECORDS = {
     },
   },
   boq_revisions: {
+    form: true,
     section: 'construction',
     title: 'BOQ revisions',
     noun: 'BOQ revisions',
@@ -640,6 +643,7 @@ export const RECORDS = {
     },
   },
   variations: {
+    form: true,
     section: 'construction',
     title: 'Variations',
     noun: 'variation orders',
@@ -688,6 +692,7 @@ export const RECORDS = {
     },
   },
   inspections: {
+    form: true,
     section: 'construction',
     title: 'Inspections',
     noun: 'inspection reports',

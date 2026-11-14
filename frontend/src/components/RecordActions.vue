@@ -53,6 +53,12 @@ async function load() {
 }
 
 function ask(kind, item) {
+  // An action that only opens another form (e.g. "New inspection report" on a job).
+  if (kind === 'action' && item.navigate) {
+    const key = Object.keys(RECORDS).find((name) => RECORDS[name].doctype === item.navigate.doctype && RECORDS[name].form)
+    if (key) router.push({ name: `${key}-new`, query: item.navigate.values })
+    return
+  }
   error.value = null
   done.value = ''
   for (const key of Object.keys(askValues)) delete askValues[key]
@@ -91,6 +97,8 @@ async function go() {
       done.value = { submit: 'Submitted.', cancel: 'Cancelled.' }[step]
     }
     pending.value = null
+    // A "Saved." note from an earlier save no longer describes the page.
+    if (router.currentRoute.value.query.saved) await router.replace({ query: {} })
     emit('changed')
     await load()
   } catch (err) {
@@ -115,7 +123,7 @@ defineExpose({ reload: load })
         :key="action.key"
         type="button"
         class="bj-btn"
-        :class="{ 'bj-btn--primary': action.tone === 'primary' }"
+:class="{ 'bj-btn--primary': action.tone === 'primary' && !action.navigate }"
         :disabled="busy"
         @click="ask('action', action)"
       >

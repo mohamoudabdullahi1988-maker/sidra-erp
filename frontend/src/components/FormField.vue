@@ -22,7 +22,12 @@ const emit = defineEmits(['update:modelValue'])
 
 const id = `ff-${Math.random().toString(36).slice(2, 9)}`
 const type = computed(() => props.field.fieldtype)
-const options = computed(() => (Array.isArray(props.field.options) ? props.field.options : []))
+// Select options are plain values, or { value, label } pairs (e.g. the stages to certify).
+const options = computed(() =>
+  (Array.isArray(props.field.options) ? props.field.options : []).map((option) =>
+    option && typeof option === 'object' ? { value: option.value, label: option.label } : { value: option, label: option || '—' },
+  ),
+)
 const name = computed(() => props.label || props.field.label)
 const value = computed({
   get: () => props.modelValue,
@@ -102,7 +107,8 @@ const display = computed(() => {
         <span v-if="!compact">{{ field.description || 'Yes' }}</span>
       </label>
       <select v-else-if="type === 'Select'" :id="id" v-model="value" class="bj-select ff__input" :aria-label="name" :required="required">
-        <option v-for="option in options" :key="option" :value="option">{{ option || '—' }}</option>
+        <option v-if="!options.some((option) => option.value === '')" value="" disabled>Choose…</option>
+        <option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>
       </select>
       <template v-else-if="type === 'Link'">
         <input

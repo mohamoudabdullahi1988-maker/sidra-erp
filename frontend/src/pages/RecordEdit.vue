@@ -49,6 +49,14 @@ async function load() {
     for (const name of Object.keys(values)) delete values[name]
     Object.assign(values, initialValues(result))
     start = JSON.parse(JSON.stringify(values))
+    // A new record opened from another one (e.g. "New inspection report" on a job) is filled with
+    // the values in the link, for fields the form lets this user set.
+    if (result.is_new) {
+      for (const field of fieldsOf(result)) {
+        const given = route.query[field.fieldname]
+        if (field.editable && field.fieldtype !== 'Table' && typeof given === 'string') values[field.fieldname] = given
+      }
+    }
     requestKey = newRequestKey()
   } catch (err) {
     if (id === request) loadError.value = err instanceof ApiError ? err : new ApiError('server', err.message || 'Something went wrong.')

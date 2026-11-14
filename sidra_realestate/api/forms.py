@@ -273,7 +273,109 @@ def _run_revise_draft(doc, args):
 	return {"message": _("New draft {0} made").format(name), "open": {"doctype": doc.doctype, "name": name}}
 
 
+CONSTRUCTION_CLOSED = ("Closed", "Cancelled")
+
+
+def _job_actions(doc):
+	"""Desk's job buttons: create the job's quotation, BOQ revision, variation order or inspection
+	report (opens that form with the job filled in), and Certify Stage for a Project Manager."""
+	if doc.get("status") in CONSTRUCTION_CLOSED:
+		return []
+	actions = []
+	for doctype, label, wanted in (
+		("Sidra Construction Quotation", _("New quotation"), not doc.contract_quotation),
+		("Sidra BOQ Revision", _("New BOQ revision"), True),
+		("Sidra Variation Order", _("New variation order"), bool(doc.contract_quotation)),
+		("Sidra Inspection Report", _("New inspection report"), True),
+	):
+		if wanted and frappe.has_permission(doctype, "create"):
+			actions.append(
+				{
+					"key": "new_" + frappe.scrub(doctype),
+					"label": label,
+					"navigate": {"doctype": doctype, "values": {"job": doc.name}},
+					"tone": "secondary",
+				}
+			)
+	ready = [
+		stage
+		for stage in doc.get("stages") or []
+		if not stage.certified
+		and stage.status == "Completed"
+		and float(stage.completion_pct or 0) == 100
+		and stage.actual_end
+	]
+	if ready and "Sidra Project Manager" in frappe.get_roles():
+		actions.append(
+			{
+				"key": "certify_stage",
+				"label": _("Certify stage"),
+				"confirm": _("Certification records completion only. It is not an invoice."),
+				"ask": [
+					{
+						"fieldname": "stage",
+						"label": _("Completed stage"),
+						"fieldtype": "Select",
+						"reqd": 1,
+						"options": [
+							{"value": row.name, "label": f"{row.idx}. {row.stage_name}"} for row in ready
+						],
+						"default": ready[0].name if len(ready) == 1 else "",
+					}
+				],
+			}
+		)
+	return actions
+
+
+def _job_locked(doc):
+	"""The BOQ is controlled by an approved revision once there is one (Desk's read-only BOQ)."""
+	return {"boq"} if doc.get("boq_revision") else set()
+
+
+def _construction_quotation_actions(doc):
+	if (
+		doc.docstatus == 1
+		and not doc.contract_approved_on
+		and doc.client_accepted_on
+		and doc.client_acceptance_document
+		and "Sidra General Manager" in frappe.get_roles()
+	):
+		return [
+			{
+				"key": "approve_contract",
+				"label": _("Approve contract"),
+				"confirm": _(
+					"Make this quotation the job's contract? This sets the job's contract value, dates and retention."
+				),
+			}
+		]
+	return []
+
+
+def _run_certify_stage(doc, args):
+	from sidra_realestate.sidra_construction.doctype.sidra_construction_job.sidra_construction_job import (
+		certify_stage,
+	)
+
+	if not args.get("stage"):
+		frappe.throw(_("Choose the completed stage to certify"))
+	certify_stage(doc.name, args["stage"])
+	return {"message": _("Stage certified")}
+
+
+def _run_approve_contract(doc, args):
+	from sidra_realestate.sidra_construction.doctype.sidra_construction_quotation.sidra_construction_quotation import (
+		approve_contract,
+	)
+
+	approve_contract(doc.name)
+	return {"message": _("Contract approved; the job's contract value is set")}
+
+
 RUNNERS = {
+	"certify_stage": _run_certify_stage,
+	"approve_contract": _run_approve_contract,
 	"reserve_unit": _run_reserve,
 	"cancel_reservation": _run_cancel_reservation,
 	"verify_kyc": _run_verify_kyc,
@@ -324,6 +426,11 @@ FORMS = {
 		"actions": _title_transfer_actions,
 		"link_filters": {"contract": {"docstatus": 1}},
 	},
+	"Sidra Construction Job": {"actions": _job_actions, "locked": _job_locked},
+	"Sidra Construction Quotation": {"actions": _construction_quotation_actions},
+	"Sidra BOQ Revision": {},
+	"Sidra Variation Order": {},
+	"Sidra Inspection Report": {},
 }
 
 
@@ -453,7 +560,7 @@ def run_action(
 	doc.check_permission("read")
 	check_not_stale(doc, expected_modified)
 	offered = {item["key"]: item for item in (config.get("actions") or (lambda d: []))(doc)}
-	if action not in offered or action not in RUNNERS:
+	if action not in offered or action not in RUNNERS or offered[action].get("navigate"):
 		frappe.throw(_("{0} is not available for {1} now. Reload it.").format(action, name))
 	args = frappe.parse_json(args) if isinstance(args, str) else (args or {})
 	if not isinstance(args, dict):
@@ -518,12 +625,15 @@ def _editable_fields(doc, config, rules=True):
 		return set()
 	levels = _write_levels(doc)
 	create_only = set(config.get("create_only") or ()) if is_new else set()
+	locked = (config.get("locked") or (lambda d: set()))(doc)
 	editable = set()
 	for field in _selected(meta, config):
 		if field.fieldname in create_only:
 			editable.add(field.fieldname)
 			continue
 		if field.fieldtype in DISPLAY_ONLY_TYPES or field.read_only or (field.permlevel or 0) not in levels:
+			continue
+		if field.fieldname in locked:
 			continue
 		if doc.docstatus == 1 and not field.allow_on_submit:
 			continue
@@ -629,7 +739,16 @@ def _permissions(doc, config, is_new):
 		return {"write": True, "submit": False, "cancel": False, "delete": False}
 	editable_type = config.get("edit", True)
 	return {
-		"write": bool(editable_type and doc.docstatus == 0 and doc.has_permission("write")),
+		# A submitted record stays editable where its DocType lets fields change after submission
+		# (e.g. a construction quotation's client acceptance).
+		"write": bool(
+			editable_type
+			and doc.has_permission("write")
+			and (
+				doc.docstatus == 0
+				or (doc.docstatus == 1 and any(field.allow_on_submit for field in _selected(meta, config)))
+			)
+		),
 		"submit": bool(
 			editable_type
 			and meta.is_submittable
@@ -649,6 +768,7 @@ def _public_action(action):
 		"ask": action.get("ask") or [],
 		"confirm": action.get("confirm"),
 		"tone": action.get("tone") or "primary",
+		"navigate": action.get("navigate"),
 	}
 
 

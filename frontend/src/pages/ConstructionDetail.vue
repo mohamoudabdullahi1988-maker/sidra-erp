@@ -1,4 +1,6 @@
 <script setup>
+import LocationPanel from '../components/LocationPanel.vue'
+import RecordExtras from '../components/RecordExtras.vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { LoadingIndicator } from 'frappe-ui'
@@ -177,6 +179,8 @@ onBeforeUnmount(() => ++request)
           </template>
         </div>
       </section>
+      <LocationPanel :doctype="JOB_DOCTYPE" :name="doc.name" />
+      <RecordExtras :doctype="JOB_DOCTYPE" :name="doc.name" :reload-key="doc.modified" />
     </template>
   </section>
 </template>

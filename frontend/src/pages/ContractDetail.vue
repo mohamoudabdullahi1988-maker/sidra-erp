@@ -1,4 +1,5 @@
 <script setup>
+import RecordExtras from '../components/RecordExtras.vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { LoadingIndicator } from 'frappe-ui'
@@ -326,6 +327,7 @@ onBeforeUnmount(() => {
           </template>
         </div>
       </section>
+      <RecordExtras :doctype="CONTRACT_DOCTYPE" :name="doc.name" :reload-key="doc.modified" />
     </template>
 
     <Teleport defer to="#berjaya-panel">

@@ -1,4 +1,5 @@
 <script setup>
+import ListInsights from '../components/ListInsights.vue'
 import { computed, onMounted, ref } from 'vue'
 import { Button, LoadingIndicator } from 'frappe-ui'
 
@@ -126,6 +127,7 @@ const STATUS_TONE = {
         <Button :loading="loading" @click="reload">Refresh</Button>
       </div>
     </header>
+    <ListInsights :rows="rows" :columns="COLUMNS.map(c=>({field:c.field,label:c.label}))" :busy="loading || !!error" />
 
     <SectionTabs section="properties" current="units" />
 

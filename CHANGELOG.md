@@ -4,6 +4,12 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.35 — module list tools and visual summaries)
+- Expandable visual summaries, local search/sort previews, and CSV exports for loaded records in Properties, Contracts, Construction, Collections, Finance and generic Sales, Customer/KYC and Setup lists.
+- Charts explicitly describe loaded-record coverage, retain unavailable values, and never imply company-wide totals or calculate financial balances.
+- CSV exports include only configured columns and neutralize spreadsheet formulas. Existing workflows and server permissions are unchanged.
+- Tests cover distributions, unavailable values, CSV escaping and browser interactions at desktop and phone widths.
+
 ### Changed (v0.1.34 — cutover: Sidra staff use Berjaya, Desk for administrators and finance, 14 Nov 2026; decision G24)
 - **Decision G24** recorded. `sidra_realestate/cutover.py`, registered as a `before_request` hook: a signed-in Sidra staff member who opens a Desk page (`/desk`, `/app`) is sent to the matching Berjaya page with a temporary redirect (302): a bookmarked record lands on the same record (`/desk/sidra-unit/U-1` → `/berjaya/properties/U-1`), anything else on the Berjaya front page.
 - Users with System Manager, Accounts Manager, Accounts User, Auditor or Sidra Finance Reviewer keep Desk, for system administration and the ERPNext ledger and its reports. Administrator, guests and non-staff users are not affected.

@@ -1,4 +1,5 @@
 <script setup>
+import ListInsights from '../components/ListInsights.vue'
 import { ref, watch } from 'vue'
 
 import CompanyPicker from '../components/CompanyPicker.vue'
@@ -44,6 +45,7 @@ watch([company, status], reload, { immediate: true })
         <RouterLink v-if="newLink" class="bj-btn bj-btn--primary" :to="{ name: 'jobs-new' }"><span class="lucide-plus" aria-hidden="true" />New job</RouterLink>
       </div>
     </header>
+    <ListInsights :rows="rows" :columns="[{field:'name',label:'Job'},{field:'customer',label:'Customer'},{field:'status',label:'Status'},{field:'engineer',label:'Engineer'}]" :busy="loading || !!error" />
 
     <SectionTabs section="construction" current="jobs" />
 

@@ -1,4 +1,5 @@
 <script setup>
+import ListInsights from '../components/ListInsights.vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -67,6 +68,7 @@ watch(company, reload, { immediate: true })
         </a>
       </div>
     </header>
+    <ListInsights :rows="rows" :columns="config.list" :group="config.list.find(c => c.field === 'status' || c.field === 'docstatus')?.field || config.list.find(c => c.type === 'select')?.field || config.list[1]?.field || 'name'" :busy="loading || !!error" />
 
     <SectionTabs :section="config.section" :current="key" />
 

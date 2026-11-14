@@ -1,4 +1,6 @@
 <script setup>
+import LocationPanel from '../components/LocationPanel.vue'
+import RecordExtras from '../components/RecordExtras.vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { LoadingIndicator } from 'frappe-ui'
@@ -162,6 +164,8 @@ onBeforeUnmount(() => ++request)
       </section>
 
       <RelatedList v-for="item in related" :key="item.list" :item="item" :value="doc.name" />
+      <LocationPanel v-if="config.doctype === 'Sidra Unit'" :doctype="config.doctype" :name="doc.name" />
+      <RecordExtras v-if="config.form && !config.single" :doctype="config.doctype" :name="doc.name" :reload-key="doc.modified" />
     </template>
   </section>
 </template>

@@ -17,8 +17,10 @@ const cities = computed(() => Object.entries(CITIES).map(([name, ll]) => ({ name
 const pins = computed(() => {
   const seen = {}
   return props.widget.pins.map((pin) => {
-    const i = (seen[pin.city] = (seen[pin.city] ?? -1) + 1)
-    const [x, y] = project(CITIES[pin.city], width.value, height.value)
+    const key = pin.city ?? pin.point.join(',')
+    const i = (seen[key] = (seen[key] ?? -1) + 1)
+    // A recorded point is [latitude, longitude]; a sample pin names its city.
+    const [x, y] = project(pin.point ? [pin.point[1], pin.point[0]] : CITIES[pin.city], width.value, height.value)
     const angle = i * 2.1
     const r = i ? 9 + i * 3 : 0
     return { ...pin, x: x + Math.cos(angle) * r, y: y + Math.sin(angle) * r }
@@ -44,6 +46,7 @@ const open = (pin) => pin.to && router.push(linkTo(pin.to))
         </g>
       </svg>
     </div>
+    <p v-if="!widget.pins.length && widget.empty" class="empty">{{ widget.empty }}</p>
     <ul class="pins">
       <li v-for="pin in widget.pins" :key="pin.label">
         <RouterLink :to="linkTo(pin.to) ?? ''"><i :style="{ background: tone(pin.tone) }" /><span>{{ pin.label }}</span><small>{{ pin.sub }}</small></RouterLink>
@@ -54,6 +57,7 @@ const open = (pin) => pin.to && router.push(linkTo(pin.to))
 
 <style scoped>
 .map { width: 100%; }
+.empty { margin: 8px 0 0; font-size: 13px; color: var(--bj-muted); }
 svg { display: block; }
 .sea { fill: var(--bj-map-sea); }
 .land { fill: var(--bj-map-land); stroke: var(--bj-map-border); stroke-width: 1.2; stroke-linejoin: round; }

@@ -416,3 +416,41 @@ export function countBy(rows, key, order) {
   for (const row of rows) out[row[key]] = (out[row[key]] ?? 0) + 1
   return out
 }
+
+// ---------------------------------------------------------------- finance (sample overview)
+
+/** Group operating expenses per month, thousands of dollars (construction spend plus overheads). */
+export const EXPENSES = {
+  'Construction costs': MONTHS.map((_, i) => Object.values(SPEND).reduce((a, s) => a + s[i], 0)),
+  'Salaries & admin': [52, 52, 53, 53, 54, 55, 55, 56, 56, 57, 58, 58],
+  'Sales & marketing': [14, 12, 16, 18, 19, 17, 21, 22, 20, 24, 23, 26],
+}
+
+/** Bank and cash balances at the end of each month, thousands of dollars. */
+export const CASH_BALANCE = [1180, 1210, 1260, 1240, 1310, 1290, 1350, 1380, 1340, 1420, 1460, 1515]
+
+export const BANK_ACCOUNTS = [
+  ['Operating account', 'USD', 742000, 'Bank'],
+  ['Installment collections account', 'USD', 516000, 'Bank'],
+  ['Construction payments account', 'USD', 198000, 'Bank'],
+  ['Mobile money (merchant)', 'USD', 41000, 'Mobile money'],
+  ['Petty cash, Hargeisa office', 'USD', 9000, 'Cash'],
+  ['Petty cash, Berbera site', 'USD', 9000, 'Cash'],
+].map(([account, currency, balance, kind]) => ({ account, currency, balance, kind }))
+
+/** Money owed to Sidra by age: installments and client billings, dollars. */
+export const RECEIVABLES = [
+  { age: 'Not yet due', amount: 2826000 },
+  { age: '1-30 days', amount: 151000 },
+  { age: '31-60 days', amount: 88000 },
+  { age: '61-90 days', amount: 47000 },
+  { age: '90+ days', amount: 41000 },
+]
+
+/** Money Sidra owes suppliers and subcontractors by age, dollars. */
+export const PAYABLES = [
+  { age: 'Not yet due', amount: 312000 },
+  { age: '1-30 days', amount: 96000 },
+  { age: '31-60 days', amount: 21000 },
+  { age: '60+ days', amount: 6000 },
+]

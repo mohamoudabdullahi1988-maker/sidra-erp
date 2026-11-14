@@ -24,11 +24,16 @@ const LINES = [
   { key: 'brokerage', label: 'Brokerage', icon: 'lucide-key-round', also: [] },
 ]
 const SHARED = ['customers', 'finance', 'setup']
-const SET_LINE = { build: 'construction-hub', design: 'design', realestate: 'realestate', brokerage: 'brokerage' }
+// Finance opens its sample overview, for the users the server already shows Finance to; the
+// live ledger screen is one click away from it.
+const SHARED_ROUTE = { finance: { key: 'finance-hub', also: ['finance'] } }
+const SET_LINE = { build: 'construction-hub', design: 'design', realestate: 'realestate', brokerage: 'brokerage', finance: 'finance-hub' }
 
 const items = [
   ...LINES,
-  ...SHARED.map((key) => navItems().find((item) => item.key === key)).filter(Boolean).map((item) => ({ ...item, icon: ICONS[item.key], also: [] })),
+  ...SHARED.map((key) => navItems().find((item) => item.key === key))
+    .filter(Boolean)
+    .map((item) => ({ ...item, icon: ICONS[item.key], also: [], ...SHARED_ROUTE[item.key] })),
 ]
 const route = useRoute()
 // The menu item of the page on screen; its list and record pages keep it highlighted.

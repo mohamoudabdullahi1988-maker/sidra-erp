@@ -3,8 +3,12 @@
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
+// A missing value is shown as a dash, never as zero.
+const missing = (value) => value === null || value === undefined || value === ''
+
 /** $3.3m, $142k, $950 */
 export function money(value) {
+  if (missing(value)) return '—'
   const n = Number(value)
   if (!Number.isFinite(n)) return '—'
   const sign = n < 0 ? '-' : ''
@@ -16,6 +20,7 @@ export function money(value) {
 
 /** $1,250,000 */
 export function moneyFull(value) {
+  if (missing(value)) return '—'
   const n = Number(value)
   if (!Number.isFinite(n)) return '—'
   return (n < 0 ? '-$' : '$') + Math.round(Math.abs(n)).toLocaleString('en-US')
@@ -26,11 +31,13 @@ function trim(n, digits = 1) {
 }
 
 export function count(value) {
+  if (missing(value)) return '—'
   const n = Number(value)
   return Number.isFinite(n) ? Math.round(n).toLocaleString('en-US') : '—'
 }
 
 export function pct(value) {
+  if (missing(value)) return '—'
   const n = Number(value)
   return Number.isFinite(n) ? `${trim(n)}%` : '—'
 }

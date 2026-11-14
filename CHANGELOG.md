@@ -6,7 +6,7 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ### Changed (v0.1.37 — Sidra's own projects in the sample screens, 14 Nov 2026; decision G25)
 - Sample screens now use Sidra Homes' public project names: **Masalaha Hagbad** (land offer), **Rayan Gardens**, **Safa Housing** and **Berbera Townhouses** (off-plan, stone walls, raised foundations, insulation). They replace the invented Hargeisa North Ridge, Hagbad East, Berbera Coastal, Burao Central Plaza and Masalaha Gardens.
-- The Masalaha Hagbad offer uses its published terms: 9 m × 24 m plots, $11,000 full and $5,500 half, interest-free from $250 a month over 22 months; a "22 months, interest-free" payment plan appears in Contracts and collections.
+- Masalaha Hagbad uses 9 m × 24 m plots at the standard price, 30% above the friends-and-family offer ($11,000 / $5,500): $14,300 full and $7,150 half, interest-free from $325 a month over 22 months; a "22 months, interest-free" payment plan appears in Contracts and collections.
 - Real Estate Sales pipeline adds **Diaspora buyer support**: remote buying steps and buyers by country. Brokerage covers verified off-market plots and title deed transfer once paid; Design & Engineering describes end-to-end design and construction for the local climate.
 - All other figures, client projects and people stay fictional and labelled "Sample data".
 

@@ -380,7 +380,7 @@ const STATUS_TONE = { Available: 'green', Reserved: 'amber', Sold: 'blue' }
 const realestate = {
   inventory: {
     title: 'Inventory',
-    subtitle: 'Masalaha Hagbad plots ($11,000 full, $5,500 half, from $250 a month over 22 months interest-free), Rayan Gardens, Safa Housing and Berbera Townhouses',
+    subtitle: 'Masalaha Hagbad plots ($14,300 full, $7,150 half, from $325 a month over 22 months interest-free), Rayan Gardens, Safa Housing and Berbera Townhouses',
     kpis: [
       { label: 'Plots and units', value: inventory.total, kind: 'count', tone: 'blue', to: set('units') },
       { label: 'Available', value: inventory.available, kind: 'count', tone: 'green', to: set('units', { status: 'Available' }) },

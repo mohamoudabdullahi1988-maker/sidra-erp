@@ -3,8 +3,11 @@
 // go-ahead. Every figure here is fictional. Nothing is read from or written to the server, and no
 // business rule is decided here; screens that show real records are unchanged.
 //
-// Project and community names reuse the names in the test site's fictional dataset where one
-// exists (Rayan Gardens, Masalaha Hagbad, Berbera Townhouses); the rest are invented.
+// Sidra's own projects carry their public names (Masalaha Hagbad, Rayan Gardens, Safa Housing,
+// Berbera Townhouses). Masalaha Hagbad uses 9 m x 24 m plots at the standard price (Mohamoud,
+// 14 Nov 2026: the published $11,000 / $5,500 was a friends-and-family discount; standard is 30%
+// more): $14,300 full / $7,150 half, interest-free from $325 a month over 22 months. Every other
+// figure, and every client project and person, is invented.
 
 export const TODAY = '2026-11-14'
 
@@ -227,7 +230,7 @@ export const DESIGN_FEES = {
 // ---------------------------------------------------------------- real estate sales
 
 export const COMMUNITIES = [
-  { name: 'Masalaha Hagbad', kind: 'Plots, 9 × 24 m', city: 'Hargeisa', total: 240, sold: 186, reserved: 14, price: 11000, fixed: [['Full plot', 11000], ['Half plot', 5500]] },
+  { name: 'Masalaha Hagbad', kind: 'Plots, 9 × 24 m', city: 'Hargeisa', total: 240, sold: 186, reserved: 14, price: 14300, fixed: [['Full plot', 14300], ['Half plot', 7150]] },
   { name: 'Rayan Gardens', kind: 'Homes', city: 'Hargeisa', total: 72, sold: 41, reserved: 8, price: 68000 },
   { name: 'Safa Housing', kind: 'Expandable homes', city: 'Hargeisa', total: 60, sold: 44, reserved: 6, price: 38000 },
   { name: 'Berbera Townhouses', kind: 'Townhouses (off-plan)', city: 'Berbera', total: 40, sold: 11, reserved: 6, price: 86000 },

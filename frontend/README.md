@@ -22,7 +22,10 @@ Neither is committed. `sidra_realestate/www/berjaya.py` supplies the session boo
 - The server says which sections and fields a user may see (`window.berjaya_boot`). The
   frontend shows that; it decides no permission and holds no business rule of its own.
 - A value the user may not see reads "Unavailable": never zero, never a partial figure.
-- No demo or in-memory data. A failed request shows the failure, not a fallback.
+- No demo or in-memory data on record screens. A failed request shows the failure, not a fallback.
+- Exception (decision G25): the sample screens in `src/showcase/` (business-line dashboards for the
+  client demonstration) draw fictional data built into the interface. Every one carries a
+  "Sample data" badge, reads nothing from the server and is replaced by real records later.
 - `yarn dev` is not wired to a session yet: the boot data only exists on the built page.
 
 ## Screens (v0.3)
@@ -32,7 +35,8 @@ link to the Desk form ("Open in Desk") and lists offer "New in Desk" when the se
 
 | Route | Reads |
 | --- | --- |
-| `/berjaya/dashboard` (home) | `api.staff_dashboard.get_dashboard` |
+| `/berjaya` (home) → `/executive`; `/build/<tab>`, `/design/<tab>`, `/real-estate/<tab>`, `/brokerage`, `/sample/<list>` | Sample data only: `src/showcase/` (G25) |
+| `/berjaya/dashboard` | `api.staff_dashboard.get_dashboard` |
 | `/berjaya/properties`, `/properties/price-history` | Sidra Unit; Sidra Unit Price History |
 | `/berjaya/customers`, `/customers/kyc` | Customer (with related records); Sidra Customer KYC |
 | `/berjaya/sales/reservations`, `/sales/quotations` | Sidra Reservation; Sidra Sale Quotation |

@@ -4,6 +4,14 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.36 — broad sample screens for the client demonstration, 14 Nov 2026; decision G25)
+- **Decision G25** recorded: more surface, less depth before the client's go-ahead; menu by business line (option A); fictional, labelled sample data.
+- **Menu by business line**: Executive, Construction, Design & Engineering, Real Estate Sales, Brokerage, then Customers, Finance and Setup (as the server allows). Properties, Sales, Contracts and Collections are reached from Real Estate Sales; the live dashboard from Executive. Staff now land on the sample Executive overview.
+- **Sample screens** (`frontend/src/showcase/`), every one badged "Sample data": Executive overview; Construction portfolio, schedule, cost and budget, variations, quality and inspections, risk, stock and materials, subcontractors; Design & Engineering overview, architecture, civil engineering, inspection services; Real Estate Sales inventory, pipeline, contracts and collections; Brokerage. Coloured figure tiles, donut, bar-and-cumulative-line, horizontal bar, Gantt, schematic map and table charts, drawn without new libraries.
+- **One level down**: every tile, chart segment, bar, map pin and attention item opens a read-only, searchable sample list (`/berjaya/sample/<list>`), filtered to what was clicked.
+- **Right-hand workflow panel** on each sample screen: the process as steps, with buttons to the real records screens the user's session may open.
+- Nothing is read from or written to the server by the sample screens; real record screens, permissions and posting rules are unchanged. Tests: `frontend/tests/showcase.test.mjs` (every drill-down link opens rows, columns and series consistent, figures agree with rows, chart geometry, formats); browser checks extended.
+
 ### Added (v0.1.35 — module list tools and visual summaries)
 - Expandable visual summaries, local search/sort previews, and CSV exports for loaded records in Properties, Contracts, Construction, Collections, Finance and generic Sales, Customer/KYC and Setup lists.
 - Charts explicitly describe loaded-record coverage, retain unavailable values, and never imply company-wide totals or calculate financial balances.

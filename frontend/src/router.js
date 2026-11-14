@@ -1,11 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import { canCreate, canOpen, canRead, navItems } from './boot'
+import { canCreate, canOpen, canRead } from './boot'
 import { GENERIC, RECORDS, SECTIONS, detailRoute, listRoute } from './records'
 
 const RecordList = () => import('./pages/RecordList.vue')
 const RecordDetail = () => import('./pages/RecordDetail.vue')
 const RecordEdit = () => import('./pages/RecordEdit.vue')
+const Showcase = () => import('./pages/Showcase.vue')
 
 // Every generic list and its record page, from records.js. Static paths such as
 // /construction/quotations rank above /construction/:name, so they never collide.
@@ -41,11 +42,17 @@ const routes = [
     path: '/',
     name: 'home',
     redirect: () => {
-      if (canOpen('dashboard')) return { name: 'dashboard' }
-      const first = navItems()[0]
-      return first ? { name: first.key } : { name: 'no-access' }
+      // The sample Executive overview is the landing screen for the client demonstration.
+      return { name: 'executive' }
     },
   },
+  // Sample screens for the client demonstration (14 Nov 2026): fictional, labelled data only.
+  { path: '/executive', name: 'executive', component: Showcase, meta: { showcase: 'executive' } },
+  { path: '/build/:tab?', name: 'construction-hub', component: Showcase, meta: { showcase: 'build' } },
+  { path: '/design/:tab?', name: 'design', component: Showcase, meta: { showcase: 'design' } },
+  { path: '/real-estate/:tab?', name: 'realestate', component: Showcase, meta: { showcase: 'realestate' } },
+  { path: '/brokerage', name: 'brokerage', component: Showcase, meta: { showcase: 'brokerage' } },
+  { path: '/sample/:set', name: 'sample', component: () => import('./pages/SampleList.vue'), meta: { showcase: 'sample' } },
   { path: '/dashboard', name: 'dashboard', component: () => import('./pages/Dashboard.vue') },
   { path: '/properties', name: 'properties', component: () => import('./pages/Properties.vue'), meta: { list: 'units', section: 'properties' } },
   { path: '/customers-section', name: 'customers', redirect: () => firstList('customers') },
@@ -78,6 +85,8 @@ const OPEN_TO_ALL = new Set(['home', 'no-access', 'not-found'])
 // server's read permission for that list; any other page needs its section in the navigation.
 router.beforeEach((to) => {
   if (OPEN_TO_ALL.has(to.name)) return true
+  // Sample screens hold no Sidra record, so every staff member who reached /berjaya may see them.
+  if (to.meta.showcase) return true
   if (to.meta.list && !canRead(to.meta.list)) return { name: 'no-access' }
   if (to.meta.create && !canCreate(to.meta.list)) return { name: 'no-access' }
   if (canOpen(to.meta.section ?? to.name)) return true

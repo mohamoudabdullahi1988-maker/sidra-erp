@@ -761,7 +761,27 @@ def dashboard(page):
 	expect(page.get_by_text("Payments are not recorded in ERPNext yet.").first).to_be_visible()
 	expect(page.locator("dd", has_text="Unavailable")).to_have_count(1)  # the null 31-60 day bucket
 	expect(page.get_by_role("link", name="SYN-2026-00055")).to_be_visible()
-	expect(page.locator(".nav__item--active", has_text="Dashboard")).to_have_count(1)
+	# The live dashboard belongs to the Executive menu item (business-line menu, 14 Nov 2026).
+	expect(page.locator(".nav__item--active", has_text="Executive")).to_have_count(1)
+
+
+def executive(page):
+	# Landing screen: the sample Executive overview, labelled as sample data.
+	expect(page.get_by_role("heading", name="Executive overview")).to_be_visible()
+	expect(page.get_by_text("Sample data").first).to_be_visible()
+	expect(page.locator(".nav__item--active", has_text="Executive")).to_have_count(1)
+	for name in ("Construction", "Design & Engineering", "Real Estate Sales", "Brokerage"):
+		expect(page.locator(".nav__item", has_text=name)).to_have_count(1)
+	page.locator(".kpi", has_text="Active projects").click()
+	expect(page.get_by_role("heading", name="Construction projects")).to_be_visible()
+	expect(page.get_by_text("7 rows")).to_be_visible()
+
+
+def construction_hub(page):
+	expect(page.get_by_role("heading", name="Variation orders")).to_be_visible()
+	expect(page.locator(".nav__item--active", has_text="Construction")).to_have_count(1)
+	page.get_by_role("link", name="Awaiting approval").first.click()  # a donut legend entry
+	expect(page.get_by_text("3 rows")).to_be_visible()
 
 
 def customers(page):
@@ -864,7 +884,9 @@ def main():
 			check(page, width, "construction", "/construction", construction)
 			check(page, width, "construction-job", "/construction/SCJ-2026-00007", job)
 			check(page, width, "finance", "/finance", finance)
-			check(page, width, "dashboard", "/", dashboard)
+			check(page, width, "dashboard", "/dashboard", dashboard)
+			check(page, width, "executive", "/", executive)
+			check(page, width, "construction-hub", "/build/variations", construction_hub)
 			check(page, width, "customers", "/customers", customers)
 			check(page, width, "kyc", "/customers/kyc/Synthetic%20Buyer%20One", kyc)
 			check(page, width, "sales", "/sales", sales)

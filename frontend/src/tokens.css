@@ -18,6 +18,31 @@
   --bj-state-pending: #9aa6a0;
   --bj-state-blocked-tint: #fef3f2; /* behind a blocked banner */
 
+  /* Chart and tile palette for the sample showcase screens (client demonstration, 14 Nov 2026).
+     Each colour carries white text except amber, which carries ink. */
+  --bj-c-terracotta: var(--bj-terracotta);
+  --bj-c-blue: #1d5fa8;
+  --bj-c-sky: #2381bd;
+  --bj-c-teal: #0e8a80;
+  --bj-c-green: #2a8f57;
+  --bj-c-amber: #f0b429;
+  --bj-c-orange: #d2601c;
+  --bj-c-rose: #d64561;
+  --bj-c-purple: #7a4bb8;
+  --bj-c-slate: #6b7a86;
+  /* Status chips in sample tables (background, text) and the schematic map. */
+  --bj-chip-green-bg: #e3f4ea;
+  --bj-chip-green-ink: #1b6b40;
+  --bj-chip-amber-bg: #fdf3d7;
+  --bj-chip-amber-ink: #7a5300;
+  --bj-chip-red-bg: #fce8ec;
+  --bj-chip-red-ink: #a3233c;
+  --bj-chip-blue-bg: #e4eefa;
+  --bj-chip-blue-ink: #174d8a;
+  --bj-map-sea: #e6f0f6;
+  --bj-map-land: #f7f3ea;
+  --bj-map-border: #c9bfae;
+
   --bj-font-heading: 'Space Grotesk Variable', system-ui, sans-serif;
   --bj-font-body: 'Inter Variable', system-ui, sans-serif;
 

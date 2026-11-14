@@ -5,23 +5,38 @@ import { useRoute } from 'vue-router'
 import { boot, navItems } from '../boot'
 import { PRODUCT_NAME } from '../brand'
 import { panel } from '../panel'
+import { DATASETS } from '../showcase/datasets'
 
 const ICONS = {
-  dashboard: 'lucide-layout-dashboard',
-  properties: 'lucide-building-2',
   customers: 'lucide-users',
-  sales: 'lucide-handshake',
-  contracts: 'lucide-file-text',
-  collections: 'lucide-wallet',
-  construction: 'lucide-hard-hat',
   setup: 'lucide-settings-2',
   finance: 'lucide-landmark',
 }
 
-const items = navItems()
+// The menu, by business line (decision of 14 Nov 2026, option A). The five business-line items
+// open sample screens every staff member may see; records screens keep their server-given
+// permission (boot.js) and are reached from the business line they belong to.
+const LINES = [
+  { key: 'executive', label: 'Executive', icon: 'lucide-gauge', also: ['dashboard'] },
+  { key: 'construction-hub', label: 'Construction', icon: 'lucide-hard-hat', also: ['construction'] },
+  { key: 'design', label: 'Design & Engineering', icon: 'lucide-drafting-compass', also: [] },
+  { key: 'realestate', label: 'Real Estate Sales', icon: 'lucide-building-2', also: ['properties', 'sales', 'contracts', 'collections'] },
+  { key: 'brokerage', label: 'Brokerage', icon: 'lucide-key-round', also: [] },
+]
+const SHARED = ['customers', 'finance', 'setup']
+const SET_LINE = { build: 'construction-hub', design: 'design', realestate: 'realestate', brokerage: 'brokerage' }
+
+const items = [
+  ...LINES,
+  ...SHARED.map((key) => navItems().find((item) => item.key === key)).filter(Boolean).map((item) => ({ ...item, icon: ICONS[item.key], also: [] })),
+]
 const route = useRoute()
-// The section of the page on screen; its list and record pages keep it highlighted.
-const activeSection = computed(() => route.meta.section ?? route.name)
+// The menu item of the page on screen; its list and record pages keep it highlighted.
+const activeSection = computed(() => {
+  if (route.name === 'sample') return SET_LINE[DATASETS[route.params.set]?.section] ?? null
+  const section = route.meta.section ?? route.name
+  return items.find((item) => item.key === section || item.also.includes(section))?.key ?? section
+})
 
 const navCollapsed = ref(false) // desktop: icon-only rail
 const navDrawer = ref(false) // phone: slide-over
@@ -60,7 +75,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
           :aria-current="activeSection === item.key ? 'page' : undefined"
           :title="navCollapsed ? item.label : undefined"
         >
-          <span class="nav__icon" :class="ICONS[item.key]" aria-hidden="true" />
+          <span class="nav__icon" :class="item.icon" aria-hidden="true" />
           <span class="nav__label">{{ item.label }}</span>
         </RouterLink>
         <p v-if="!items.length" class="nav__none">No sections are available to your account.</p>

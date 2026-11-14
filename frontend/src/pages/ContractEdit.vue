@@ -7,7 +7,7 @@ import { ApiError, apiGet, apiPost, apiUpload } from '../api'
 import StatePanel from '../components/StatePanel.vue'
 import { companies, company as currentCompany } from '../company'
 import { CONTRACT, CONTRACT_DOCTYPE } from '../contracts'
-import { deskLink, fileLink, money } from '../format'
+import { fileLink, money } from '../format'
 import {
   ATTACH_METHOD,
   DOWN_PAYMENT_MODES,
@@ -264,7 +264,6 @@ onBeforeUnmount(() => ++request)
           <p class="bj-sub">A contract signed outside the system, entered as signed. The server checks every value when you save.</p>
         </div>
         <div class="bj-toolbar">
-          <a v-if="doc" class="bj-btn" :href="deskLink(CONTRACT_DOCTYPE, doc.name)"><span class="lucide-external-link" aria-hidden="true" />Open in Desk</a>
           <button type="submit" class="bj-btn bj-btn--primary" :disabled="saving">
             <span v-if="saving" class="reg__spin" aria-hidden="true" />{{ isNew ? 'Create draft' : 'Save draft' }}
           </button>

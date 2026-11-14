@@ -4,6 +4,13 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Changed (v0.1.34 — cutover: Sidra staff use Berjaya, Desk for administrators and finance, 14 Nov 2026; decision G24)
+- **Decision G24** recorded. `sidra_realestate/cutover.py`, registered as a `before_request` hook: a signed-in Sidra staff member who opens a Desk page (`/desk`, `/app`) is sent to the matching Berjaya page with a temporary redirect (302): a bookmarked record lands on the same record (`/desk/sidra-unit/U-1` → `/berjaya/properties/U-1`), anything else on the Berjaya front page.
+- Users with System Manager, Accounts Manager, Accounts User, Auditor or Sidra Finance Reviewer keep Desk, for system administration and the ERPNext ledger and its reports. Administrator, guests and non-staff users are not affected.
+- Only Desk page requests (GET) are redirected. API calls, private files, print views, sign-in and Berjaya are untouched; Desk itself is not changed or removed.
+- The registration screen's "Open in Desk" button is removed.
+- Tests: `tests/test_cutover.py` (5 integration tests: staff sent to Berjaya, records landing on the same record, administrators and finance keeping Desk, only Desk pages redirected, non-staff and guests left alone). Checked over HTTP against a running local site: a sales user's `/desk`, `/desk/sidra-unit` and `/app/sidra-sale-contract/<name>` answer 302 to the Berjaya pages; a finance user's answer 200 from Desk; API calls answer 200 for both.
+
 ### Added (v0.1.33 — attachments, comments and map locations in Berjaya, 14 Nov 2026; decision G23, step 5a)
 - **Attachments and comments** on every record page Berjaya serves (Desk's sidebar and timeline): the record's files, with those belonging to a form field marked; **Attach a file** (private) and **Remove** for users who may write the record (a field's file changes only through the form); comments, newest first, shown as plain text, which anyone who may read the record can add, as in Desk. Server: `sidra_realestate/api/record_extras.py` (`get_extras`, `add_comment`, `remove_attachment`); uploads use Frappe's `upload_file`, which checks write permission on the record.
 - **Map location** on unit and construction job pages, through the existing `api/locations.py`: the recorded point, **Google Maps** and **Google Earth** links, **KML** download, and **Set location** by latitude and longitude or **Use my current position** (the device's GPS), for users who may write the record; the version check and the "point, not surveyed boundaries" note as before. Desk's tile map is not rebuilt.

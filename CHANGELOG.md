@@ -4,6 +4,19 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.43 — demo readiness check, 15 Nov 2026)
+- `sidra_realestate/demo_readiness.py` (`check_demo_readiness`): a read-only, Administrator-only check of everything walkthrough v0.2 needs on the test site. Each item reports PASS, WARN or FAIL, and each gap comes with its fix. It never creates, changes or posts anything, and prints no password or personal value. It checks:
+  - the built interface;
+  - the pilot dataset and its top-up;
+  - Sidra's project names;
+  - an available Masalaha Hagbad plot;
+  - an active contract profile;
+  - a buyer with verified KYC;
+  - jobs on the map, inspections and variations;
+  - leads and opportunities;
+  - each demo user's roles, enabled state and whether a password is set.
+- `docs/DEMO-SCRIPT_v0.2.md`: running the check is a preparation step.
+
 ### Added (v0.1.42 — demo-ready live data: real project names and the missing records, 15 Nov 2026; decision G16)
 - **Live records on Real Estate Sales**: Inventory, Pipeline and Contracts & collections get the Sample data / Live records switch. They read the new read-only `api.realestate_live.get_realestate_live`:
   - units by project and status, and the value available;

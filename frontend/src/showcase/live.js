@@ -7,7 +7,7 @@ import { detailRoute, listRoute } from '../records.js'
 export const LIVE_METHOD = '/api/method/sidra_realestate.api.construction_live.get_construction_live'
 
 /** Construction tabs that can show live records. */
-export const LIVE_TABS = { executive: ['overview'], build: ['portfolio', 'variations', 'quality'] }
+export const LIVE_TABS = { executive: ['overview'], build: ['portfolio', 'schedule', 'cost', 'variations', 'quality'] }
 
 const num = (value) => (value === null || value === undefined || value === '' ? null : Number(value))
 const sumOf = (rows, key) => {
@@ -133,7 +133,91 @@ function quality(data) {
   }
 }
 
-const BUILDERS = { portfolio, variations, quality }
+// ---------------------------------------------------------------- Schedule and Cost & budget (issue #82)
+const STAGE_TONE = { Completed: 'green', 'In Progress': 'blue', Planned: 'slate', Overdue: 'rose' }
+const daysLate = (planned, today) => Math.round((Date.parse(today) - Date.parse(planned)) / 86400000)
+
+function stagesOf(rows) {
+  return rows.flatMap((job) => (job.stage_rows ?? []).map((st) => ({ ...st, job: job.name, site: jobLabel(job) })))
+}
+
+function schedule(data) {
+  const jobs = data.jobs
+  if (!jobs.available) return { kpis: [], widgets: [notice('Stages', jobs.reason)] }
+  const stages = stagesOf(jobs.rows)
+  if (!stages.length) return { kpis: [], widgets: [notice('Stages', `No job stages are recorded for ${data.company} yet.`)] }
+  const list = { name: 'construction' }
+  const state = (st) => (st.overdue ? 'Overdue' : st.status)
+  const overdue = stages.filter((st) => st.overdue)
+  const counts = {}
+  for (const st of stages) counts[state(st)] = (counts[state(st)] ?? 0) + 1
+  const upcoming = [...overdue, ...stages.filter((st) => !st.overdue && st.status === 'In Progress')].filter((st) => st.planned_start && st.planned_end).slice(0, 14)
+  const widgets = [
+    { type: 'donut', title: 'Stages by status', note: 'Overdue: not completed and past its planned end', span: 4, centre: 'stages', kind: 'count', to: list,
+      segments: ['Completed', 'In Progress', 'Overdue', 'Planned'].filter((k) => counts[k]).map((label) => ({ label, value: counts[label], tone: STAGE_TONE[label], to: list })) },
+  ]
+  if (upcoming.length) {
+    const from = upcoming.reduce((a, st) => (st.planned_start < a ? st.planned_start : a), upcoming[0].planned_start)
+    const until = upcoming.reduce((a, st) => (st.planned_end > a ? st.planned_end : a), data.today > upcoming[0].planned_end ? data.today : upcoming[0].planned_end)
+    widgets.push({ type: 'gantt', title: 'Overdue and current stages', span: 8, from, until, milestones: true, today: data.today,
+      rows: upcoming.map((st) => ({ label: st.stage, sub: `${st.site} · ${state(st)}`, start: st.planned_start, end: st.planned_end, tone: STAGE_TONE[state(st)], to: jobLink(st.job) })) })
+  } else widgets.push(notice('Overdue and current stages', 'No stage is overdue or in progress.', 8))
+  widgets.push({
+    type: 'table', title: 'Overdue stages', span: 12, to: list,
+    columnDefs: [{ key: 'job', label: 'Job' }, { key: 'site', label: 'Site' }, { key: 'stage', label: 'Stage' }, { key: 'planned_end', label: 'Planned end', kind: 'date' }, { key: 'days_late', label: 'Days late', kind: 'count' }, { key: 'completion_pct', label: 'Recorded completion', kind: 'pct' }],
+    rows: overdue.sort((a, b) => (a.planned_end > b.planned_end ? 1 : -1)).map((st) => ({ ...st, days_late: daysLate(st.planned_end, data.today), _to: jobLink(st.job) })),
+  })
+  return {
+    kpis: [
+      { label: 'Stages', value: stages.length, kind: 'count', tone: 'blue', to: list },
+      { label: 'Completed', value: counts.Completed ?? 0, kind: 'count', tone: 'green', to: list },
+      { label: 'In progress', value: counts['In Progress'] ?? 0, kind: 'count', tone: 'sky', to: list },
+      { label: 'Overdue', value: overdue.length, kind: 'count', tone: 'rose', to: list },
+      { label: 'Certified', value: stages.filter((st) => st.certified).length, kind: 'count', tone: 'purple', to: list },
+    ],
+    widgets,
+  }
+}
+
+function cost(data) {
+  const jobs = data.jobs
+  if (!jobs.available) return { kpis: [], widgets: [notice('Cost and budget', jobs.reason)] }
+  const rows = jobs.rows
+  if (!rows.length) return { kpis: [], widgets: [notice('Cost and budget', `No construction jobs are recorded for ${data.company} yet.`)] }
+  const list = { name: 'construction' }
+  const recorded = (key) => rows.filter((r) => r[key] !== null)
+  const certifiedValue = (job) => {
+    const amounts = (job.stage_rows ?? []).filter((st) => st.certified).map((st) => num(st.billing_amount))
+    return amounts.some((a) => a === null) ? null : amounts.reduce((a, v) => a + v, 0)
+  }
+  const costRows = rows.filter((r) => r.boq_total !== null || r.current_contract_value !== null).slice(0, 12)
+  const variations = rows.filter((r) => num(r.approved_variations) > 0)
+  return {
+    kpis: [
+      { label: 'BOQ total', value: sumOf(recorded('boq_total'), 'boq_total'), kind: 'money', tone: 'sky', to: list },
+      { label: 'Contract value', value: sumOf(recorded('contract_value'), 'contract_value'), kind: 'money', tone: 'blue', to: list },
+      { label: 'Approved variations', value: sumOf(recorded('approved_variations'), 'approved_variations'), kind: 'money', tone: 'purple', to: { name: listRoute('variations') } },
+      { label: 'Current contract value', value: sumOf(recorded('current_contract_value'), 'current_contract_value'), kind: 'money', tone: 'teal', to: list },
+      { label: 'Certified milestones', value: rows.map(certifiedValue).every((v) => v !== null) ? rows.reduce((a, r) => a + certifiedValue(r), 0) : null, kind: 'money', tone: 'green', to: list },
+    ],
+    widgets: [
+      costRows.length
+        ? { type: 'hbars', title: 'BOQ total and current contract value by job', span: 7, kind: 'money', series: [{ name: 'BOQ total', tone: 'sky' }, { name: 'Current contract value', tone: 'teal' }],
+            rows: costRows.map((r) => ({ label: jobLabel(r), values: [num(r.boq_total) ?? 0, num(r.current_contract_value) ?? 0], to: jobLink(r.name) })) }
+        : notice('BOQ and contract value', 'No BOQ total or contract value is recorded yet.', 7),
+      variations.length
+        ? { type: 'hbars', title: 'Approved variations by job', span: 5, kind: 'money', series: [{ name: 'Approved variations', tone: 'purple' }], rows: variations.map((r) => ({ label: jobLabel(r), values: [num(r.approved_variations)], to: jobLink(r.name) })) }
+        : notice('Approved variations', 'No variation order has been approved yet.', 5),
+      {
+        type: 'table', title: 'Cost by job', note: 'Milestones are payment stages, not invoices: nothing is invoiced yet (CON-07).', span: 12, to: list,
+        columnDefs: [{ key: 'name', label: 'Job' }, { key: 'site', label: 'Site' }, { key: 'boq_total', label: 'BOQ total', kind: 'moneyFull' }, { key: 'contract_value', label: 'Contract value', kind: 'moneyFull' }, { key: 'approved_variations', label: 'Variations', kind: 'moneyFull' }, { key: 'current_contract_value', label: 'Current value', kind: 'moneyFull' }, { key: 'certified_value', label: 'Certified milestones', kind: 'moneyFull' }],
+        rows: rows.map((r) => ({ ...r, site: jobLabel(r), certified_value: certifiedValue(r), _to: jobLink(r.name) })),
+      },
+    ],
+  }
+}
+
+const BUILDERS = { portfolio, schedule, cost, variations, quality }
 
 /** A live page for a Construction tab, in the shape pages.js uses (title etc. come from the sample page). */
 export function livePage(tab, data, samplePage) {

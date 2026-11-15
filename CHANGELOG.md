@@ -4,6 +4,18 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.48 — live Construction Schedule and Cost & budget, 15 Nov 2026; issue #82)
+- Construction's **Schedule** and **Cost & budget** tabs get the Sample data / Live records switch. Sample data stays the default.
+  - **Schedule:**
+    - stages by status, where overdue means not completed and past its planned end;
+    - a Gantt of overdue and in-progress stages;
+    - a table of overdue stages with the days late and the recorded completion, each linking to its job.
+  - **Cost & budget:**
+    - BOQ total, contract value, approved variations, current contract value and certified milestones;
+    - BOQ against current value by job, and approved variations by job;
+    - a cost table, labelled "milestones, not invoices" (CON-07).
+- `api.construction_live` now returns each job's recorded stages (status, planned and actual dates, completion, certified, overdue, billing % and amount) and its BOQ total. A value that isn't recorded is left out, never counted as zero. Progress is recorded completion only (#32 is still open).
+
 ### Added (v0.1.47 — CRM conversion in Berjaya, 15 Nov 2026; issue #81)
 - Create opportunities with permission-checked Lead, Customer or Prospect party links. The picker follows its dependent type and clears stale suggestions when that type changes.
 - Lead actions open a prefilled Opportunity form or save ERPNext's native mapped Customer. Repeated customer conversion opens the existing linked record.

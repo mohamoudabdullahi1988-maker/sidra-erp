@@ -78,10 +78,12 @@ def _jobs(company, today):
 		limit_page_length=0,
 	)
 	stages = (
-		frappe.get_all(
+		frappe.get_list(
 			"Sidra Project Stage",
+			parent_doctype=JOB,
 			filters={"parenttype": JOB, "parent": ["in", [j.name for j in jobs]]},
 			fields=[
+				"name",
 				"parent",
 				"idx",
 				"stage_name",
@@ -128,6 +130,7 @@ def _jobs(company, today):
 				# payment milestones, not invoices: nothing is invoiced before P2 (CON-07).
 				"stage_rows": [
 					{
+						"name": s.name,
 						"stage": s.stage_name,
 						"status": s.status,
 						"planned_start": str(s.planned_start) if s.planned_start else None,
@@ -150,7 +153,15 @@ def _jobs(company, today):
 				"stages_overdue": len(overdue),
 			}
 		)
-	return {"available": True, "reason": None, "rows": rows}
+	return {
+		"available": True,
+		"reason": None,
+		"rows": rows,
+		"summary": {
+			"active_jobs": sum(r["status"] in ("Contracted", "In Progress", "On Hold") for r in rows),
+			"overdue_stages": sum(r["stages_overdue"] for r in rows),
+		},
+	}
 
 
 def _variations(company):
@@ -175,6 +186,7 @@ def _variations(company):
 	return {
 		"available": True,
 		"reason": None,
+		"draft_count": sum(r.docstatus == 0 for r in rows),
 		"rows": [
 			{
 				"name": r.name,
@@ -203,6 +215,7 @@ def _inspections(company):
 	return {
 		"available": True,
 		"reason": None,
+		"failed_count": sum(r.result == "Fail" and r.docstatus != 2 for r in rows),
 		"rows": [
 			{
 				"name": r.name,

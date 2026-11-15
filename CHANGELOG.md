@@ -4,6 +4,13 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Fixed (v0.1.54 — demo readiness: live overview verification, 15 Nov 2026; issue #96)
+- Executive sources start in parallel and fail independently; wrong-Company responses are refused. Restricted attention sources show reasons instead of an all-clear.
+- Added reservation expiry links, lead-status chart and confirmed-contract counts; Executive business totals now come from server responses.
+- Construction Schedule includes every dated stage. Cost charts compare BOQ, original and current values without substituting zero for missing data; individual billing milestones remain explicitly separate from invoices.
+- Added permission-scoped child queries, server summary/expiry tests and mixed-source frontend checks.
+- Updated the rehearsal script for deploy v0.2 and live-screen checks; published handover v0.2 with server verification and decision blockers.
+
 ### Docs (v0.1.53 — Codex handover, 15 Nov 2026)
 - `docs/CODEX-HANDOVER_v0.1.md`: the state at v0.1.52 (the demonstration, the test server, the loaders, which screens are live) and Codex's tasks: demo-readiness support (#96), live Design → Architecture and Civil (#97), and Brokerage records, blocked on #95 (#98).
 

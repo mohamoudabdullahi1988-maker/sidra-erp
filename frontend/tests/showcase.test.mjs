@@ -207,12 +207,13 @@ test('live Schedule and Cost show recorded stages and values only', () => {
   const sched = livePage('schedule', data, MODULES.build.tabs.schedule)
   assert.equal(tile(sched, 'Stages'), 3)
   assert.equal(tile(sched, 'Overdue'), 1)
+  assert.equal(tile(sched, 'In progress'), 1) // overdue work can still be in progress
   assert.equal(tile(sched, 'Certified'), 1)
   const late = sched.widgets.find((w) => w.title === 'Overdue stages').rows
   assert.deepEqual(late.map((r) => [r.stage, r.days_late]), [['Structure', 14]])
   const cost = livePage('cost', data, MODULES.build.tabs.cost)
-  assert.equal(tile(cost, 'BOQ total'), 40000) // the job without a BOQ is left out, not counted as 0
-  assert.equal(tile(cost, 'Current contract value'), 42800)
+  assert.equal(tile(cost, 'BOQ total'), null) // an incomplete total stays unknown
+  assert.equal(tile(cost, 'Current contract value'), null)
   assert.equal(tile(cost, 'Certified milestones'), 8560)
   const none = livePage('schedule', { ...data, jobs: { available: true, rows: [data.jobs.rows[1]] } }, MODULES.build.tabs.schedule)
   assert.match(none.widgets[0].items[0].text, /No job stages are recorded/)
@@ -220,21 +221,66 @@ test('live Schedule and Cost show recorded stages and values only', () => {
 
 // ---------------------------------------------------------------- live Executive: construction and sales (issue #83)
 test('live Executive adds construction and sales, and a failed source says why without hiding the others', () => {
-  const construction = { data: { company: 'Synthetic Homes', jobs: { available: true, rows: [
+  const construction = { data: { company: 'Synthetic Homes', jobs: { available: true, summary: { active_jobs: 1, overdue_stages: 2 }, rows: [
     { name: 'SCJ-1', site: 'Rayan Gardens, plot 3', status: 'In Progress', progress: 40, stages_overdue: 2, point: [9.5, 44.1] },
     { name: 'SCJ-2', site: null, customer: 'Synthetic Client', status: 'Quoted', progress: null, stages_overdue: 0, point: null },
-  ] }, variations: { available: true, rows: [{ status: 'Draft' }, { status: 'Approved' }] }, inspections: { available: false, reason: 'no', rows: [] } } }
+  ] }, variations: { available: true, rows: [{ name: 'SVO-1', status: 'Draft' }, { name: 'SVO-2', status: 'Approved' }] }, inspections: { available: false, reason: 'no', rows: [] } } }
   const page = executivePage({ ...executiveData, extras: { construction, realestate: { error: 'The server could not be reached.' } } }, MODULES.executive.tabs.overview)
   assert.deepEqual(page.kpis.slice(0, 3).map((k) => k.value), [7, null, 0]) // the dashboard's own tiles stay first
   assert.equal(page.kpis.find((k) => k.label === 'Active construction jobs').value, 1)
   assert.ok(page.widgets.some((w) => w.title === 'Real estate sales' && w.items[0].text === 'The server could not be reached.'))
   const attention = page.widgets.find((w) => w.title === 'Needs attention').items.map((i) => i.text)
-  assert.deepEqual(attention, ['2 construction stages are overdue', '1 variation order awaits approval'])
+  assert.ok(attention.some((text) => text.includes('2 overdue stages')))
+  assert.ok(attention.some((text) => text.includes('SVO-1')))
+  assert.ok(attention.some((text) => text.includes('unavailable')))
   assert.equal(page.widgets.at(-1).title, 'Reporting period')
   assert.ok(page.workflow?.steps?.length) // the usual process; live screens show no state on it
   const quiet = executiveExtras({ construction: { error: 'x' }, realestate: { error: 'y' } })
-  assert.equal(quiet.widgets.find((w) => w.title === 'Needs attention').items[0].text, 'Nothing recorded needs attention.')
+  assert.match(quiet.widgets.find((w) => w.title === 'Needs attention').items[0].text, /unavailable/)
   assert.equal(quiet.kpis.length, 0)
+})
+
+test('all Executive sources start together and dashboard failure does not hide others', async () => {
+  const { loadExecutiveSources } = await import('../src/showcase/liveSources.js')
+  const pending = []
+  const promise = loadExecutiveSources('Synthetic Homes', (method, params) => new Promise((resolve, reject) => pending.push({ method, params, resolve, reject })))
+  assert.equal(pending.length, 3)
+  assert.ok(pending.every((p) => p.params.company === 'Synthetic Homes'))
+  pending[0].reject(new Error('Dashboard restricted'))
+  pending[1].resolve({ message: LIVE })
+  pending[2].resolve({ message: RE })
+  const result = await promise
+  assert.equal(result.dashboard_error, 'Dashboard restricted')
+  assert.equal(result.extras.construction.data.company, 'Synthetic Homes')
+  const page = executivePage(result, MODULES.executive.tabs.overview)
+  assert.ok(page.widgets.some((w) => w.title === 'Job sites'))
+  assert.ok(page.widgets.some((w) => w.title === 'Dashboard summary'))
+})
+
+test('wrong Company and malformed sources are isolated, never rendered', async () => {
+  const { loadExecutiveSources } = await import('../src/showcase/liveSources.js')
+  const result = await loadExecutiveSources('Synthetic Homes', async () => ({ message: { ...LIVE, company: 'Other Company' } }))
+  assert.ok(result.dashboard_error)
+  assert.ok(result.extras.construction.error)
+  assert.ok(result.extras.realestate.error)
+  assert.equal(result.scope.company_id, 'Synthetic Homes')
+  const malformed = await loadExecutiveSources('Synthetic Homes', async () => ({ message: { company: 'Synthetic Homes', jobs: {} } }))
+  assert.ok(malformed.extras.construction.error)
+})
+
+test('Executive shows expiry records, lead statuses and group denial reasons', () => {
+  const realestate = structuredClone(RE)
+  realestate.reservations = { available: true, expiring: [{ name: 'RES-1', expires_on: '2026-11-20' }] }
+  realestate.leads = { available: true, total: 4, status_counts: { Open: 4 } }
+  realestate.contracts.status_counts = { Confirmed: 8, Draft: 1 }
+  realestate.schedule.total = '1234.56'
+  const page = executiveExtras({ construction: { data: LIVE }, realestate: { data: realestate } })
+  assert.equal(page.kpis.find((k) => k.label === 'Confirmed contracts').value, 8)
+  assert.equal(page.kpis.find((k) => k.label === 'Installments due, 12 months').value, '1234.56')
+  assert.ok(page.widgets.some((w) => w.title === 'Leads by status'))
+  assert.ok(page.widgets.some((w) => w.title === 'Variation orders' && w.items[0].text === LIVE.variations.reason))
+  const expiring = page.widgets.find((w) => w.title === 'Needs attention').items.find((i) => i.text.includes('RES-1'))
+  assert.equal(expiring.to.params.name, 'RES-1')
 })
 
 // ---------------------------------------------------------------- live Finance, Design, Subcontractors, Stock
@@ -288,4 +334,15 @@ test('live Risk register counts open risks only and says why when missing', () =
   const empty = livePageFor('build', 'risk', { company: 'Synthetic Homes', risks: { available: true, rows: [] } }, MODULES.build.tabs.risk)
   assert.match(empty.widgets[0].items[0].text, /No risks are recorded for Synthetic Homes/)
   assert.match(liveMethod('build', 'risk'), /construction_live/)
+})
+
+test('additional live sources accept denied groups and reject another Company', async () => {
+  const { validLiveSource } = await import('../src/showcase/liveSources.js')
+  const denied = { available: false, reason: 'Restricted' }
+  const finance = { company: 'Synthetic Homes', pnl: denied, cash: denied, receivables: denied, payables: denied }
+  const operations = { company: 'Synthetic Homes', stock: { available: true, rows: [] }, suppliers: denied }
+  assert.equal(validLiveSource(finance, 'Synthetic Homes', 'finance'), true)
+  assert.equal(validLiveSource(operations, 'Synthetic Homes', 'operations'), true)
+  assert.equal(validLiveSource(finance, 'Other Company', 'finance'), false)
+  assert.equal(validLiveSource({ ...operations, stock: {} }, 'Synthetic Homes', 'operations'), false)
 })

@@ -32,6 +32,10 @@ LISTS = {
 	"price_history": "Sidra Unit Price History",
 	"customers": "Customer",
 	"kyc": "Sidra Customer KYC",
+	# CRM: ERPNext's own CRM records.
+	"leads": "Lead",
+	"opportunities": "Opportunity",
+	"contacts": "Contact",
 	"reservations": "Sidra Reservation",
 	"sale_quotations": "Sidra Sale Quotation",
 	"contracts": "Sidra Sale Contract",
@@ -54,7 +58,8 @@ LISTS = {
 NAV = (
 	("dashboard", "Dashboard", ()),
 	("properties", "Properties", ("units", "schemes", "price_history")),
-	("customers", "Customers", ("customers", "kyc")),
+	# CRM (Mohamoud, 15 Nov 2026): ERPNext's Lead, Opportunity and Contact beside Customer and KYC.
+	("customers", "CRM", ("leads", "opportunities", "customers", "contacts", "kyc")),
 	("sales", "Sales", ("reservations", "sale_quotations")),
 	("contracts", "Contracts", ("contracts", "title_transfers")),
 	("collections", "Collections", ("contracts",)),

@@ -481,6 +481,38 @@ FORMS = {
 		"create_only": ("mobile_no", "email_id"),
 	},
 	"Sidra Customer KYC": {"actions": _kyc_actions},
+	# CRM (ERPNext's own records). A lead is created and worked in Berjaya. An opportunity is
+	# created from its lead or customer in ERPNext (its party is a dynamic link the form shows but
+	# does not edit), then progressed here. Contacts are kept by ERPNext from their parties.
+	"Lead": {
+		"fields": (
+			"first_name",
+			"last_name",
+			"company_name",
+			"mobile_no",
+			"email_id",
+			"source",
+			"status",
+			"qualification_status",
+			"territory",
+			"city",
+			"country",
+			"lead_owner",
+		),
+	},
+	"Opportunity": {
+		"create": False,
+		"fields": (
+			"status",
+			"sales_stage",
+			"opportunity_type",
+			"source",
+			"opportunity_amount",
+			"probability",
+			"expected_closing",
+			"opportunity_owner",
+		),
+	},
 	"Sidra Scheme": {},
 	"Sidra Unit": {"actions": _unit_actions},
 	"Sidra Reservation": {"create": False, "edit": False, "actions": _reservation_actions},

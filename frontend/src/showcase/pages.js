@@ -454,6 +454,8 @@ const realestate = {
         { label: 'Title transfer', state: 'next' },
       ],
       actions: [
+        { label: 'Leads (CRM)', list: 'leads' },
+        { label: 'Opportunities (CRM)', list: 'opportunities' },
         { label: 'Reservations', to: { name: 'reservations-list' }, list: 'reservations' },
         { label: 'Quotations', to: { name: 'sale_quotations-list' }, list: 'sale_quotations' },
       ],
@@ -704,6 +706,7 @@ export const MODULES = {
     label: 'Real Estate Sales', route: 'realestate', icon: 'lucide-building-2', tabs: realestate,
     tabLabels: { inventory: 'Inventory', pipeline: 'Pipeline', contracts: 'Contracts & collections' },
     records: [
+      { label: 'Leads', list: 'leads' },
       { label: 'Units', to: { name: 'properties' }, section: 'properties' },
       { label: 'Reservations', to: { name: 'reservations-list' }, list: 'reservations' },
       { label: 'Contracts', to: { name: 'contracts' }, section: 'contracts' },

@@ -4,6 +4,11 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Changed (v0.1.41 — CRM on ERPNext's own records, 15 Nov 2026)
+- **Customers becomes CRM** (Mohamoud): the menu item now holds ERPNext's own CRM records, **Leads**, **Opportunities** and **Contacts**, beside Customers and KYC. Each list and record page reads the ERPNext DocType through its standard permissions; a Lead's page lists its Opportunities.
+- Leads are created and edited in Berjaya (name, organisation, phone, email, source, status, qualification, territory, owner). Opportunities are progressed here (status, stage, amount, probability, expected closing) and created from their lead or customer in ERPNext, because their party is a dynamic link. Contacts are read only, kept by ERPNext from their parties.
+- Desk links to Lead, Opportunity and Contact open the matching Berjaya CRM page for staff (G24). The Real Estate Sales pipeline links to Leads and Opportunities.
+
 ### Fixed (v0.1.40 — sign-in card centred; Sidra Homes logo shown, 15 Nov 2026; decision G19)
 - **Sign-in card centred.** The page wrapper laid its children out side by side at full width, so a second child Frappe adds (header or breadcrumbs) took half the row and pushed the card to the right. The wrapper now stacks its children and the card centres itself.
 - **Sidra Homes logo** (the company using Berjaya, G19): under the sign-in form, and at the right of the Berjaya top bar on every screen. It comes from `branding.COMPANY_LOGO` through the page's boot data (`company_logo`); nothing is renamed.

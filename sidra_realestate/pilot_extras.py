@@ -28,7 +28,7 @@ import frappe
 from sidra_realestate.finance_demo import COMPANY
 from sidra_realestate.pilot_demo import MANIFEST as PILOT_MANIFEST
 from sidra_realestate.pilot_demo import _guard, _read_manifest
-from sidra_realestate.services.construction_jobs import CLOSED_STATUSES
+from sidra_realestate.services.construction import CLOSED_STATUSES
 from sidra_realestate.services.pilot_dataset import FAMILY, GIVEN, PREFIX
 
 MANIFEST = "sidra-pilot-extras-v1.json"

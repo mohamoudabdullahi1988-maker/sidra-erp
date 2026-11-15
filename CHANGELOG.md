@@ -4,6 +4,11 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.43 — demo rehearsal checks, 15 Nov 2026; issue #79)
+- Integration journeys for External contract capture, plot sale and construction through Berjaya endpoints, including approval refusals and no ledger side effects.
+- Administrator-only staging command `demo.ensure_demo_users`, reusing existing role profiles, printing interactive password commands and setting no passwords.
+- Rehearsal notes document inspection submission permissions, the second Project Manager account, and generated-profile installment terms.
+
 ### Added (v0.1.42 — demo-ready live data: real project names and the missing records, 15 Nov 2026; decision G16)
 - **Live records on Real Estate Sales**: Inventory, Pipeline and Contracts & collections get the Sample data / Live records switch. They read the new read-only `api.realestate_live.get_realestate_live`:
   - units by project and status, and the value available;

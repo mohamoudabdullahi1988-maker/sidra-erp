@@ -194,7 +194,7 @@ def _users(add):
 				f"User {email}",
 				False,
 				"does not exist",
-				"Create the demo users (issue #79 adds the command), then set a password.",
+				f"{BENCH} execute sidra_realestate.demo.ensure_demo_users  (then set the printed passwords)",
 			)
 			continue
 		enabled = frappe.db.get_value("User", email, "enabled")

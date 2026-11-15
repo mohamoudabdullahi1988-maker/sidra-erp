@@ -4,6 +4,23 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.46 — demo rehearsal checks, 15 Nov 2026; issue #79)
+- Integration journeys for External contract capture, plot sale and construction through Berjaya endpoints, including approval refusals and no ledger side effects.
+- Administrator-only staging command `demo.ensure_demo_users`, reusing existing role profiles, printing interactive password commands and setting no passwords.
+- Rehearsal notes document inspection submission permissions, the second Project Manager account, and generated-profile installment terms.
+- `docs/DEMO-SCRIPT_v0.2.md` follows these notes:
+  - the demo-user command;
+  - Customer created separately from the Lead;
+  - discount approval levels;
+  - generated contracts use the profile's terms (Profile A: 14 installments);
+  - the inspection report is a draft;
+  - the General Manager approves the variation;
+  - only registered contracts have the six-stage panel.
+- The readiness check's fix for a missing demo user names `demo.ensure_demo_users`.
+
+### Fixed (v0.1.44 — deployment login-name verification)
+- Deployment helper v0.2 verifies the effective login app name from Website/System Settings. Frappe v16 renders a generic sign-in heading and logo without printing `app_name`, so searching the HTML for "Berjaya" incorrectly reported a failure even when settings were correct. The previous version is retained.
+
 ### Added (v0.1.43 — demo readiness check, 15 Nov 2026)
 - `sidra_realestate/demo_readiness.py` (`check_demo_readiness`): a read-only, Administrator-only check of everything walkthrough v0.2 needs on the test site. Each item reports PASS, WARN or FAIL, and each gap comes with its fix. It never creates, changes or posts anything, and prints no password or personal value. It checks:
   - the built interface;

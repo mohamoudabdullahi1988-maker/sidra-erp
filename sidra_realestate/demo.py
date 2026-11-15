@@ -11,6 +11,7 @@ contract stays a draft. Nothing is posted to the ledger.
 """
 
 import os
+import shlex
 from io import BytesIO
 
 import frappe
@@ -35,6 +36,25 @@ PLACEHOLDER = "[DEMO PLACEHOLDER — not Sidra legal wording; replace with appro
 def _guard():
 	if not frappe.conf.get("sidra_allow_demo_data"):
 		frappe.throw("Demo data is disabled on this site. Set sidra_allow_demo_data only on staging.")
+
+
+def ensure_demo_users() -> dict:
+	"""Create the existing staging accounts without loading data or setting passwords (#79)."""
+	from frappe.utils import cint
+
+	if frappe.session.user != "Administrator":
+		frappe.throw("Only Administrator may ensure demo users.", frappe.PermissionError)
+	if cint(frappe.conf.get("sidra_allow_demo_data")) != 1:
+		frappe.throw("Demo data is disabled on this site. Set sidra_allow_demo_data only on staging.")
+	_ensure_users()
+	commands = [
+		f"bench --site {shlex.quote(frappe.local.site)} set-password {shlex.quote(email)}"
+		for email, profile in USERS.items()
+		if profile
+	]
+	print("Set passwords interactively on staging (no password has been set by this command):")
+	print("\n".join(commands))
+	return {"users": {email: profile for email, profile in USERS.items() if profile}}
 
 
 def create_demo_data(company: str | None = None) -> dict:

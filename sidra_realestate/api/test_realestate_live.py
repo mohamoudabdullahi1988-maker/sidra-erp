@@ -55,3 +55,27 @@ class TestRealEstateLive(IntegrationTestCase):
 			get_realestate_live(COMPANY)
 		with as_user(SALES_MANAGER), self.assertRaises(frappe.ValidationError):
 			get_realestate_live("_Test No Such Company")
+
+	def test_reservation_expiry_window_and_company_scope(self):
+		from frappe.utils import add_days, today
+
+		from sidra_realestate.services.reservations import reserve_unit
+		from sidra_realestate.tests.helpers import BUYER, OTHER_COMPANY, make_scheme, make_unit, unique
+
+		scheme = make_scheme(unique("_T-EXP"))
+		other_scheme = make_scheme(unique("_T-EXP-OTHER"), company=OTHER_COMPANY)
+		units = [make_unit(unique("_T-EXP"), scheme).name for _ in range(3)]
+		other = make_unit(unique("_T-EXP-OTHER"), other_scheme).name
+		with as_user("Administrator"):
+			included = reserve_unit(units[0], BUYER, days=7)["reservation"]
+			later = reserve_unit(units[1], BUYER, days=8)["reservation"]
+			past = reserve_unit(units[2], BUYER, days=1)["reservation"]
+			foreign = reserve_unit(other, BUYER, days=3)["reservation"]
+		frappe.db.set_value("Sidra Reservation", past, "expires_on", add_days(today(), -1))
+		with as_user(SALES_MANAGER):
+			data = get_realestate_live(COMPANY)
+		names = {r["name"] for r in data["reservations"]["expiring"]}
+		self.assertIn(included, names)
+		self.assertFalse({later, past, foreign} & names)
+		self.assertIn("status_counts", data["contracts"])
+		self.assertIn("total", data["schedule"])

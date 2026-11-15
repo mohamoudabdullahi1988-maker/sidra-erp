@@ -14,7 +14,7 @@ from collections import Counter, defaultdict
 
 import frappe
 from frappe import _
-from frappe.utils import add_months, getdate, nowdate
+from frappe.utils import add_days, add_months, getdate, nowdate
 
 from sidra_realestate.api.location_geometry import extract_point
 from sidra_realestate.api.staff_dashboard import _staff_only, total
@@ -50,7 +50,7 @@ def get_realestate_live(company: str) -> dict:
 		"currency": frappe.get_cached_value("Company", company, "default_currency"),
 		"today": str(today),
 		"units": _units(company),
-		"reservations": _reservations(company),
+		"reservations": _reservations(company, today),
 		"contracts": contracts,
 		"schedule": _schedule(contracts, today),
 		"leads": _leads(company),
@@ -104,11 +104,28 @@ def _units(company):
 	}
 
 
-def _reservations(company):
+def _reservations(company, today):
 	if not _readable(RESERVATION):
 		return _unavailable(_("Your role does not include reservations."), counts={})
-	rows = frappe.get_list(RESERVATION, filters={"company": company}, pluck="status", limit_page_length=0)
-	return {"available": True, "reason": None, "counts": dict(Counter(rows))}
+	rows = frappe.get_list(
+		RESERVATION,
+		filters={"company": company},
+		fields=["name", "unit", "status", "expires_on"],
+		limit_page_length=0,
+	)
+	expiring = [
+		r
+		for r in rows
+		if r.status == "Active"
+		and r.expires_on
+		and today <= getdate(r.expires_on) <= getdate(add_days(today, 7))
+	]
+	return {
+		"available": True,
+		"reason": None,
+		"counts": dict(Counter(r.status for r in rows)),
+		"expiring": [{"name": r.name, "unit": r.unit, "expires_on": str(r.expires_on)} for r in expiring],
+	}
 
 
 def _contracts(company):
@@ -135,6 +152,7 @@ def _contracts(company):
 	return {
 		"available": True,
 		"reason": None,
+		"status_counts": dict(Counter(CONTRACT_STATUS.get(r.docstatus, "Draft") for r in rows)),
 		"rows": [
 			{
 				"name": r.name,
@@ -163,6 +181,7 @@ def _schedule(contracts, today):
 		return {
 			"available": True,
 			"reason": None,
+			"total": "0.00",
 			"months": [{"month": m, "amount": "0.00", "rows": 0} for m in months],
 		}
 	rows = frappe.get_all(  # child rows of contracts the user may read (listed above)
@@ -181,6 +200,7 @@ def _schedule(contracts, today):
 	return {
 		"available": True,
 		"reason": None,
+		"total": total([value for m in months for value in amounts[m]]),
 		"months": [
 			{"month": m, "amount": total(amounts[m]) if amounts[m] else "0.00", "rows": len(amounts[m])}
 			for m in months

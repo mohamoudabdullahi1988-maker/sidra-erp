@@ -121,3 +121,19 @@ class TestConstructionLive(IntegrationTestCase):
 			get_construction_live(COMPANY)
 		with as_user(PROJECT_MANAGER), self.assertRaises(frappe.ValidationError):
 			get_construction_live("_Test No Such Company")
+
+	def test_summary_and_child_rows_match_readable_jobs(self):
+		from sidra_realestate.tests.helpers import OTHER_COMPANY
+
+		other = make_job(company=OTHER_COMPANY, stages=[{"stage_name": "_Test Other Stage"}])
+		with as_user(PROJECT_MANAGER):
+			data = get_construction_live(COMPANY)
+		rows = data["jobs"]["rows"]
+		self.assertNotIn(other.name, [r["name"] for r in rows])
+		self.assertNotIn(other.stages[0].name, [s["name"] for r in rows for s in r["stage_rows"]])
+		self.assertEqual(data["jobs"]["summary"]["overdue_stages"], sum(r["stages_overdue"] for r in rows))
+		self.assertEqual(
+			data["jobs"]["summary"]["active_jobs"],
+			sum(r["status"] in ("Contracted", "In Progress", "On Hold") for r in rows),
+		)
+		self.assertGreaterEqual(data["inspections"]["failed_count"], 1)

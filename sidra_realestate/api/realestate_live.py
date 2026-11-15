@@ -212,12 +212,12 @@ def _leads(company):
 	if not _readable(LEAD):
 		return _unavailable(_("Your role does not include leads."), status_counts={}, source_counts={})
 	rows = frappe.get_list(
-		LEAD, filters={"company": company}, fields=["status", "source"], limit_page_length=0
+		LEAD, filters={"company": company}, fields=["status", "utm_source"], limit_page_length=0
 	)
 	return {
 		"available": True,
 		"reason": None,
 		"total": len(rows),
 		"status_counts": dict(Counter(r.status or "Not set" for r in rows)),
-		"source_counts": dict(Counter(r.source or "Not set" for r in rows)),
+		"source_counts": dict(Counter(r.utm_source or "Not set" for r in rows)),
 	}

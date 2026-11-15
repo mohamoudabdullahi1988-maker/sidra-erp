@@ -120,7 +120,7 @@ def get_boot() -> dict:
 		currencies = {
 			row.name: row.default_currency
 			for row in frappe.get_list("Company", fields=["name", "default_currency"], limit_page_length=0)
-			if row.default_currency
+			if row.default_currency and row.name not in {"Sidra Demo Homes", "Sidra Finance Demo - Fictional"}
 		}
 	return {
 		# The software's name and icon, from the one source (branding.py, decisions G17-G19).
@@ -129,7 +129,13 @@ def get_boot() -> dict:
 		# The client company's own logo (decision G19: Sidra is the company using Berjaya).
 		"company_logo": branding.COMPANY_LOGO,
 		"user": {"name": user, "full_name": frappe.utils.get_fullname(user)},
-		"company": frappe.defaults.get_user_default("Company"),
+		"company": (
+			frappe.defaults.get_user_default("Company")
+			if frappe.defaults.get_user_default("Company") in currencies
+			else "Sidra Homes"
+			if "Sidra Homes" in currencies
+			else next(iter(currencies), None)
+		),
 		"nav": [
 			{"key": key, "label": _(label)}
 			for key, label, lists in NAV

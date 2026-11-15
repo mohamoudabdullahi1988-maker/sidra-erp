@@ -88,6 +88,9 @@ class TestConstructionLive(IntegrationTestCase):
 		self.assertEqual((job["stages"], job["stages_completed"], job["stages_overdue"]), (3, 1, 1))
 		self.assertEqual(job["start"], str(add_days(today(), -60)))
 		self.assertEqual(job["end"], str(add_days(today(), 30)))
+		self.assertIsNone(job["contract_value"])
+		self.assertIsNone(job["current_contract_value"])
+		self.assertIn("approved", job["contract_value_reason"])
 		self.assertIsNone(job["point"])  # no location recorded; nothing is guessed
 		# Stages as recorded, for the Schedule and Cost & budget tabs.
 		stages = job["stage_rows"]

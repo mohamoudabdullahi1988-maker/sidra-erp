@@ -40,12 +40,13 @@ function portfolio(data) {
     kpis: [
       { label: 'Jobs', value: rows.length, kind: 'count', tone: 'amber', to: list },
       { label: 'Active', value: rows.filter((r) => ACTIVE.has(r.status)).length, kind: 'count', tone: 'blue', to: list },
-      { label: 'Current contract value', value: sumOf(rows.filter((r) => r.current_contract_value !== null), 'current_contract_value'), kind: 'money', tone: 'sky', to: list },
+      { label: 'Current contract value', value: sumOf(rows, 'current_contract_value'), kind: 'money', tone: 'sky', to: list },
       { label: 'Approved variations', value: sumOf(rows.filter((r) => r.approved_variations !== null), 'approved_variations'), kind: 'money', tone: 'purple', to: list },
       { label: 'Overdue stages', value: rows.reduce((a, r) => a + r.stages_overdue, 0), kind: 'count', tone: 'rose', to: list },
       { label: 'Average progress', value: withProgress.length ? Math.round(withProgress.reduce((a, r) => a + r.progress, 0) / withProgress.length) : null, kind: 'pct', tone: 'green', to: list },
     ],
     widgets: [
+      ...(rows.some((r) => r.contract_value_reason) ? [notice('Contract values pending approval', 'Jobs without an approved quotation have no contract value yet. Open the job, create a quotation, record client acceptance and have the General Manager approve it. Job statuses are shown as recorded.')] : []),
       {
         type: 'map', title: 'Job sites', span: 4,
         pins: rows.filter((r) => r.point).map((r) => ({ label: jobLabel(r), point: r.point, tone: JOB_TONE[r.status], sub: `${r.status}${r.progress !== null ? ` · ${r.progress}%` : ''}`, to: jobLink(r.name) })),
@@ -496,12 +497,12 @@ function designOverview(data) {
       { label: 'Design jobs', value: rows.filter((r) => r.service_type === 'Design Only').length, kind: 'count', tone: 'purple', to: list },
       { label: 'Inspection jobs', value: rows.filter((r) => r.service_type === 'Inspection Only').length, kind: 'count', tone: 'teal', to: list },
       { label: 'Open', value: rows.filter(OPEN).length, kind: 'count', tone: 'blue', to: list },
-      { label: 'Contract value', value: sumOf(rows.filter((r) => r.current_contract_value !== null), 'current_contract_value'), kind: 'money', tone: 'green', to: list },
+      { label: 'Contract value', value: sumOf(rows, 'current_contract_value'), kind: 'money', tone: 'green', to: list },
     ],
     widgets: [
       { type: 'donut', title: 'Jobs by service', span: 4, centre: 'jobs', kind: 'count', to: list, segments: countSegments(rows, 'service_type', SERVICE_TONE, list) },
       { type: 'donut', title: 'Jobs by status', span: 4, centre: 'jobs', kind: 'count', to: list, segments: countSegments(rows, 'status', JOB_TONE, list) },
-      notice('Where these come from', 'Construction jobs whose service type is Design Only or Inspection Only. Architecture and civil engineering are not told apart in the records yet.', 4),
+      notice('Where these come from', 'Construction jobs whose service type is Design Only or Inspection Only. A contract value needs an approved quotation; a dash means it is not approved yet. Architecture and civil engineering are not told apart in the records yet.', 4),
       { type: 'table', title: 'Design and inspection jobs', span: 12, to: list,
         columnDefs: [{ key: 'name', label: 'Job' }, { key: 'customer', label: 'Client' }, { key: 'service_type', label: 'Service', kind: 'chip' }, { key: 'status', label: 'Status', kind: 'chip' }, { key: 'current_contract_value', label: 'Value', kind: 'money' }, { key: 'end', label: 'Due', kind: 'date' }],
         rows: rows.map((r) => ({ ...r, _to: jobLink(r.name) })) },

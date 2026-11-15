@@ -4,6 +4,14 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Fixed and added (v0.1.56 — rehearsal feedback and CRM, 15 Nov 2026; issue #96)
+- Fix ERPNext v16 Lead/Opportunity sources (`utm_source`), including live sales summaries and the demo loader. Add a live CRM dashboard, native Email/WhatsApp/Phone/Web/social acquisition channels and explicit contact links.
+- Hide the two retired demo companies from Berjaya's Company choices; keep their records intact.
+- Add permission-aware transaction/report submenus and a workflow guide on transaction lists, forms and details, with saved status and permitted actions where available. Preserve the existing contract timeline.
+- Unapproved construction/design contract values show unknown with an explanation, rather than a default zero.
+- Add an Administrator-only, staging-guarded demo quotation approval loader, explicitly requested by Mohamoud. Only pilot-owned construction jobs/quotations are touched; missing quotations use existing BOQs; acceptance is explicitly fictional, normal submit/approval controllers run, and a private manifest makes reruns no-ops. No ledger posting.
+
+
 ### Added (v0.1.55 — screen check before the demonstration, risks on the job page, 15 Nov 2026)
 - `frontend/tests/showcase_browser.py`: opens every business-line screen (sample data, and live records where a tab has them) at laptop (1440px) and phone (390px) width with synthetic server answers. On each screen it checks for script errors, sideways page scroll, broken text ("NaN", "undefined") and the sample / live label, and saves screenshots to `frontend/.verify/showcase/`. It fails if a module or live tab is added without being checked. 66 screens pass.
 - A construction job page lists the job's **risks**, for roles that may read the register. The job gets a **New risk** button that opens the risk form with the job and its Company filled in.

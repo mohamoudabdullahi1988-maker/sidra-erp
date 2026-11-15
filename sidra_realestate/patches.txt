@@ -12,3 +12,4 @@ sidra_realestate.patches.v0_4.set_collection_rule_defaults
 
 sidra_realestate.patches.v0_4.repair_desk_ui
 sidra_realestate.patches.v0_4.set_somaliland_country
+sidra_realestate.patches.v0_4.add_crm_channels

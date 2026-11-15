@@ -202,7 +202,7 @@ def _inspections(pilot, today, rng):
 
 def _crm(today, rng):
 	"""Fictional leads, and opportunities from some of them (CRM, 15 Nov 2026)."""
-	sources = [s for s in LEAD_SOURCES if frappe.db.exists("Lead Source", s)]
+	sources = [s for s in LEAD_SOURCES if frappe.db.exists("UTM Source", s)]
 	# ERPNext's standard sales stages (its setup wizard creates them; a bare site may lack them,
 	# and a new Opportunity defaults to "Prospecting"). Only missing ones are added.
 	added_stages = []
@@ -221,7 +221,7 @@ def _crm(today, rng):
 				"first_name": f"{PREFIX} {rng.choice(GIVEN)}",
 				"last_name": rng.choice(FAMILY),
 				"status": LEAD_STATUSES[index % len(LEAD_STATUSES)],
-				"source": sources[index % len(sources)] if sources else None,
+				"utm_source": sources[index % len(sources)] if sources else None,
 				"company": COMPANY,
 				"city": "Berbera" if index % 5 == 0 else "Hargeisa",
 				"country": "Somalia" if frappe.db.exists("Country", "Somalia") else None,
@@ -240,7 +240,7 @@ def _crm(today, rng):
 				"currency": "USD",
 				"opportunity_type": sales_type,
 				"sales_stage": stages[(index // 3) % len(stages)],
-				"source": lead.source,
+				"utm_source": lead.utm_source,
 				"opportunity_amount": (14300, 7150, 68000, 38000, 86000)[(index // 3) % 5],
 				"probability": (20, 40, 60, 75, 90)[(index // 3) % 5],
 				"expected_closing": today + timedelta(days=15 + index * 3),

@@ -1,4 +1,5 @@
 <script setup>
+import TransactionGuide from '../components/TransactionGuide.vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { LoadingIndicator } from 'frappe-ui'
@@ -221,6 +222,7 @@ onBeforeUnmount(() => ++request)
 </script>
 
 <template>
+  <TransactionGuide />
   <section class="page">
     <nav class="bj-crumb" aria-label="Breadcrumb">
       <RouterLink class="bj-link" :to="{ name: 'contracts' }">Contracts</RouterLink>

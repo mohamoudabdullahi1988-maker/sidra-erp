@@ -1,4 +1,5 @@
 <script setup>
+import TransactionGuide from '../components/TransactionGuide.vue'
 import ListInsights from '../components/ListInsights.vue'
 import { computed, onMounted, ref } from 'vue'
 import { LoadingIndicator } from 'frappe-ui'
@@ -82,6 +83,7 @@ onMounted(() => load())
 </script>
 
 <template>
+  <TransactionGuide />
   <section class="page">
     <header class="bj-head">
       <div>

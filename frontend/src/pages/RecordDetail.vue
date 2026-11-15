@@ -1,4 +1,5 @@
 <script setup>
+import TransactionGuide from '../components/TransactionGuide.vue'
 import ContactChannels from '../components/ContactChannels.vue'
 import LocationPanel from '../components/LocationPanel.vue'
 import RecordExtras from '../components/RecordExtras.vue'
@@ -63,6 +64,7 @@ onBeforeUnmount(() => ++request)
 </script>
 
 <template>
+  <TransactionGuide />
   <section class="page">
     <nav class="bj-crumb" aria-label="Breadcrumb">
       <RouterLink class="bj-link" :to="{ name: listRoute(key) }">{{ config.title }}</RouterLink>

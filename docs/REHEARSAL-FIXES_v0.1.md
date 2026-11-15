@@ -7,3 +7,5 @@ Claude owns dashboard dates and module submenus. This change adds Contact/Addres
 Retired demo Company choices are hidden without deleting records. Unapproved construction contract values show unknown rather than zero. Claude's existing approval loader is preserved; this PR does not run it or approve more documents.
 
 Remaining audit work: workflow access on all transaction pages, personal tasks/notification queue, native email conversations, sharing, complete linked-record views, general filters/saved views and exports/imports, selected bulk controls, duplicate/amend where permitted, report catalogue, and global search. Finance and admin remain in Desk; Architecture/Civil and Brokerage decisions remain pending.
+
+Transaction lists, generic details/edit forms, construction jobs, properties, contracts, collections and finance now offer the Workflow panel with a clearly labelled process guide and permission-filtered transaction links. Sale Contract detail keeps its actual six-stage timeline. The guide does not claim completion or invent a new approval state.

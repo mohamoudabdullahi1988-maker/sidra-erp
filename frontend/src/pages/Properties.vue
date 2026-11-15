@@ -1,4 +1,5 @@
 <script setup>
+import TransactionGuide from '../components/TransactionGuide.vue'
 import ListInsights from '../components/ListInsights.vue'
 import { computed, onMounted, ref } from 'vue'
 import { Button, LoadingIndicator } from 'frappe-ui'
@@ -112,6 +113,7 @@ const STATUS_TONE = {
 </script>
 
 <template>
+  <TransactionGuide />
   <section class="page">
     <header class="head">
       <div>

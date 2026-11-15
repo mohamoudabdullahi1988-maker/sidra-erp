@@ -585,6 +585,7 @@ FORMS = {
 	"Sidra BOQ Revision": {},
 	"Sidra Variation Order": {},
 	"Sidra Inspection Report": {},
+	"Sidra Project Risk": {},
 	"Sidra Contract Profile": {"notes": _profile_notes},
 	"Sidra Contract Clause": {"notes": _clause_notes},
 	"Sidra Contract Settings": {},

@@ -4,6 +4,13 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.52 — project risk register, decision G26, 15 Nov 2026)
+- Mohamoud: build the Risk register. New record **Sidra Project Risk** (Construction → Risk register, `/berjaya/construction/risks`): Company, job and/or project, category, description, owner, rating, status, mitigation action, next review. Closing a risk records the date. Project Managers and the General Manager record risks; Inspectors read them. Record only: no money, nothing else changes.
+- **Construction → Risk** gets the Sample data / Live records switch (`get_construction_live` now returns `risks`): open risks by rating, status, open risks by project, and the register.
+- `pilot_risks.create_pilot_risks`: twelve fictional risks for Sidra Homes on the test site, with the pilot's guards (Administrator, the three staging flags, the top-up loaded first, a private manifest, rerun changes nothing). Posts nothing.
+- Readiness check: a warning when the risk register is empty, with the loader command.
+- Desk's risk form redirects to Berjaya (cutover, G24).
+
 ### Added (v0.1.51 — live Finance, Design & Engineering, Subcontractors and Stock, 15 Nov 2026)
 - Mohamoud: link the sample screens. Four more screens get the Sample data / Live records switch. Sample data stays the default.
   - **Finance overview** (`api.finance_live.get_finance_live`), from ERPNext's ledger:

@@ -172,6 +172,18 @@ def _construction(add):
 		"Load the pilot dataset (see above).",
 		warn=True,
 	)
+	risks = (
+		frappe.db.count("Sidra Project Risk", {"company": COMPANY})
+		if frappe.db.exists("DocType", "Sidra Project Risk")
+		else 0
+	)
+	add(
+		"Risk register",
+		risks >= 1,
+		f"{risks} risks",
+		f"{BENCH} execute sidra_realestate.pilot_risks.create_pilot_risks'",
+		warn=True,
+	)
 
 
 def _crm(add):

@@ -19,6 +19,7 @@ from sidra_realestate.api.staff_dashboard import _staff_only, money
 JOB = "Sidra Construction Job"
 VARIATION = "Sidra Variation Order"
 INSPECTION = "Sidra Inspection Report"
+RISK = "Sidra Project Risk"
 DOCSTATUS = {0: "Draft", 1: "Approved", 2: "Cancelled"}
 INSPECTION_STATUS = {0: "Draft", 1: "Issued", 2: "Cancelled"}
 
@@ -48,6 +49,7 @@ def get_construction_live(company: str) -> dict:
 		"jobs": jobs,
 		"variations": _variations(company),
 		"inspections": _inspections(company),
+		"risks": _risks(company),
 	}
 
 
@@ -210,6 +212,63 @@ def _inspections(company):
 				"result": r.result or "Not recorded",
 				"status": INSPECTION_STATUS.get(r.docstatus, "Draft"),
 				"next_action_due": str(r.next_action_due) if r.next_action_due else None,
+			}
+			for r in rows
+		],
+	}
+
+
+def _risks(company):
+	"""The risk register (G26): every risk of this Company, open ones first by rating."""
+	if not _readable(RISK):
+		return _unavailable(_("Your role does not include the risk register."))
+	rows = frappe.get_list(
+		RISK,
+		filters={"company": company},
+		fields=[
+			"name",
+			"job",
+			"scheme",
+			"category",
+			"description",
+			"risk_owner",
+			"rating",
+			"status",
+			"mitigation",
+			"review_date",
+			"closed_on",
+		],
+		order_by="modified desc",
+		limit_page_length=0,
+	)
+	schemes = {}
+	if any(r.scheme for r in rows) and _readable("Sidra Scheme"):
+		schemes = {
+			s.name: s.scheme_name
+			for s in frappe.get_list(
+				"Sidra Scheme",
+				filters={"name": ["in", sorted({r.scheme for r in rows if r.scheme})]},
+				fields=["name", "scheme_name"],
+				limit_page_length=0,
+			)
+		}
+	return {
+		"available": True,
+		"reason": None,
+		"rows": [
+			{
+				"name": r.name,
+				"job": r.job,
+				# What the risk is about: the project's name, else the job, else the whole Company.
+				"project": schemes.get(r.scheme) or r.scheme or r.job or _("All projects"),
+				"category": r.category,
+				"description": (r.description or "")[:140],
+				"owner": r.risk_owner,
+				"rating": r.rating,
+				"status": r.status,
+				"mitigation": (r.mitigation or "")[:140],
+				"review_date": str(r.review_date) if r.review_date else None,
+				"closed_on": str(r.closed_on) if r.closed_on else None,
 			}
 			for r in rows
 		],

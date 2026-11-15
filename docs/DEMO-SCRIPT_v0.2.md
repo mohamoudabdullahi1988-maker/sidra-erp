@@ -23,6 +23,11 @@ Order of the meeting:
    sudo -u frappe -H bash -lc 'cd /home/frappe/sidra/frappe-bench && bench --site sidra.local execute sidra_realestate.pilot_extras.create_pilot_extras'
    ```
    It prints what it did. A second run prints `"created": false`.
+
+   Then add the fictional risks for the risk register (same guards; also safe to run twice):
+   ```bash
+   sudo -u frappe -H bash -lc 'cd /home/frappe/sidra/frappe-bench && bench --site sidra.local execute sidra_realestate.pilot_risks.create_pilot_risks'
+   ```
 3. **Demo users:** one per role, so approvals happen by a second person, as in real life. Set passwords with `sudo -u frappe -H bash -lc 'cd /home/frappe/sidra/frappe-bench && bench --site sidra.local set-password <email>'`. It prompts for the password.
 
    | User | Role |
@@ -72,6 +77,7 @@ Sign in as `demo.gm`. You land on **Executive**.
   - stages done, overdue stages, contract values;
   - click a job: its record opens.
 - **Variations** and **Quality & inspections** tabs, still on **Live records**: real variation orders and inspection reports.
+- **Risk** tab, **Live records:** the risk register; click a risk to open it. "Every project risk has an owner, a rating and a next review date."
 - **Real Estate Sales → Inventory → Live records:** every plot and unit by project and status.
 - **Contracts & collections → Live records:**
   - real contracts;

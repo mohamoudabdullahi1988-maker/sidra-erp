@@ -551,7 +551,41 @@ export function liveMethod(module, tab) {
   return LIVE_METHOD
 }
 
-const MORE_BUILDERS = { finance: { overview: finance }, design: { overview: designOverview, inspection: designInspection }, build: { stock, subcontractors } }
+// ---------------------------------------------------------------- Risk register (decision G26)
+LIVE_TABS.build.push('risk')
+const RATING_TONE = { High: 'rose', Medium: 'amber', Low: 'green' }
+const RISK_STATUS_TONE = { Open: 'rose', Mitigating: 'amber', Monitoring: 'blue', Closed: 'green' }
+function risk(data) {
+  const rk = data.risks
+  if (!rk) return { kpis: [], widgets: [notice('Risk register', 'The server did not return the risk register; deploy the latest version.')] }
+  if (!rk.available) return { kpis: [], widgets: [notice('Risk register', rk.reason)] }
+  const list = { name: listRoute('risks') }
+  if (!rk.rows.length) return { kpis: [], widgets: [notice('Risk register', `No risks are recorded for ${data.company} yet. Add one under Construction → Risk register.`)] }
+  const open = rk.rows.filter((r) => r.status !== 'Closed')
+  const projects = [...new Set(open.map((r) => r.project))]
+  return {
+    kpis: [
+      { label: 'Open risks', value: open.length, kind: 'count', tone: 'purple', to: list },
+      ...['High', 'Medium', 'Low'].map((rating) => ({ label: rating, value: open.filter((r) => r.rating === rating).length, kind: 'count', tone: RATING_TONE[rating], to: list })),
+    ],
+    widgets: [
+      { type: 'donut', title: 'Open risks by rating', span: 4, centre: 'risks', kind: 'count', to: list, segments: countSegments(open, 'rating', RATING_TONE, list) },
+      { type: 'donut', title: 'Status', span: 4, centre: 'risks', kind: 'count', to: list, segments: countSegments(rk.rows, 'status', RISK_STATUS_TONE, list) },
+      {
+        type: 'hbars', title: 'Open risks by project', span: 4, kind: 'count', stacked: true,
+        series: ['High', 'Medium', 'Low'].map((name) => ({ name, tone: RATING_TONE[name] })),
+        rows: projects.map((project) => ({ label: project, values: ['High', 'Medium', 'Low'].map((rating) => open.filter((r) => r.project === project && r.rating === rating).length), to: list })),
+      },
+      {
+        type: 'table', title: 'Risk register', span: 12, to: list,
+        columnDefs: [{ key: 'name', label: 'Risk' }, { key: 'category', label: 'Category' }, { key: 'description', label: 'Description' }, { key: 'project', label: 'Project' }, { key: 'owner', label: 'Owner' }, { key: 'rating', label: 'Rating', kind: 'chip' }, { key: 'status', label: 'Status', kind: 'chip' }, { key: 'review_date', label: 'Next review', kind: 'date' }],
+        rows: rk.rows.map((r) => ({ ...r, _to: { name: detailRoute('risks'), params: { name: r.name } } })),
+      },
+    ],
+  }
+}
+
+const MORE_BUILDERS = { finance: { overview: finance }, design: { overview: designOverview, inspection: designInspection }, build: { stock, subcontractors, risk } }
 
 /** The live page for any module and tab other than Executive. */
 export function livePageFor(module, tab, data, samplePage) {

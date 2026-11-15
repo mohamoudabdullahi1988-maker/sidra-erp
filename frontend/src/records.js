@@ -880,6 +880,56 @@ export const RECORDS = {
     },
   },
 
+  risks: {
+    form: true,
+    section: 'construction',
+    title: 'Risk register',
+    noun: 'risks',
+    doctype: 'Sidra Project Risk',
+    path: '/construction/risks',
+    icon: 'lucide-shield-alert',
+    company: true,
+    orderBy: 'modified desc',
+    search: ['name', 'description', 'job', 'risk_owner'],
+    searchLabel: 'Risk, description, job or owner',
+    status: { Open: 'blocked', Mitigating: 'current', Monitoring: 'current', Closed: 'completed' },
+    list: [
+      { field: 'name', label: 'Risk', type: 'id' },
+      { field: 'category', label: 'Category' },
+      { field: 'job', label: 'Job', type: 'link', to: 'jobs' },
+      { field: 'risk_owner', label: 'Owner' },
+      { field: 'rating', label: 'Rating' },
+      { field: 'status', label: 'Status', type: 'status' },
+      { field: 'review_date', label: 'Next review', type: 'date' },
+    ],
+    detail: {
+      subtitle: 'category',
+      status: 'status',
+      groups: [
+        {
+          title: 'Risk',
+          fields: [
+            { field: 'category', label: 'Category' },
+            { field: 'description', label: 'Description', type: 'longtext' },
+            { field: 'job', label: 'Job', type: 'link', to: 'jobs' },
+            { field: 'scheme', label: 'Project', type: 'link', to: 'schemes' },
+            { field: 'rating', label: 'Rating' },
+            { field: 'status', label: 'Status' },
+          ],
+        },
+        {
+          title: 'Action',
+          fields: [
+            { field: 'risk_owner', label: 'Owner' },
+            { field: 'mitigation', label: 'Mitigation action', type: 'longtext' },
+            { field: 'review_date', label: 'Next review', type: 'date' },
+            { field: 'closed_on', label: 'Closed on', type: 'date' },
+          ],
+        },
+      ],
+    },
+  },
+
   profiles: {
     form: true,
     section: 'setup',
@@ -1042,7 +1092,7 @@ export const SECTIONS = {
   customers: ['leads', 'opportunities', 'customers', 'contacts', 'kyc'],
   sales: ['reservations', 'sale_quotations'],
   contracts: ['contracts', 'title_transfers'],
-  construction: ['jobs', 'construction_quotations', 'boq_revisions', 'variations', 'inspections'],
+  construction: ['jobs', 'construction_quotations', 'boq_revisions', 'variations', 'inspections', 'risks'],
   setup: ['profiles', 'clauses', 'imports', 'contract_settings'],
 }
 

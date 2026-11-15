@@ -50,6 +50,7 @@ const removeRow = (field, index) => props.values[field.fieldname].splice(index, 
                         v-if="isShown(column, rowRules(row))"
                         v-model="row[column.fieldname]"
                         :field="column"
+                        :values="rowRules(row)"
                         :editable="isEditable(column, rowRules(row))"
                         :required="isRequired(column, rowRules(row))"
                         :currency="currency"
@@ -75,6 +76,7 @@ const removeRow = (field, index) => props.values[field.fieldname].splice(index, 
             v-else
             v-model="values[field.fieldname]"
             :field="field"
+            :values="rules"
             :editable="isEditable(field, rules)"
             :required="isRequired(field, rules)"
             :currency="currency"

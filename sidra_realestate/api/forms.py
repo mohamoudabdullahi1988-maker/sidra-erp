@@ -447,7 +447,49 @@ def _run_import_step(method):
 	return run
 
 
+def _lead_actions(doc):
+	actions = []
+	if frappe.has_permission("Opportunity", "create"):
+		actions.append(
+			{
+				"key": "create_opportunity",
+				"label": _("Create opportunity"),
+				"navigate": {
+					"doctype": "Opportunity",
+					"values": {"opportunity_from": "Lead", "party_name": doc.name},
+				},
+			}
+		)
+	if frappe.has_permission("Customer", "create"):
+		actions.append(
+			{
+				"key": "make_customer",
+				"label": _("Make customer"),
+				"confirm": _("Create a customer from this lead?"),
+			}
+		)
+	return actions
+
+
+def _run_make_customer(doc, args):
+	from erpnext.crm.doctype.lead.lead import make_customer
+
+	doc = _locked("Lead", doc.name)
+	doc.check_permission("read")
+	frappe.has_permission("Customer", "create", throw=True)
+	existing = frappe.db.get_value("Customer", {"lead_name": doc.name}, "name")
+	if existing:
+		customer = frappe.get_doc("Customer", existing)
+		customer.check_permission("read")
+	else:
+		customer = make_customer(doc.name)
+		customer.check_permission("create")
+		customer.insert()
+	return {"open": {"doctype": "Customer", "name": customer.name}}
+
+
 RUNNERS = {
+	"make_customer": _run_make_customer,
 	"validate_import": _run_import_step("validate_import"),
 	"run_import": _run_import_step("run_import"),
 	"certify_stage": _run_certify_stage,
@@ -481,10 +523,10 @@ FORMS = {
 		"create_only": ("mobile_no", "email_id"),
 	},
 	"Sidra Customer KYC": {"actions": _kyc_actions},
-	# CRM (ERPNext's own records). A lead is created and worked in Berjaya. An opportunity is
-	# created from its lead or customer in ERPNext (its party is a dynamic link the form shows but
-	# does not edit), then progressed here. Contacts are kept by ERPNext from their parties.
+	# CRM uses ERPNext records and its native Lead-to-Customer mapping. Opportunity party
+	# links are explicitly limited to the three supported CRM party types.
 	"Lead": {
+		"actions": _lead_actions,
 		"fields": (
 			"first_name",
 			"last_name",
@@ -501,8 +543,12 @@ FORMS = {
 		),
 	},
 	"Opportunity": {
-		"create": False,
+		"dynamic_links": {"party_name": ("Lead", "Customer", "Prospect")},
 		"fields": (
+			"opportunity_from",
+			"party_name",
+			"company",
+			"currency",
 			"status",
 			"sales_stage",
 			"opportunity_type",
@@ -744,7 +790,12 @@ def _editable_fields(doc, config, rules=True):
 		if field.fieldname in create_only:
 			editable.add(field.fieldname)
 			continue
-		if field.fieldtype in DISPLAY_ONLY_TYPES or field.read_only or (field.permlevel or 0) not in levels:
+		dynamic = field.fieldtype == "Dynamic Link" and field.fieldname in config.get("dynamic_links", {})
+		if (
+			(field.fieldtype in DISPLAY_ONLY_TYPES and not dynamic)
+			or field.read_only
+			or (field.permlevel or 0) not in levels
+		):
 			continue
 		if field.fieldname in locked:
 			continue
@@ -818,6 +869,12 @@ def _layout(meta, config, editable, doc):
 			continue
 		filters = config.get("link_filters") or {}
 		entry = _field(field, field.fieldname in editable, filters.get(field.fieldname))
+		if field.fieldtype == "Dynamic Link":
+			entry["allowed_doctypes"] = list(config.get("dynamic_links", {}).get(field.fieldname, ()))
+		for linked, allowed in config.get("dynamic_links", {}).items():
+			if meta.get_field(linked).options == field.fieldname:
+				entry["fieldtype"] = "Select"
+				entry["options"] = list(allowed)
 		if field.fieldtype == "Table":
 			child_editable = {child.fieldname for child in _child_editable(field.options)}
 			entry["columns"] = [
@@ -902,6 +959,13 @@ def _apply(doc, values, config):
 			_apply_table(doc, field, value)
 		else:
 			doc.set(fieldname, value)
+	for fieldname, allowed in config.get("dynamic_links", {}).items():
+		field = meta.get_field(fieldname)
+		target = doc.get(field.options)
+		if target not in allowed:
+			frappe.throw(_("This party type is not allowed"), frappe.PermissionError)
+		if doc.get(fieldname):
+			frappe.get_doc(target, doc.get(fieldname)).check_permission("read")
 	# A field that is read-only by rule for the values as they will be saved keeps its value.
 	for fieldname in values:
 		field = meta.get_field(fieldname)

@@ -4,6 +4,14 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.47 — CRM conversion in Berjaya, 15 Nov 2026; issue #81)
+- Create opportunities with permission-checked Lead, Customer or Prospect party links. The picker follows its dependent type and clears stale suggestions when that type changes.
+- Lead actions open a prefilled Opportunity form or save ERPNext's native mapped Customer. Repeated customer conversion opens the existing linked record.
+- Integration tests cover conversion, disallowed party types and outsiders; frontend tests cover dynamic picker targets.
+- The CRM tests create ERPNext's default Sales Stage "Prospecting" when the site has none. A new Opportunity defaults to it, and it's normally made by ERPNext's setup wizard.
+- The readiness check (v0.1.43) reports whether that stage exists.
+- Walkthrough v0.2 sells a plot from a lead: **Create opportunity**, then **Make customer**.
+
 ### Added (v0.1.46 — demo rehearsal checks, 15 Nov 2026; issue #79)
 - Integration journeys for External contract capture, plot sale and construction through Berjaya endpoints, including approval refusals and no ledger side effects.
 - Administrator-only staging command `demo.ensure_demo_users`, reusing existing role profiles, printing interactive password commands and setting no passwords.

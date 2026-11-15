@@ -213,3 +213,11 @@ export function missing(form, values) {
   }
   return out
 }
+
+/** Resolve a picker target using the server-provided Dynamic Link allowlist. */
+export function linkTarget(field, values = {}) {
+  if (field?.fieldtype === 'Link') return field.options || null
+  if (field?.fieldtype !== 'Dynamic Link') return null
+  const target = values[field.options]
+  return field.allowed_doctypes?.includes(target) ? target : null
+}

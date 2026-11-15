@@ -4,6 +4,18 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.51 — live Finance, Design & Engineering, Subcontractors and Stock, 15 Nov 2026)
+- Mohamoud: link the sample screens. Four more screens get the Sample data / Live records switch. Sample data stays the default.
+  - **Finance overview** (`api.finance_live.get_finance_live`), from ERPNext's ledger:
+    - income and expenses per month for 12 months, from posted GL entries on Income and Expense accounts;
+    - expenses by account;
+    - bank and cash balances;
+    - receivables and payables by age, from submitted invoices with an amount outstanding.
+  - **Construction → Subcontractors** (`get_operations_live`): suppliers this Company has purchase invoices from, with the amount invoiced and still owed.
+  - **Construction → Stock & materials** (`get_operations_live`): stock on hand from ERPNext Stock (Bin and Warehouse). Until goods are received it says that nothing is recorded. No test stock is created, because that would post to the ledger.
+  - **Design & Engineering** (`get_construction_live`): Overview and Inspection services show construction jobs with service type Design Only or Inspection Only, and the inspection reports. Architecture and Civil engineering stay sample-only, because the records don't tell them apart yet.
+- Read only, permission-filtered through `frappe.get_list`. A group the role can't read says why and is never shown as zero. ERPNext stays the only ledger (G4).
+
 ### Fixed (v0.1.50 — deploy check reads the app name as bench prints it, 15 Nov 2026)
 - `deploy/berjaya-deploy_v0.2.sh`: the effective sign-in app name check failed on the test server although both settings held "Berjaya". Bench there prints a string return value bare (`Berjaya`), not as JSON (`"Berjaya"`), and the check only parsed JSON. It now accepts either form, treats an empty value or `null` as not set, and still fails when the name isn't Berjaya.
 - `demo_readiness`: each printed fix runs bench as the frappe user through its login shell (`sudo -u frappe -H bash -lc '…'`). On the test server `bench` is on that user's PATH only, so `sudo -u frappe bench` failed. The `set-password` fixes prompt for the password instead of taking it on the command line.

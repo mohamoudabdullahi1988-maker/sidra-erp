@@ -123,7 +123,7 @@ test('an unavailable or empty live group says why instead of showing zero', () =
   assert.equal(vo.widgets[0].items[0].text, 'Your role does not include variation orders.')
   const ir = livePage('quality', LIVE, MODULES.build.tabs.quality)
   assert.match(ir.widgets[0].items[0].text, /No inspection reports are recorded for Synthetic Homes/)
-  assert.deepEqual(LIVE_TABS.build, ['portfolio', 'schedule', 'cost', 'variations', 'quality'])
+  assert.deepEqual(LIVE_TABS.build, ['portfolio', 'schedule', 'cost', 'variations', 'quality', 'stock', 'subcontractors'])
 })
 
 test('a missing value is a dash, never zero', () => {
@@ -235,4 +235,37 @@ test('live Executive adds construction and sales, and a failed source says why w
   const quiet = executiveExtras({ construction: { error: 'x' }, realestate: { error: 'y' } })
   assert.equal(quiet.widgets.find((w) => w.title === 'Needs attention').items[0].text, 'Nothing recorded needs attention.')
   assert.equal(quiet.kpis.length, 0)
+})
+
+// ---------------------------------------------------------------- live Finance, Design, Subcontractors, Stock
+const { livePageFor, liveMethod } = await import('../src/showcase/live.js')
+test('live Finance, Design, Subcontractors and Stock read their own sources and say why when empty', () => {
+  assert.match(liveMethod('finance', 'overview'), /finance_live.get_finance_live/)
+  assert.match(liveMethod('build', 'stock'), /get_operations_live/)
+  assert.match(liveMethod('design', 'overview'), /construction_live/)
+  const tile = (page, label) => page.kpis.find((k) => k.label === label).value
+  const fin = livePageFor('finance', 'overview', {
+    company: 'Synthetic Homes',
+    pnl: { available: true, months: [{ month: '2026-10', income: '1000.00', expense: '400.00' }, { month: '2026-11', income: '500.00', expense: '100.00' }], expense_accounts: [] },
+    cash: { available: true, accounts: [{ account: 'Bank', type: 'Bank', balance: '900.00' }] },
+    receivables: { available: true, buckets: [{ age: 'Not yet due', amount: '300.00', count: 1 }] },
+    payables: { available: false, reason: 'Your role does not include Purchase Invoice.', buckets: [] },
+  }, MODULES.finance.tabs.overview)
+  assert.equal(tile(fin, 'Income (12 months)'), 1500)
+  assert.equal(tile(fin, 'Net'), 1000)
+  assert.equal(tile(fin, 'Cash and bank'), 900)
+  assert.ok(fin.widgets.some((w) => w.items?.[0]?.text === 'Your role does not include Purchase Invoice.'))
+  const jobs = { available: true, rows: [
+    { name: 'J1', service_type: 'Design Only', status: 'In Progress', current_contract_value: '5000.00' },
+    { name: 'J2', service_type: 'Inspection Only', status: 'Completed', current_contract_value: null },
+    { name: 'J3', service_type: 'Full Construction', status: 'In Progress', current_contract_value: '90000.00' },
+  ] }
+  const des = livePageFor('design', 'overview', { company: 'Synthetic Homes', jobs, inspections: { available: true, rows: [] } }, MODULES.design.tabs.overview)
+  assert.equal(tile(des, 'Design jobs'), 1)
+  assert.equal(tile(des, 'Open'), 1)
+  assert.equal(tile(des, 'Contract value'), 5000) // full construction jobs are not design work
+  const emptyStock = livePageFor('build', 'stock', { company: 'Synthetic Homes', stock: { available: true, warehouses: 2, rows: [] }, suppliers: { available: true, rows: [] } }, MODULES.build.tabs.stock)
+  assert.match(emptyStock.widgets[0].items[0].text, /No stock is recorded/)
+  const subs = livePageFor('build', 'subcontractors', { company: 'Synthetic Homes', suppliers: { available: true, rows: [{ supplier: 'S1', name: 'Synthetic Supplier', invoices: 3, invoiced: '6000.00', owed: '1500.00' }] }, stock: {} }, MODULES.build.tabs.subcontractors)
+  assert.equal(tile(subs, 'Still owed'), 1500)
 })

@@ -419,3 +419,145 @@ export function realestatePage(tab, data, samplePage) {
   const built = REALESTATE_BUILDERS[tab](data)
   return { ...samplePage, subtitle: `Live records for ${data.company}`, kpis: built.kpis, widgets: built.widgets }
 }
+
+// ---------------------------------------------------------------- Finance, Design & Engineering, Subcontractors, Stock (15 Nov 2026)
+export const FINANCE_METHOD = '/api/method/sidra_realestate.api.finance_live.get_finance_live'
+export const OPERATIONS_METHOD = '/api/method/sidra_realestate.api.finance_live.get_operations_live'
+LIVE_TABS.build.push('stock', 'subcontractors')
+LIVE_TABS.design = ['overview', 'inspection']
+LIVE_TABS.finance = ['overview']
+
+const ledger = { name: 'finance' }
+
+function finance(data) {
+  const p = data.pnl
+  const kpis = []
+  const widgets = []
+  if (p.available) {
+    const inc = p.months.map((m) => num(m.income))
+    const exp = p.months.map((m) => num(m.expense))
+    const sum = (xs) => (xs.some((x) => x === null) ? null : xs.reduce((a, x) => a + x, 0))
+    kpis.push(
+      { label: 'Income (12 months)', value: sum(inc), kind: 'money', tone: 'blue', to: ledger },
+      { label: 'Expenses (12 months)', value: sum(exp), kind: 'money', tone: 'orange', to: ledger },
+      { label: 'Net', value: sum(inc) === null || sum(exp) === null ? null : sum(inc) - sum(exp), kind: 'money', tone: 'green', to: ledger },
+    )
+    widgets.push({ type: 'bars', title: 'Income and expenses per month', note: 'From the ledger (posted entries).', span: 8, kind: 'money', labels: p.months.map((m) => monthText(m.month)),
+      series: [{ name: 'Income', values: inc.map((v) => v ?? 0), tone: 'blue' }, { name: 'Expenses', values: exp.map((v) => v ?? 0), tone: 'orange' }] })
+    widgets.push(p.expense_accounts.length
+      ? { type: 'donut', title: 'Expenses by account', span: 4, centre: '12 months', kind: 'money', to: ledger, segments: p.expense_accounts.map((a, i) => ({ label: a.account, value: num(a.amount) ?? 0, tone: ['blue', 'teal', 'purple', 'orange', 'amber', 'rose', 'sky', 'slate'][i % 8], to: ledger })) }
+      : notice('Expenses by account', 'No expense is posted in the last 12 months.', 4))
+  } else widgets.push(notice('Income and expenses', p.reason))
+  const c = data.cash
+  if (c.available) {
+    kpis.push({ label: 'Cash and bank', value: sumOf(c.accounts, 'balance'), kind: 'money', tone: 'teal', to: ledger })
+    widgets.push(c.accounts.length
+      ? { type: 'table', title: 'Bank and cash accounts', span: 6, to: ledger, columnDefs: [{ key: 'account', label: 'Account' }, { key: 'type', label: 'Type', kind: 'chip' }, { key: 'balance', label: 'Balance', kind: 'money' }], rows: c.accounts }
+      : notice('Bank and cash accounts', 'No bank or cash account is set up for this Company.', 6))
+  } else widgets.push(notice('Bank and cash', c.reason, 6))
+  for (const [key, title, tone, label] of [['receivables', 'Owed to Sidra, by age', 'sky', 'Owed to Sidra'], ['payables', 'Sidra owes, by age', 'rose', 'Sidra owes']]) {
+    const g = data[key]
+    if (!g.available) { widgets.push(notice(title, g.reason, 6)); continue }
+    kpis.push({ label, value: sumOf(g.buckets, 'amount'), kind: 'money', tone, to: ledger })
+    widgets.push({ type: 'hbars', title, note: 'Submitted invoices with an amount outstanding', span: 6, kind: 'money', series: [{ name: label, tone }],
+      rows: g.buckets.map((b, i) => ({ label: `${b.age} (${b.count})`, values: [num(b.amount) ?? 0], tone: ['green', 'amber', 'orange', 'rose', 'purple'][i], to: ledger })) })
+  }
+  return { kpis, widgets }
+}
+
+const SERVICE_TONE = { 'Design Only': 'purple', 'Inspection Only': 'teal' }
+const OPEN = (r) => !['Completed', 'Closed', 'Cancelled'].includes(r.status)
+
+function designOverview(data) {
+  const jobs = data.jobs
+  if (!jobs.available) return { kpis: [], widgets: [notice('Design and inspection jobs', jobs.reason)] }
+  const rows = jobs.rows.filter((r) => SERVICE_TONE[r.service_type])
+  if (!rows.length) return { kpis: [], widgets: [notice('Design and inspection jobs', `No Design Only or Inspection Only jobs are recorded for ${data.company} yet.`)] }
+  const list = { name: 'construction' }
+  return {
+    kpis: [
+      { label: 'Design jobs', value: rows.filter((r) => r.service_type === 'Design Only').length, kind: 'count', tone: 'purple', to: list },
+      { label: 'Inspection jobs', value: rows.filter((r) => r.service_type === 'Inspection Only').length, kind: 'count', tone: 'teal', to: list },
+      { label: 'Open', value: rows.filter(OPEN).length, kind: 'count', tone: 'blue', to: list },
+      { label: 'Contract value', value: sumOf(rows.filter((r) => r.current_contract_value !== null), 'current_contract_value'), kind: 'money', tone: 'green', to: list },
+    ],
+    widgets: [
+      { type: 'donut', title: 'Jobs by service', span: 4, centre: 'jobs', kind: 'count', to: list, segments: countSegments(rows, 'service_type', SERVICE_TONE, list) },
+      { type: 'donut', title: 'Jobs by status', span: 4, centre: 'jobs', kind: 'count', to: list, segments: countSegments(rows, 'status', JOB_TONE, list) },
+      notice('Where these come from', 'Construction jobs whose service type is Design Only or Inspection Only. Architecture and civil engineering are not told apart in the records yet.', 4),
+      { type: 'table', title: 'Design and inspection jobs', span: 12, to: list,
+        columnDefs: [{ key: 'name', label: 'Job' }, { key: 'customer', label: 'Client' }, { key: 'service_type', label: 'Service', kind: 'chip' }, { key: 'status', label: 'Status', kind: 'chip' }, { key: 'current_contract_value', label: 'Value', kind: 'money' }, { key: 'end', label: 'Due', kind: 'date' }],
+        rows: rows.map((r) => ({ ...r, _to: jobLink(r.name) })) },
+    ],
+  }
+}
+
+function designInspection(data) {
+  const jobs = data.jobs.available ? data.jobs.rows.filter((r) => r.service_type === 'Inspection Only') : []
+  const ir = data.inspections
+  const kpis = [{ label: 'Inspection jobs', value: data.jobs.available ? jobs.length : null, kind: 'count', tone: 'teal', to: { name: 'construction' } }]
+  const widgets = []
+  if (ir.available) {
+    const list = { name: listRoute('inspections') }
+    kpis.push({ label: 'Inspection reports', value: ir.rows.length, kind: 'count', tone: 'blue', to: list }, { label: 'Failed', value: ir.rows.filter((r) => r.result === 'Fail').length, kind: 'count', tone: 'rose', to: list })
+    widgets.push(ir.rows.length ? { type: 'donut', title: 'Report results', span: 4, centre: 'reports', kind: 'count', to: list, segments: countSegments(ir.rows, 'result', RESULT_TONE, list) } : notice('Inspection reports', 'No inspection reports are recorded yet.', 4))
+  } else widgets.push(notice('Inspection reports', ir.reason, 4))
+  widgets.push(jobs.length
+    ? { type: 'table', title: 'Inspection jobs', span: 8, to: { name: 'construction' }, columnDefs: [{ key: 'name', label: 'Job' }, { key: 'customer', label: 'Client' }, { key: 'site', label: 'Site' }, { key: 'status', label: 'Status', kind: 'chip' }], rows: jobs.map((r) => ({ ...r, _to: jobLink(r.name) })) }
+    : notice('Inspection jobs', data.jobs.available ? 'No Inspection Only jobs are recorded yet.' : data.jobs.reason, 8))
+  return { kpis, widgets }
+}
+
+function subcontractors(data) {
+  const s = data.suppliers
+  if (!s.available) return { kpis: [], widgets: [notice('Suppliers and subcontractors', s.reason)] }
+  if (!s.rows.length) return { kpis: [], widgets: [notice('Suppliers and subcontractors', `No purchase invoices are recorded for ${data.company} yet.`)] }
+  return {
+    kpis: [
+      { label: 'Suppliers invoicing', value: s.rows.length, kind: 'count', tone: 'blue', to: ledger },
+      { label: 'Purchase invoices', value: s.rows.reduce((a, r) => a + r.invoices, 0), kind: 'count', tone: 'sky', to: ledger },
+      { label: 'Invoiced', value: sumOf(s.rows, 'invoiced'), kind: 'money', tone: 'teal', to: ledger },
+      { label: 'Still owed', value: sumOf(s.rows, 'owed'), kind: 'money', tone: 'rose', to: ledger },
+    ],
+    widgets: [
+      { type: 'hbars', title: 'Invoiced and owed by supplier', span: 7, kind: 'money', series: [{ name: 'Invoiced', tone: 'teal' }, { name: 'Owed', tone: 'rose' }], rows: s.rows.slice(0, 10).map((r) => ({ label: r.name, values: [num(r.invoiced) ?? 0, num(r.owed) ?? 0], to: ledger })) },
+      { type: 'table', title: 'Suppliers', span: 5, to: ledger, columnDefs: [{ key: 'name', label: 'Supplier' }, { key: 'group', label: 'Group' }, { key: 'invoices', label: 'Invoices', kind: 'count' }, { key: 'owed', label: 'Owed', kind: 'money' }], rows: s.rows },
+    ],
+  }
+}
+
+function stock(data) {
+  const s = data.stock
+  if (!s.available) return { kpis: [], widgets: [notice('Stock', s.reason)] }
+  if (!s.rows.length) return { kpis: [{ label: 'Warehouses', value: s.warehouses, kind: 'count', tone: 'blue', to: ledger }], widgets: [notice('Stock on hand', `No stock is recorded in ERPNext for ${data.company} yet. Stock is kept in ERPNext's own Stock module; it appears here once goods are received.`)] }
+  return {
+    kpis: [
+      { label: 'Items in stock', value: new Set(s.rows.map((r) => r.item)).size, kind: 'count', tone: 'blue', to: ledger },
+      { label: 'Warehouses', value: s.warehouses, kind: 'count', tone: 'sky', to: ledger },
+      { label: 'Stock value', value: sumOf(s.rows.filter((r) => r.value !== null), 'value'), kind: 'money', tone: 'teal', to: ledger },
+    ],
+    widgets: [
+      { type: 'hbars', title: 'Stock value by item', span: 6, kind: 'money', series: [{ name: 'Value', tone: 'teal' }], rows: s.rows.filter((r) => r.value !== null).slice(0, 12).map((r) => ({ label: r.name, values: [num(r.value)], to: ledger })) },
+      { type: 'table', title: 'Stock on hand', span: 6, to: ledger, columnDefs: [{ key: 'name', label: 'Item' }, { key: 'warehouse', label: 'Warehouse' }, { key: 'qty', label: 'Quantity', kind: 'count' }, { key: 'uom', label: 'Unit' }, { key: 'value', label: 'Value', kind: 'money' }], rows: s.rows },
+    ],
+  }
+}
+
+/** Which server method a live screen reads (Executive is handled by Showcase.vue itself). */
+export function liveMethod(module, tab) {
+  if (module === 'realestate') return REALESTATE_METHOD
+  if (module === 'finance') return FINANCE_METHOD
+  if (module === 'build' && (tab === 'stock' || tab === 'subcontractors')) return OPERATIONS_METHOD
+  return LIVE_METHOD
+}
+
+const MORE_BUILDERS = { finance: { overview: finance }, design: { overview: designOverview, inspection: designInspection }, build: { stock, subcontractors } }
+
+/** The live page for any module and tab other than Executive. */
+export function livePageFor(module, tab, data, samplePage) {
+  if (module === 'realestate') return realestatePage(tab, data, samplePage)
+  const builder = MORE_BUILDERS[module]?.[tab]
+  if (!builder) return livePage(tab, data, samplePage)
+  const built = builder(data)
+  return { ...samplePage, subtitle: `Live records for ${data.company}`, kpis: built.kpis, widgets: built.widgets }
+}

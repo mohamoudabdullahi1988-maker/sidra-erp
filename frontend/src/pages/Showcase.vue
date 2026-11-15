@@ -19,7 +19,7 @@ import { ApiError, apiGet } from '../api'
 import { company } from '../company'
 import StatePanel from '../components/StatePanel.vue'
 import CompanyPicker from '../components/CompanyPicker.vue'
-import { EXECUTIVE_METHOD, executivePage, validExecutive, LIVE_METHOD, LIVE_TABS, livePage, REALESTATE_METHOD, realestatePage } from '../showcase/live'
+import { EXECUTIVE_METHOD, executivePage, validExecutive, LIVE_METHOD, LIVE_TABS, REALESTATE_METHOD, liveMethod, livePageFor } from '../showcase/live'
 
 // A sample screen (client demonstration): drawn from showcase/pages.js. Every figure is fictional
 // and labelled as such; real records keep their own screens, linked from here.
@@ -53,7 +53,7 @@ async function loadLive() {
   loading.value = true
   liveError.value = null
   try {
-    const method = { executive: EXECUTIVE_METHOD, realestate: REALESTATE_METHOD }[route.meta.showcase] ?? LIVE_METHOD
+    const method = route.meta.showcase === 'executive' ? EXECUTIVE_METHOD : liveMethod(route.meta.showcase, tab.value)
     const body = await apiGet(method, { company: company.value, ...(route.meta.showcase === 'executive' ? { period: 'this_month' } : {}) })
     if (id !== request) return
     if (!body?.message || typeof body.message !== 'object') throw new ApiError('server', 'The server sent an unexpected answer.')
@@ -88,8 +88,7 @@ watch([live, () => company.value, () => route.meta.showcase, tab], loadLive, { i
 const page = computed(() => {
   if (!live.value || !liveData.value) return samplePage.value
   if (route.meta.showcase === 'executive') return executivePage(liveData.value, samplePage.value)
-  if (route.meta.showcase === 'realestate') return realestatePage(tab.value, liveData.value, samplePage.value)
-  return livePage(tab.value, liveData.value, samplePage.value)
+  return livePageFor(route.meta.showcase, tab.value, liveData.value, samplePage.value)
 })
 const showWidgets = computed(() => !live.value || (liveData.value && !loading.value))
 function setSource(source) {

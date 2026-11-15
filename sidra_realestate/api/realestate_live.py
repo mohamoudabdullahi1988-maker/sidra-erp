@@ -16,6 +16,7 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, add_months, getdate, nowdate
 
+from sidra_realestate.api.live_period import block, period, within
 from sidra_realestate.api.location_geometry import extract_point
 from sidra_realestate.api.staff_dashboard import _staff_only, total
 
@@ -36,24 +37,31 @@ def _unavailable(reason, **empty):
 
 
 @frappe.whitelist(methods=["GET"])
-def get_realestate_live(company: str) -> dict:
-	"""Units by scheme and status, reservations, contracts, the coming schedule and lead stages."""
+def get_realestate_live(company: str, from_date: str | None = None, to_date: str | None = None) -> dict:
+	"""Units by scheme and status, reservations, contracts, the coming schedule and lead stages.
+
+	Reservations made, contracts signed and leads created in the period (live_period); units, the
+	coming schedule and reservations about to expire are as they are today.
+	"""
 	_staff_only()
 	# Every list below is filtered by this Company through get_list, so a Company the user's
 	# User Permissions exclude returns nothing; no record is read around the permission check.
 	if not company or not frappe.db.exists("Company", company):
 		frappe.throw(_("Choose a Company"))
 	today = getdate(nowdate())
+	start, to = period(from_date, to_date)
 	contracts = _contracts(company)
 	return {
 		"company": company,
 		"currency": frappe.get_cached_value("Company", company, "default_currency"),
 		"today": str(today),
 		"units": _units(company),
-		"reservations": _reservations(company, today),
-		"contracts": contracts,
+		"period": block(start, to, ["reservations", "contracts", "leads"], ["units", "schedule", "expiring"]),
+		"reservations": _reservations(company, today, start, to),
+		# The schedule is every confirmed contract's coming installments; the list shows the period's.
+		"contracts": _in_period(contracts, start, to),
 		"schedule": _schedule(contracts, today),
-		"leads": _leads(company),
+		"leads": _leads(company, start, to),
 	}
 
 
@@ -104,15 +112,16 @@ def _units(company):
 	}
 
 
-def _reservations(company, today):
+def _reservations(company, today, start, to):
 	if not _readable(RESERVATION):
 		return _unavailable(_("Your role does not include reservations."), counts={})
 	rows = frappe.get_list(
 		RESERVATION,
 		filters={"company": company},
-		fields=["name", "unit", "status", "expires_on"],
+		fields=["name", "unit", "status", "expires_on", "creation"],
 		limit_page_length=0,
 	)
+	made = [r for r in rows if start <= getdate(r.creation) <= to]
 	expiring = [
 		r
 		for r in rows
@@ -123,7 +132,7 @@ def _reservations(company, today):
 	return {
 		"available": True,
 		"reason": None,
-		"counts": dict(Counter(r.status for r in rows)),
+		"counts": dict(Counter(r.status for r in made)),
 		"expiring": [{"name": r.name, "unit": r.unit, "expires_on": str(r.expires_on)} for r in expiring],
 	}
 
@@ -141,6 +150,7 @@ def _contracts(company):
 			"source",
 			"docstatus",
 			"signed_on",
+			"creation",
 			"agreed_price",
 			"amount_due",
 			"installments",
@@ -161,12 +171,25 @@ def _contracts(company):
 				"source": r.source,
 				"status": CONTRACT_STATUS.get(r.docstatus, "Draft"),
 				"signed_on": str(r.signed_on) if r.signed_on else None,
+				"dated": str(getdate(r.signed_on or r.creation)),
 				"agreed_price": total([r.agreed_price]) if r.agreed_price is not None else None,
 				"installments": r.installments,
 				"currency": r.currency,
 			}
 			for r in rows
 		],
+	}
+
+
+def _in_period(contracts, start, to):
+	"""The contracts signed in the period (a draft without a signing date: when it was created)."""
+	if not contracts["available"]:
+		return contracts
+	rows = [r for r in contracts["rows"] if start <= getdate(r["dated"]) <= to]
+	return {
+		**contracts,
+		"status_counts": dict(Counter(r["status"] for r in rows)),
+		"rows": rows,
 	}
 
 
@@ -208,7 +231,7 @@ def _schedule(contracts, today):
 	}
 
 
-def _leads(company):
+def _leads(company, start, to):
 	if not _readable(LEAD):
 		return _unavailable(_("Your role does not include leads."), status_counts={}, source_counts={})
 	from sidra_realestate.services.crm_channels import channel_field
@@ -216,7 +239,7 @@ def _leads(company):
 	channel = channel_field(LEAD)
 	rows = frappe.get_list(
 		LEAD,
-		filters={"company": company},
+		filters=[["company", "=", company], *within("creation", start, to)],
 		fields=["status"] + ([f"{channel} as channel"] if channel else []),
 		limit_page_length=0,
 	)

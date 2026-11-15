@@ -13,6 +13,7 @@ import frappe
 from frappe import _
 from frappe.utils import getdate, nowdate
 
+from sidra_realestate.api.live_period import block, period, within
 from sidra_realestate.api.location_geometry import extract_point, legacy_point
 from sidra_realestate.api.staff_dashboard import _staff_only, money
 
@@ -33,22 +34,28 @@ def _unavailable(reason):
 
 
 @frappe.whitelist(methods=["GET"])
-def get_construction_live(company: str) -> dict:
-	"""Jobs with their stages, variation orders and inspection reports for one Company."""
+def get_construction_live(company: str, from_date: str | None = None, to_date: str | None = None) -> dict:
+	"""Jobs with their stages, variation orders and inspection reports for one Company.
+
+	Variation orders raised and inspections dated in the period (live_period); jobs and the risk
+	register are as they are today.
+	"""
 	_staff_only()
 	# Each list below is filtered by this Company through get_list, so a Company the user's
 	# User Permissions exclude returns nothing; no record is read around the permission check.
 	if not company or not frappe.db.exists("Company", company):
 		frappe.throw(_("Choose a Company"))
 	today = getdate(nowdate())
+	start, to = period(from_date, to_date)
 	jobs = _jobs(company, today)
 	return {
 		"company": company,
 		"currency": frappe.get_cached_value("Company", company, "default_currency"),
 		"today": str(today),
 		"jobs": jobs,
-		"variations": _variations(company),
-		"inspections": _inspections(company),
+		"period": block(start, to, ["variations", "inspections"], ["jobs", "risks"]),
+		"variations": _variations(company, start, to),
+		"inspections": _inspections(company, start, to),
 		"risks": _risks(company),
 	}
 
@@ -170,12 +177,12 @@ def _jobs(company, today):
 	}
 
 
-def _variations(company):
+def _variations(company, start, to):
 	if not _readable(VARIATION):
 		return _unavailable(_("Your role does not include variation orders."))
 	rows = frappe.get_list(
 		VARIATION,
-		filters={"company": company},
+		filters=[["company", "=", company], *within("creation", start, to)],
 		fields=[
 			"name",
 			"job",
@@ -208,12 +215,12 @@ def _variations(company):
 	}
 
 
-def _inspections(company):
+def _inspections(company, start, to):
 	if not _readable(INSPECTION):
 		return _unavailable(_("Your role does not include inspection reports."))
 	rows = frappe.get_list(
 		INSPECTION,
-		filters={"company": company},
+		filters=[["company", "=", company], *within("inspection_date", start, to)],
 		fields=["name", "job", "stage", "inspection_date", "result", "docstatus", "next_action_due"],
 		order_by="inspection_date desc",
 		limit_page_length=0,

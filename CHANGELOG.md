@@ -4,12 +4,32 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
-### Added (v0.1.57 — staff record tools, 15 Nov 2026)
+### Added (v0.1.58 — staff record tools, 15 Nov 2026)
 - Contact and Address forms in Berjaya; Lead Company, phone, WhatsApp and contact preferences; Customer primary Contact/Address fields.
 - Record tools on saved forms: permission-checked Print/PDF, native assignments with due date, and latest tracked field changes for users who can write the record.
 - Hide retired demo companies from the picker; contact app links and unapproved construction-value explanations from rehearsal feedback.
 - Dashboard date selection and module submenus remain Claude's active work. No new financial operations.
 
+### Added (v0.1.57 — date selection on dashboards, sub-menus per business line, 15 Nov 2026)
+- **Date selection on every dashboard.** This month, Last 3 months, This year, Last 12 months (default), or a custom From–To range.
+  - The choice is kept in the address, so a link opens the same period.
+  - Live records read their **dated activity** for the period: variation orders raised, inspections, reservations made, contracts signed, leads, opportunities, income and expenses, and supplier invoices.
+  - **Snapshots stay as of today**, and the screen says so: units by status, jobs, the risk register, stock, the coming installment schedule, and amounts still owed.
+  - Cash and bank balances are shown at the period's end.
+  - Every live method takes `from_date` and `to_date` (`api/live_period.py`). Without them it reads the last 12 months, as before; a reversed or over-five-year range is refused.
+  - **Executive limits:** the Executive dashboard's own figures follow the server's periods (this month or the last 90 days), and the screen says so; its construction and sales sections follow the chosen period.
+  - **Sample figures are fixed**, and the picker says so.
+- **Sub-menu under each business line** in the left menu, open while that line is: its dashboard, then the record screens of its transactions. Each shows only when the server lets the user read it.
+  - Construction: Jobs, Quotations, BOQ revisions, Variations, Inspections, Risk register.
+  - Design & Engineering: **Design and inspection jobs** (new list: jobs whose service is Design Only or Inspection Only), Inspections.
+  - Real Estate Sales: Units, Reservations, Quotations, Contracts, Title transfers, Collections.
+  - CRM: Leads, Opportunities, Customers, Contacts, KYC.
+  - Finance: Ledger and invoices.
+  - Executive: Live dashboard.
+  - Brokerage keeps its dashboard only until the commission questions (#95) are answered.
+
+### Fixed
+- A list whose records open another page no longer adds a route of the same name; it had replaced the job page's route.
 
 ### Added (v0.1.56 — CRM dashboard, lead channels, approved test data, 15 Nov 2026)
 - **CRM dashboard.** The CRM menu item now opens a dashboard (`/berjaya/crm`) instead of the leads list, with Sample data and Live records.

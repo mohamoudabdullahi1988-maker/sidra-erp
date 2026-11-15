@@ -391,3 +391,27 @@ test('CRM dashboard: sample channels, live leads by channel and opportunities, a
   const denied = livePageFor('crm', 'overview', { ...data, opportunities: { available: false, reason: 'Your role does not include opportunities.', rows: [] } }, MODULES.crm.tabs.overview)
   assert.ok(denied.widgets.some((w) => w.items?.[0]?.text === 'Your role does not include opportunities.'))
 })
+
+test('dashboard period: presets, custom range, fallbacks, and the range sent to every live source', async () => {
+  const { periodFrom, executivePeriod, periodLabel } = await import('../src/showcase/period.js')
+  const today = new Date(2026, 10, 15) // 15 Nov 2026
+  assert.deepEqual(periodFrom({}, today), { key: '12m', from: '2025-12-01', to: '2026-11-15' })
+  assert.deepEqual(periodFrom({ period: 'month' }, today), { key: 'month', from: '2026-11-01', to: '2026-11-15' })
+  assert.deepEqual(periodFrom({ period: '3m' }, today), { key: '3m', from: '2026-09-01', to: '2026-11-15' })
+  assert.deepEqual(periodFrom({ period: 'year' }, today), { key: 'year', from: '2026-01-01', to: '2026-11-15' })
+  assert.deepEqual(periodFrom({ period: 'custom', from: '2026-03-01', to: '2026-06-30' }, today), { key: 'custom', from: '2026-03-01', to: '2026-06-30' })
+  // A reversed or broken custom range falls back to the default dates, never to an empty period.
+  assert.deepEqual(periodFrom({ period: 'custom', from: '2026-07-01', to: '2026-06-30' }, today), { key: 'custom', from: '2025-12-01', to: '2026-11-15' })
+  assert.equal(periodFrom({ period: 'nonsense' }, today).key, '12m')
+  assert.equal(executivePeriod('month'), 'this_month')
+  assert.equal(executivePeriod('year'), 'last_90_days') // the dashboard's widest period
+  assert.equal(periodLabel({ key: 'custom', from: '2026-03-01', to: '2026-06-30' }), '2026-03-01 to 2026-06-30')
+
+  const { loadExecutiveSources } = await import('../src/showcase/liveSources.js')
+  const calls = []
+  await loadExecutiveSources('Synthetic Homes', async (method, params) => { calls.push([method, params]); throw new Error('offline') }, { key: '3m', from: '2026-09-01', to: '2026-11-15' })
+  const byMethod = Object.fromEntries(calls.map(([m, p]) => [m.split('.').pop(), p]))
+  assert.equal(byMethod.get_dashboard.period, 'last_90_days')
+  assert.equal(byMethod.get_construction_live.from_date, '2026-09-01')
+  assert.equal(byMethod.get_realestate_live.to_date, '2026-11-15')
+})

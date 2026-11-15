@@ -19,6 +19,8 @@ import { ApiError, apiGet } from '../api'
 import { company } from '../company'
 import StatePanel from '../components/StatePanel.vue'
 import CompanyPicker from '../components/CompanyPicker.vue'
+import PeriodPicker from '../components/PeriodPicker.vue'
+import { executivePeriod, periodFrom, periodLabel } from '../showcase/period'
 import { executivePage, LIVE_METHOD, LIVE_TABS, REALESTATE_METHOD, liveMethod, livePageFor } from '../showcase/live'
 import { loadExecutiveSources, validLiveSource } from '../showcase/liveSources'
 
@@ -37,6 +39,9 @@ const samplePage = computed(() => module.value.tabs[tab.value])
 const router = useRouter()
 const canGoLive = computed(() => (LIVE_TABS[route.meta.showcase] ?? []).includes(tab.value))
 const live = computed(() => canGoLive.value && route.query.source === 'live')
+// The period the live records cover (?period=…); sample figures stay fixed.
+const period = computed(() => periodFrom(route.query))
+const periodKey = computed(() => `${period.value.from}|${period.value.to}`)
 const liveData = ref(null)
 const liveError = ref(null)
 const loading = ref(false)
@@ -56,13 +61,13 @@ async function loadLive() {
   try {
     const selectedCompany = company.value
     if (route.meta.showcase === 'executive') {
-      const result = await loadExecutiveSources(selectedCompany)
+      const result = await loadExecutiveSources(selectedCompany, apiGet, period.value)
       if (id === request) liveData.value = result
       return
     }
     const method = liveMethod(route.meta.showcase, tab.value)
     const kind = method === LIVE_METHOD ? 'construction' : method === REALESTATE_METHOD ? 'realestate' : method.endsWith('get_operations_live') ? 'operations' : method.endsWith('get_crm_live') ? 'crm' : 'finance'
-    const body = await apiGet(method, { company: selectedCompany })
+    const body = await apiGet(method, { company: selectedCompany, from_date: period.value.from, to_date: period.value.to })
     if (id !== request) return
     if (!validLiveSource(body?.message, selectedCompany, kind)) throw new ApiError('server', 'The server sent incompatible records or another Company.')
     liveData.value = body.message
@@ -74,7 +79,13 @@ async function loadLive() {
     if (id === request) loading.value = false
   }
 }
-watch([live, () => company.value, () => route.meta.showcase, tab], loadLive, { immediate: true })
+watch([live, () => company.value, () => route.meta.showcase, tab, periodKey], loadLive, { immediate: true })
+
+const periodNote = computed(() => {
+  if (!live.value) return 'Sample figures are fixed; the period applies to Live records.'
+  const executive = route.meta.showcase === 'executive' && !['month', '3m'].includes(period.value.key)
+  return executive ? 'Executive totals from the dashboard cover the last 90 days at most; construction and sales below follow the period.' : `Live records for ${periodLabel(period.value)}. Figures marked as of today (units, stock, open risks, amounts owed) do not change with the period.`
+})
 const page = computed(() => {
   if (!live.value || !liveData.value) return samplePage.value
   if (route.meta.showcase === 'executive') return executivePage(liveData.value, samplePage.value)
@@ -124,6 +135,8 @@ onBeforeUnmount(() => { ++request; releasePanel() })
       <button type="button" :class="{ on: !live }" :aria-pressed="!live" @click="setSource('sample')">Sample data</button>
       <button type="button" :class="{ on: live }" :aria-pressed="live" @click="setSource('live')">Live records</button>
     </div>
+
+    <PeriodPicker v-if="canGoLive" :note="periodNote" />
 
     <p v-if="live && loading" class="sc__state" role="status"><LoadingIndicator class="h-4 w-4" />Loading live records…</p>
     <StatePanel v-else-if="live && liveError" icon="lucide-triangle-alert" tone="blocked" title="Live records could not be loaded" :message="liveError" />

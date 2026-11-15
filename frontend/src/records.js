@@ -660,6 +660,32 @@ export const RECORDS = {
       Cancelled: 'blocked',
     },
   },
+  // Design & Engineering's own work (15 Nov 2026): construction jobs whose service is design or
+  // inspection, in the generic list. The records are jobs; the menu shows them under Design.
+  design_jobs: {
+    section: 'construction',
+    navLine: 'design',
+    title: 'Design and inspection jobs',
+    noun: 'design and inspection jobs',
+    doctype: 'Sidra Construction Job',
+    path: '/design-jobs',
+    detailRoute: 'construction-detail',
+    icon: 'lucide-drafting-compass',
+    company: true,
+    fixedFilters: { service_type: ['in', ['Design Only', 'Inspection Only']] },
+    orderBy: 'modified desc',
+    search: ['name', 'customer', 'site_location', 'plot_number'],
+    searchLabel: 'Job, client, site or plot',
+    status: { Enquiry: 'muted', Quoted: 'muted', Contracted: 'current', 'In Progress': 'current', 'On Hold': 'pending', Completed: 'completed', 'Defects Period': 'completed', Closed: 'completed', Cancelled: 'blocked' },
+    list: [
+      { field: 'name', label: 'Job', type: 'id' },
+      { field: 'customer', label: 'Client', type: 'link', to: 'customers' },
+      { field: 'service_type', label: 'Service' },
+      { field: 'site_location', label: 'Site' },
+      { field: 'status', label: 'Status', type: 'status' },
+      { field: 'current_contract_value', label: 'Contract value', type: 'money' },
+    ],
+  },
   construction_quotations: {
     form: true,
     section: 'construction',
@@ -1098,7 +1124,7 @@ export const SECTIONS = {
   customers: ['leads', 'opportunities', 'customers', 'contacts', 'addresses', 'kyc'],
   sales: ['reservations', 'sale_quotations'],
   contracts: ['contracts', 'title_transfers'],
-  construction: ['jobs', 'construction_quotations', 'boq_revisions', 'variations', 'inspections', 'risks'],
+  construction: ['jobs', 'construction_quotations', 'boq_revisions', 'variations', 'inspections', 'risks', 'design_jobs'],
   setup: ['profiles', 'clauses', 'imports', 'contract_settings'],
 }
 

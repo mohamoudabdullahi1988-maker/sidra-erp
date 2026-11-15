@@ -4,6 +4,9 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Docs (v0.1.53 — Codex handover, 15 Nov 2026)
+- `docs/CODEX-HANDOVER_v0.1.md`: the state at v0.1.52 (the demonstration, the test server, the loaders, which screens are live) and Codex's tasks: demo-readiness support (#96), live Design → Architecture and Civil (#97), and Brokerage records, blocked on #95 (#98).
+
 ### Added (v0.1.52 — project risk register, decision G26, 15 Nov 2026)
 - Mohamoud: build the Risk register. New record **Sidra Project Risk** (Construction → Risk register, `/berjaya/construction/risks`): Company, job and/or project, category, description, owner, rating, status, mitigation action, next review. Closing a risk records the date. Project Managers and the General Manager record risks; Inspectors read them. Record only: no money, nothing else changes.
 - **Construction → Risk** gets the Sample data / Live records switch (`get_construction_live` now returns `risks`): open risks by rating, status, open risks by project, and the register.

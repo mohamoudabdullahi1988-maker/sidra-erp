@@ -123,7 +123,7 @@ test('an unavailable or empty live group says why instead of showing zero', () =
   assert.equal(vo.widgets[0].items[0].text, 'Your role does not include variation orders.')
   const ir = livePage('quality', LIVE, MODULES.build.tabs.quality)
   assert.match(ir.widgets[0].items[0].text, /No inspection reports are recorded for Synthetic Homes/)
-  assert.deepEqual(LIVE_TABS.build, ['portfolio', 'variations', 'quality'])
+  assert.deepEqual(LIVE_TABS.build, ['portfolio', 'schedule', 'cost', 'variations', 'quality'])
 })
 
 test('a missing value is a dash, never zero', () => {
@@ -186,4 +186,34 @@ test('live Real Estate Sales shows recorded figures and says why a group is miss
   const pipe = realestatePage('pipeline', RE, MODULES.realestate.tabs.pipeline)
   assert.equal(pipe.widgets[0].items[0].text, 'Your role does not include leads.')
   assert.equal(tile(pipe, 'Active reservations'), 1)
+})
+
+// ---------------------------------------------------------------- live Schedule and Cost & budget (issue #82)
+test('live Schedule and Cost show recorded stages and values only', () => {
+  const data = {
+    company: 'Synthetic Homes',
+    today: '2026-11-15',
+    jobs: { available: true, rows: [
+      { name: 'SCJ-1', site: 'Rayan Gardens, plot 3', status: 'In Progress', boq_total: '40000.00', contract_value: '42000.00', approved_variations: '800.00', current_contract_value: '42800.00',
+        stage_rows: [
+          { stage: 'Foundation', status: 'Completed', planned_start: '2026-08-01', planned_end: '2026-09-01', completion_pct: 100, certified: true, overdue: false, billing_amount: '8560.00' },
+          { stage: 'Structure', status: 'In Progress', planned_start: '2026-09-01', planned_end: '2026-11-01', completion_pct: 40, certified: false, overdue: true, billing_amount: '12840.00' },
+          { stage: 'Roofing', status: 'Planned', planned_start: '2026-11-01', planned_end: '2027-01-01', completion_pct: 0, certified: false, overdue: false, billing_amount: '8560.00' },
+        ] },
+      { name: 'SCJ-2', site: null, customer: 'Synthetic Client', status: 'Enquiry', boq_total: null, contract_value: null, approved_variations: null, current_contract_value: null, stage_rows: [] },
+    ] },
+  }
+  const tile = (page, label) => page.kpis.find((k) => k.label === label).value
+  const sched = livePage('schedule', data, MODULES.build.tabs.schedule)
+  assert.equal(tile(sched, 'Stages'), 3)
+  assert.equal(tile(sched, 'Overdue'), 1)
+  assert.equal(tile(sched, 'Certified'), 1)
+  const late = sched.widgets.find((w) => w.title === 'Overdue stages').rows
+  assert.deepEqual(late.map((r) => [r.stage, r.days_late]), [['Structure', 14]])
+  const cost = livePage('cost', data, MODULES.build.tabs.cost)
+  assert.equal(tile(cost, 'BOQ total'), 40000) // the job without a BOQ is left out, not counted as 0
+  assert.equal(tile(cost, 'Current contract value'), 42800)
+  assert.equal(tile(cost, 'Certified milestones'), 8560)
+  const none = livePage('schedule', { ...data, jobs: { available: true, rows: [data.jobs.rows[1]] } }, MODULES.build.tabs.schedule)
+  assert.match(none.widgets[0].items[0].text, /No job stages are recorded/)
 })

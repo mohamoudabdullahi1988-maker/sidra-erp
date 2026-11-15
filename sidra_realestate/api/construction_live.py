@@ -68,6 +68,7 @@ def _jobs(company, today):
 			"contract_value",
 			"approved_variations",
 			"current_contract_value",
+			"boq_total",
 			"contract_start_date",
 			"contract_end_date",
 		],
@@ -88,6 +89,8 @@ def _jobs(company, today):
 				"actual_end",
 				"completion_pct",
 				"certified",
+				"billing_pct",
+				"billing_amount",
 			],
 			order_by="idx asc",
 			limit_page_length=0,
@@ -118,6 +121,24 @@ def _jobs(company, today):
 				"contract_value": money(job.contract_value),
 				"approved_variations": money(job.approved_variations),
 				"current_contract_value": money(job.current_contract_value),
+				"boq_total": money(job.boq_total),
+				# Each stage as recorded (Schedule and Cost & budget tabs). Billing amounts are
+				# payment milestones, not invoices: nothing is invoiced before P2 (CON-07).
+				"stage_rows": [
+					{
+						"stage": s.stage_name,
+						"status": s.status,
+						"planned_start": str(s.planned_start) if s.planned_start else None,
+						"planned_end": str(s.planned_end) if s.planned_end else None,
+						"actual_end": str(s.actual_end) if s.actual_end else None,
+						"completion_pct": float(s.completion_pct or 0),
+						"certified": bool(s.certified),
+						"overdue": s in overdue,
+						"billing_pct": float(s.billing_pct or 0),
+						"billing_amount": money(s.billing_amount),
+					}
+					for s in own
+				],
 				"start": str(job.contract_start_date or (min(starts) if starts else "")) or None,
 				"end": str(job.contract_end_date or (max(ends) if ends else "")) or None,
 				"progress": round(sum(float(s.completion_pct or 0) for s in own) / len(own)) if own else None,

@@ -76,6 +76,12 @@ class TestConstructionLive(IntegrationTestCase):
 		self.assertEqual(job["start"], str(add_days(today(), -60)))
 		self.assertEqual(job["end"], str(add_days(today(), 30)))
 		self.assertIsNone(job["point"])  # no location recorded; nothing is guessed
+		# Stages as recorded, for the Schedule and Cost & budget tabs.
+		stages = job["stage_rows"]
+		self.assertEqual([r["stage"] for r in stages], ["Foundation", "Structure", "Roofing"])
+		self.assertEqual([r["overdue"] for r in stages], [False, True, False])
+		self.assertEqual(stages[0]["completion_pct"], 100)
+		self.assertFalse(any(r["certified"] for r in stages))
 		self.assertTrue(data["variations"]["available"])
 		report = next(r for r in data["inspections"]["rows"] if r["name"] == self.report.name)
 		self.assertEqual((report["result"], report["status"]), ("Fail", "Draft"))

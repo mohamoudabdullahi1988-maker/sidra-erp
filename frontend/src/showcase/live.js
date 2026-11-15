@@ -242,11 +242,83 @@ export function executivePage(data, samplePage) {
     : property.total === 0
       ? [notice('Property inventory', 'No units are visible for this Company.')]
       : [{ type: 'donut', title: 'Units by status', span: 6, kind: 'count', centre: 'units',
-          segments: property.counts.map((row) => ({ label: row.status, value: row.count, tone: JOB_TONE[row.status] ?? 'blue', to: { name: 'properties' } })) }]
+          segments: property.counts.map((row) => ({ label: row.status, value: row.count, tone: UNIT_TONE[row.status] ?? 'blue', to: { name: 'properties' } })) }]
   widgets.push(notice('Reporting period', `Confirmed contracts are for this month. Inventory and reservations are current. Snapshot: ${data.as_of}.`))
-  return { title: samplePage.title, subtitle: `Live records for ${data.scope.company_name}`,
-    kpis: tiles.map(([label, key, route, tone]) => ({ label, value: summary[key] ?? null, kind: 'count', tone,
-      to: { name: route === 'reservations' ? listRoute(route) : route } })), widgets }
+  const kpis = tiles.map(([label, key, route, tone]) => ({ label, value: summary[key] ?? null, kind: 'count', tone,
+    to: { name: route === 'reservations' ? listRoute(route) : route } }))
+  // The whole business (issue #83): construction and real estate from their own read-only
+  // methods, loaded beside the dashboard. A source that failed or that the role cannot read says
+  // why in its place; it never hides the others and is never shown as zero.
+  if (data.extras) {
+    const extra = executiveExtras(data.extras)
+    kpis.push(...extra.kpis)
+    // Rows of 12: inventory, sites and attention side by side, then sales, then the job table.
+    if (widgets[0].type === 'donut') widgets[0] = { ...widgets[0], span: 4 }
+    widgets.splice(widgets.length - 1, 0, ...extra.widgets)
+    // The usual process, shown with numbered steps and no state on live records (FlowSteps).
+    return { title: samplePage.title, subtitle: `Live records for ${data.scope.company_name}`, kpis, widgets, workflow: samplePage.workflow }
+  }
+  return { title: samplePage.title, subtitle: `Live records for ${data.scope.company_name}`, kpis, widgets }
+}
+
+/** Live Executive additions from construction_live and realestate_live answers ({ data } or { error }). */
+export function executiveExtras({ construction, realestate }) {
+  const kpis = []
+  const widgets = []
+  const attention = []
+  let jobTable = null
+  const c = construction?.data
+  if (!c) widgets.push(notice('Construction', construction?.error || 'Construction records could not be loaded.', 4))
+  else if (!c.jobs.available) widgets.push(notice('Construction', c.jobs.reason, 4))
+  else {
+    const jobs = c.jobs.rows
+    const active = jobs.filter((r) => ACTIVE.has(r.status))
+    const overdue = jobs.reduce((a, r) => a + r.stages_overdue, 0)
+    kpis.push({ label: 'Active construction jobs', value: active.length, kind: 'count', tone: 'sky', to: { name: 'construction' } })
+    if (jobs.length) {
+      widgets.push({ type: 'map', title: 'Job sites', span: 4, empty: 'No job has a recorded location yet.',
+        pins: jobs.filter((r) => r.point).map((r) => ({ label: jobLabel(r), point: r.point, tone: JOB_TONE[r.status], sub: r.status, to: jobLink(r.name) })) })
+      jobTable = {
+        type: 'table', title: 'Construction jobs', span: 12, to: { name: 'construction' },
+        columnDefs: [{ key: 'name', label: 'Job' }, { key: 'site', label: 'Site' }, { key: 'status', label: 'Status', kind: 'chip' }, { key: 'progress', label: 'Progress', kind: 'progress' }, { key: 'stages_overdue', label: 'Overdue stages', kind: 'count' }],
+        rows: [...jobs].sort((a, b) => b.stages_overdue - a.stages_overdue).slice(0, 8).map((r) => ({ ...r, site: jobLabel(r), _to: jobLink(r.name) })),
+      }
+    } else widgets.push(notice('Construction', `No construction jobs are recorded for ${c.company} yet.`, 4))
+    if (overdue) attention.push({ tone: 'red', text: `${overdue} construction ${overdue === 1 ? 'stage is' : 'stages are'} overdue`, to: { name: 'construction-hub', params: { tab: 'schedule' }, query: { source: 'live' } } })
+    if (c.variations.available) {
+      const drafts = c.variations.rows.filter((r) => r.status === 'Draft').length
+      if (drafts) attention.push({ tone: 'amber', text: `${drafts} variation ${drafts === 1 ? 'order awaits' : 'orders await'} approval`, to: { name: listRoute('variations') } })
+    }
+    if (c.inspections.available) {
+      const failed = c.inspections.rows.filter((r) => r.result === 'Fail').length
+      if (failed) attention.push({ tone: 'amber', text: `${failed} ${failed === 1 ? 'inspection' : 'inspections'} failed`, to: { name: listRoute('inspections') } })
+    }
+  }
+  const r = realestate?.data
+  if (!r) widgets.push(notice('Real estate sales', realestate?.error || 'Real estate records could not be loaded.', 6))
+  else {
+    if (r.units.available && r.units.total) {
+      const statuses = UNIT_ORDER.filter((st) => r.units.status_counts[st])
+      widgets.push({ type: 'hbars', title: 'Units by project', span: 6, kind: 'count', stacked: true, series: statuses.map((st) => ({ name: st, tone: UNIT_TONE[st] })),
+        rows: r.units.schemes.map((sc) => ({ label: sc.name, values: statuses.map((st) => sc.counts[st] ?? 0), to: { name: 'properties' } })) })
+    } else widgets.push(notice('Units by project', r.units.available ? `No units are recorded for ${r.company} yet.` : r.units.reason, 6))
+    if (r.schedule.available) {
+      kpis.push({ label: 'Installments due, 12 months', value: sumOf(r.schedule.months, 'amount'), kind: 'money', tone: 'teal', to: { name: 'realestate', params: { tab: 'contracts' }, query: { source: 'live' } } })
+      widgets.push({ type: 'bars', title: 'Installments scheduled per month', note: 'Amounts due on confirmed contracts, not money received.', span: 6, kind: 'money',
+        labels: r.schedule.months.map((m) => monthText(m.month)), series: [{ name: 'Scheduled', values: r.schedule.months.map((m) => Number(m.amount)), tone: 'sky' }] })
+    } else widgets.push(notice('Installment schedule', r.schedule.reason, 6))
+    if (r.leads.available) {
+      kpis.push({ label: 'Leads', value: r.leads.total, kind: 'count', tone: 'purple', to: { name: listRoute('leads') } })
+    }
+    if (r.contracts.available) {
+      const drafts = r.contracts.rows.filter((row) => row.status === 'Draft').length
+      if (drafts) attention.push({ tone: 'blue', text: `${drafts} sale ${drafts === 1 ? 'contract is' : 'contracts are'} still in draft`, to: { name: 'contracts' } })
+    }
+  }
+  // Attention sits beside the sites map (row 1); the job table closes the section.
+  widgets.splice(1, 0, { type: 'list', title: 'Needs attention', span: 4, items: attention.length ? attention : [{ tone: 'blue', text: 'Nothing recorded needs attention.' }] })
+  if (jobTable) widgets.push(jobTable)
+  return { kpis, widgets }
 }
 
 export function validExecutive(data, company) {

@@ -4,6 +4,10 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Fixed (v0.1.40 — deployment login-name verification)
+- Deployment helper v0.2 verifies the effective login app name from Website/System Settings. Frappe v16 renders a generic sign-in heading and logo without printing `app_name`, so searching the HTML for "Berjaya" incorrectly reported a failure even when settings were correct. The previous version is retained.
+
+
 ### Added (v0.1.39 — Executive overview backend connection)
 - Executive overview can now display live Company-scoped inventory, reservation and confirmed-contract counts through the existing staff dashboard API, with property status chart and record links. Sample mode remains explicit.
 - Live screens offer Company selection and refresh. Switching Company, module, tab or data source clears prior results and invalidates pending requests; request failures never show sample widgets.

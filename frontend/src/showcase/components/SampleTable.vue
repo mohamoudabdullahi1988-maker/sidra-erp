@@ -5,8 +5,8 @@ import { formatValue } from '../format'
 defineProps({ columns: { type: Array, required: true }, rows: { type: Array, required: true } })
 
 const CHIP = {
-  green: ['Completed', 'On track', 'Approved', 'Pass', 'Available', 'Paid in full', 'Low', 'Issued', 'Commission collected', 'Sold', 'Contracts', 'Current', 'Handover', 'No'],
-  amber: ['At risk', 'Awaiting approval', 'Pass with remarks', 'Reserved', 'Medium', 'Under offer', 'Mitigating', 'Procurement', 'Offer accepted', 'Reservations', '1-30 days', '31-60 days'],
+  green: ['Confirmed', 'Completed', 'On track', 'Approved', 'Pass', 'Available', 'Paid in full', 'Low', 'Issued', 'Commission collected', 'Sold', 'Contracts', 'Current', 'Handover', 'No'],
+  amber: ['Draft', 'At risk', 'Awaiting approval', 'Pass with remarks', 'Reserved', 'Medium', 'Under offer', 'Mitigating', 'Procurement', 'Offer accepted', 'Reservations', '1-30 days', '31-60 days'],
   red: ['Delayed', 'Fail', 'High', 'Overdue', 'Commission due', 'Yes', '61-90 days', '90+ days', 'Open'],
   blue: ['Construction', 'Under review', 'Active', 'Upcoming', 'Monitoring', 'Quotations', 'Site visits'],
 }

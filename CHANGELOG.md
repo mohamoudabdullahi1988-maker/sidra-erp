@@ -5,6 +5,14 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 ## [Unreleased]
 
 ### Added (v0.1.42 — demo-ready live data: real project names and the missing records, 15 Nov 2026; decision G16)
+- **Live records on Real Estate Sales**: Inventory, Pipeline and Contracts & collections get the Sample data / Live records switch. They read the new read-only `api.realestate_live.get_realestate_live`:
+  - units by project and status, and the value available;
+  - reservations;
+  - sale contracts;
+  - installments scheduled per month on confirmed contracts, labelled as amounts due, not receipts (D8);
+  - leads by status and source.
+  Everything is permission-filtered. Unreadable groups say why, and a missing amount is never zero.
+- `docs/DEMO-SCRIPT_v0.2.md`: the walkthrough for Tuesday 17 Nov in three parts: sample dashboards, the same screens on live records, then the system working. The working part captures a contract, sells a plot and starts a construction project, each with the role that does it.
 - `sidra_realestate/pilot_extras.py` (`create_pilot_extras`): a one-time top-up of the pilot dataset for the client demonstration (Mohamoud: live screens show existing records, missing ones are created, real project names are used).
   - The four pilot schemes are named after Sidra's projects: Masalaha Hagbad, Rayan Gardens, Safa Housing, Berbera Townhouses. Scheme codes stay `SHP-…`.
   - Each pilot construction job's site names its project and gets a map location.

@@ -98,7 +98,9 @@ This is how Sidra's paper contracts come into the system.
 ### B. Sell a plot (8 min, `demo.sales`, then `demo.manager`)
 
 1. **CRM → Leads → New:** a walk-in buyer (fictional name). Save.
-2. **CRM → Customers → New:** make the buyer a customer. It's a separate record from the lead: converting a lead in one step isn't available yet.
+2. On the lead:
+   - **Create opportunity**, optional: the interest in a project, an amount and the expected closing date.
+   - **Make customer**: ERPNext's own lead-to-customer conversion. The customer appears under CRM → Customers.
    - Then **KYC → New**: the ID details, and `demo.manager` **verifies** them. A generated contract refuses an unverified buyer.
 3. **Units:** open an available Masalaha Hagbad plot → **Reserve unit** → choose the customer, hold for 7 days.
    - The plot turns *Reserved* on the Inventory screen.

@@ -180,6 +180,14 @@ def _crm(add):
 		else 0
 	)
 	add(
+		"Sales stage for new opportunities",
+		bool(frappe.db.exists("Sales Stage", "Prospecting")),
+		"ERPNext's default stage 'Prospecting' exists"
+		if frappe.db.exists("Sales Stage", "Prospecting")
+		else "missing",
+		f"{BENCH} execute sidra_realestate.pilot_extras.create_pilot_extras  (adds ERPNext's standard sales stages)",
+	)
+	add(
 		"CRM leads and opportunities",
 		leads >= 1 and opportunities >= 1,
 		f"{leads} leads, {opportunities} opportunities",

@@ -200,7 +200,14 @@ def _inspections(pilot, today, rng):
 def _crm(today, rng):
 	"""Fictional leads, and opportunities from some of them (CRM, 15 Nov 2026)."""
 	sources = [s for s in LEAD_SOURCES if frappe.db.exists("Lead Source", s)]
-	stages = [s for s in SALES_STAGES if frappe.db.exists("Sales Stage", s)]
+	# ERPNext's standard sales stages (its setup wizard creates them; a bare site may lack them,
+	# and a new Opportunity defaults to "Prospecting"). Only missing ones are added.
+	added_stages = []
+	for stage in SALES_STAGES:
+		if not frappe.db.exists("Sales Stage", stage):
+			frappe.get_doc({"doctype": "Sales Stage", "stage_name": stage}).insert(ignore_permissions=True)
+			added_stages.append(stage)
+	stages = list(SALES_STAGES)
 	sales_type = "Sales" if frappe.db.exists("Opportunity Type", "Sales") else None
 	projects = [p[0] for p in PROJECTS.values()]
 	leads, opportunities = [], []
@@ -229,7 +236,7 @@ def _crm(today, rng):
 				"company": COMPANY,
 				"currency": "USD",
 				"opportunity_type": sales_type,
-				"sales_stage": stages[(index // 3) % len(stages)] if stages else None,
+				"sales_stage": stages[(index // 3) % len(stages)],
 				"source": lead.source,
 				"opportunity_amount": (14300, 7150, 68000, 38000, 86000)[(index // 3) % 5],
 				"probability": (20, 40, 60, 75, 90)[(index // 3) % 5],
@@ -238,4 +245,4 @@ def _crm(today, rng):
 			}
 		).insert(ignore_permissions=True)
 		opportunities.append(opportunity.name)
-	return {"leads": leads, "opportunities": opportunities}
+	return {"leads": leads, "opportunities": opportunities, "sales_stages_added": added_stages}

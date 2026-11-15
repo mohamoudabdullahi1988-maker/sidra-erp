@@ -4,6 +4,16 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.49 — live Executive overview: the whole business from records, 15 Nov 2026; issue #83)
+- The Executive overview's **Live records** mode now loads construction (`api.construction_live`) and real estate (`api.realestate_live`) alongside the dashboard counts (Codex, v0.1.39), in parallel. It adds:
+  - tiles for active construction jobs, installments due over 12 months and leads;
+  - a job-site map and a construction jobs table, sorted by overdue stages;
+  - units by project, and installments scheduled per month (amounts due, not receipts);
+  - **Needs attention**, from recorded facts only: overdue stages, variation orders awaiting approval, failed inspections and sale contracts still in draft. Each item links to its records.
+- A source that fails, can't be read, or answers for another Company shows its reason in its place. It never hides the others, and is never shown as zero.
+- The unit status donut uses the unit colours, and the cards fill full rows.
+- The workflow panel shows the usual process with numbered steps and no state.
+
 ### Added (v0.1.48 — live Construction Schedule and Cost & budget, 15 Nov 2026; issue #82)
 - Construction's **Schedule** and **Cost & budget** tabs get the Sample data / Live records switch. Sample data stays the default.
   - **Schedule:**

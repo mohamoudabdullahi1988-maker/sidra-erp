@@ -131,7 +131,7 @@ test('a missing value is a dash, never zero', () => {
   assert.equal(pct(undefined), '—')
 })
 
-const { executivePage, validExecutive } = await import('../src/showcase/live.js')
+const { executivePage, executiveExtras, validExecutive } = await import('../src/showcase/live.js')
 const executiveData = {
   schema_version: 1, as_of: '2026-11-15T10:00:00', scope: { company_id: 'Synthetic Homes', company_name: 'Synthetic Homes' },
   summary: { units_available: 7, active_reservations: null, confirmed_contracts: 0 },
@@ -216,4 +216,23 @@ test('live Schedule and Cost show recorded stages and values only', () => {
   assert.equal(tile(cost, 'Certified milestones'), 8560)
   const none = livePage('schedule', { ...data, jobs: { available: true, rows: [data.jobs.rows[1]] } }, MODULES.build.tabs.schedule)
   assert.match(none.widgets[0].items[0].text, /No job stages are recorded/)
+})
+
+// ---------------------------------------------------------------- live Executive: construction and sales (issue #83)
+test('live Executive adds construction and sales, and a failed source says why without hiding the others', () => {
+  const construction = { data: { company: 'Synthetic Homes', jobs: { available: true, rows: [
+    { name: 'SCJ-1', site: 'Rayan Gardens, plot 3', status: 'In Progress', progress: 40, stages_overdue: 2, point: [9.5, 44.1] },
+    { name: 'SCJ-2', site: null, customer: 'Synthetic Client', status: 'Quoted', progress: null, stages_overdue: 0, point: null },
+  ] }, variations: { available: true, rows: [{ status: 'Draft' }, { status: 'Approved' }] }, inspections: { available: false, reason: 'no', rows: [] } } }
+  const page = executivePage({ ...executiveData, extras: { construction, realestate: { error: 'The server could not be reached.' } } }, MODULES.executive.tabs.overview)
+  assert.deepEqual(page.kpis.slice(0, 3).map((k) => k.value), [7, null, 0]) // the dashboard's own tiles stay first
+  assert.equal(page.kpis.find((k) => k.label === 'Active construction jobs').value, 1)
+  assert.ok(page.widgets.some((w) => w.title === 'Real estate sales' && w.items[0].text === 'The server could not be reached.'))
+  const attention = page.widgets.find((w) => w.title === 'Needs attention').items.map((i) => i.text)
+  assert.deepEqual(attention, ['2 construction stages are overdue', '1 variation order awaits approval'])
+  assert.equal(page.widgets.at(-1).title, 'Reporting period')
+  assert.ok(page.workflow?.steps?.length) // the usual process; live screens show no state on it
+  const quiet = executiveExtras({ construction: { error: 'x' }, realestate: { error: 'y' } })
+  assert.equal(quiet.widgets.find((w) => w.title === 'Needs attention').items[0].text, 'Nothing recorded needs attention.')
+  assert.equal(quiet.kpis.length, 0)
 })

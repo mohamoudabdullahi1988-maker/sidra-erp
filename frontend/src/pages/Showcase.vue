@@ -58,6 +58,23 @@ async function loadLive() {
     if (id !== request) return
     if (!body?.message || typeof body.message !== 'object') throw new ApiError('server', 'The server sent an unexpected answer.')
     if (route.meta.showcase === 'executive' && !validExecutive(body.message, company.value)) throw new ApiError('server', 'The server sent an incompatible dashboard response.')
+    if (route.meta.showcase === 'executive') {
+      // Construction and sales beside the dashboard (issue #83): loaded together; one that fails
+      // or belongs to another Company shows its reason in place and never hides the others.
+      const answer = async (path) => {
+        try {
+          const reply = await apiGet(path, { company: company.value })
+          if (reply?.message?.company !== company.value) return { error: 'The server sent an answer for another Company.' }
+          return { data: reply.message }
+        } catch (error) {
+          return { error: error instanceof ApiError ? error.message : 'These records could not be loaded.' }
+        }
+      }
+      const [construction, realestate] = await Promise.all([answer(LIVE_METHOD), answer(REALESTATE_METHOD)])
+      if (id !== request) return
+      liveData.value = { ...body.message, extras: { construction, realestate } }
+      return
+    }
     liveData.value = body.message
   } catch (error) {
     if (id !== request) return

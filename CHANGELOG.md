@@ -4,6 +4,15 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.55 — screen check before the demonstration, risks on the job page, 15 Nov 2026)
+- `frontend/tests/showcase_browser.py`: opens every business-line screen (sample data, and live records where a tab has them) at laptop (1440px) and phone (390px) width with synthetic server answers. On each screen it checks for script errors, sideways page scroll, broken text ("NaN", "undefined") and the sample / live label, and saves screenshots to `frontend/.verify/showcase/`. It fails if a module or live tab is added without being checked. 66 screens pass.
+- A construction job page lists the job's **risks**, for roles that may read the register. The job gets a **New risk** button that opens the risk form with the job and its Company filled in.
+- Live Executive **Needs attention** lists open High risks and open risks past their review date. A server without the risk register adds nothing.
+- Construction screens link to the **Risk register** beside the other construction records.
+
+### Fixed
+- On a phone, every screen with a wide sample table (Executive, Construction Portfolio and others) could be scrolled sideways about 650px past the screen edge. Hidden screen-reader labels in the table were positioned against the page instead of the table. The table now contains them.
+
 ### Fixed (v0.1.54 — demo readiness: live overview verification, 15 Nov 2026; issue #96)
 - Executive sources start in parallel and fail independently; wrong-Company responses are refused. Restricted attention sources show reasons instead of an all-clear.
 - Added reservation expiry links, lead-status chart and confirmed-contract counts; Executive business totals now come from server responses.

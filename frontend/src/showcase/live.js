@@ -289,6 +289,17 @@ export function executiveExtras({ construction, realestate }) {
     else for (const row of c.variations.rows.filter((r) => r.status === 'Draft')) attention.push({ tone: 'amber', text: `${row.name}: variation awaiting approval`, to: { name: detailRoute('variations'), params: { name: row.name } } })
     if (!c.inspections.available) missing('Inspection reports', c.inspections.reason)
     else for (const row of c.inspections.rows.filter((r) => r.result === 'Fail' && r.status !== 'Cancelled')) attention.push({ tone: 'rose', text: `${row.name}: failed inspection (${row.status})`, to: { name: detailRoute('inspections'), params: { name: row.name } } })
+    // The risk register (G26): open High risks, and open risks whose review date has passed. A server
+    // from before the register sends no group and adds nothing; a role that may not read it is told why.
+    if (c.risks && !c.risks.available) missing('Risk register', c.risks.reason)
+    else if (c.risks) {
+      const open = c.risks.rows.filter((row) => row.status !== 'Closed')
+      const high = open.filter((row) => row.rating === 'High').length
+      const late = open.filter((row) => row.review_date && row.review_date < c.today).length
+      const risks = { name: 'construction-hub', params: { tab: 'risk' }, query: { source: 'live' } }
+      if (high) attention.push({ tone: 'rose', text: `${high} high ${high === 1 ? 'risk is' : 'risks are'} open`, to: risks })
+      if (late) attention.push({ tone: 'amber', text: `${late} ${late === 1 ? 'risk is' : 'risks are'} past ${late === 1 ? 'its' : 'their'} review date`, to: risks })
+    }
   }
   const r = realestate?.data
   if (!r) missing('Real estate sales', realestate?.error)

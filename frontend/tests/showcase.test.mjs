@@ -336,6 +336,26 @@ test('live Risk register counts open risks only and says why when missing', () =
   assert.match(liveMethod('build', 'risk'), /construction_live/)
 })
 
+test('live Executive lists open high risks and risks past their review date', () => {
+  const data = { company: 'Synthetic Homes', today: '2026-11-15', jobs: { available: true, rows: [] }, variations: { available: true, rows: [] }, inspections: { available: true, rows: [] },
+    risks: { available: true, rows: [
+      { rating: 'High', status: 'Open', review_date: '2026-11-10' },
+      { rating: 'High', status: 'Mitigating', review_date: '2026-12-01' },
+      { rating: 'Low', status: 'Monitoring', review_date: '2026-11-01' },
+      { rating: 'High', status: 'Closed', review_date: '2026-10-01' },
+    ] } }
+  const attention = (construction) => executiveExtras({ construction: { data: construction }, realestate: { error: 'y' } }).widgets.find((w) => w.title === 'Needs attention').items
+  const items = attention(data)
+  assert.deepEqual(items.slice(0, 2).map((i) => i.text), ['2 high risks are open', '2 risks are past their review date'])
+  assert.equal(items[0].to.params.tab, 'risk')
+  // An older server without the risk register adds no risk item.
+  const { risks, ...older } = data
+  assert.ok(!attention(older).some((i) => /risk/.test(i.text)))
+  // A role that may not read the register is told why, not shown an all-clear.
+  const denied = executiveExtras({ construction: { data: { ...data, risks: { available: false, reason: 'Your role does not include the risk register.', rows: [] } } }, realestate: { error: 'y' } })
+  assert.ok(denied.widgets.some((w) => w.title === 'Risk register' && w.items[0].text === 'Your role does not include the risk register.'))
+})
+
 test('additional live sources accept denied groups and reject another Company', async () => {
   const { validLiveSource } = await import('../src/showcase/liveSources.js')
   const denied = { available: false, reason: 'Restricted' }

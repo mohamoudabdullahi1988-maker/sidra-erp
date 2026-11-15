@@ -1,6 +1,7 @@
 <script setup>
 import LocationPanel from '../components/LocationPanel.vue'
 import RecordExtras from '../components/RecordExtras.vue'
+import RelatedList from '../components/RelatedList.vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { LoadingIndicator } from 'frappe-ui'
@@ -179,6 +180,8 @@ onBeforeUnmount(() => ++request)
           </template>
         </div>
       </section>
+      <!-- The job's risk register entries (G26); shown only to roles the server lets read risks. -->
+      <RelatedList v-if="canRead('risks')" :item="{ list: 'risks', field: 'job', title: 'Risks' }" :value="doc.name" />
       <LocationPanel :doctype="JOB_DOCTYPE" :name="doc.name" />
       <RecordExtras :doctype="JOB_DOCTYPE" :name="doc.name" :reload-key="doc.modified" />
     </template>

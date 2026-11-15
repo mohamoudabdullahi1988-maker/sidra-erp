@@ -696,6 +696,7 @@ export const MODULES = {
       { label: 'Construction jobs', to: { name: 'construction' }, section: 'construction' },
       { label: 'Variation records', to: { name: 'variations-list' }, list: 'variations' },
       { label: 'Inspection reports', to: { name: 'inspections-list' }, list: 'inspections' },
+      { label: 'Risk register', to: { name: 'risks-list' }, list: 'risks' },
     ],
   },
   design: {

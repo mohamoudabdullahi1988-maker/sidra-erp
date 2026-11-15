@@ -32,7 +32,11 @@ Order of the meeting:
    | `demo.gm@example.com` | General Manager |
    | `demo.pm@example.com` | Project Manager |
 
-   If they don't exist yet, they come from the demo setup (`demo.py`); ask Claude for the exact command.
+   If they don't exist yet, create them with the role profiles they need. Nothing else changes, and no password is set:
+   ```bash
+   sudo -u frappe bench --site sidra.local execute sidra_realestate.demo.ensure_demo_users
+   ```
+   It prints the `set-password` commands to run. Details: `docs/DEMO-REHEARSAL-CHECKS_v0.1.md`.
 4. **Browser:** use one normal window and one private window, so two users are signed in at once. Laptop at 100% zoom.
 5. **Run the readiness check.** It reads only, and lists PASS, WARN or FAIL with the fix for each gap:
    ```bash
@@ -89,20 +93,21 @@ This is how Sidra's paper contracts come into the system.
 2. **Fill schedule:** the installments are worked out from the terms, or entered as the contract states them.
 3. **Add the parties, attach the signed copy, save.**
 4. As `demo.manager` (private window), open the contract and **confirm** it: the Sales Manager's approval of its terms.
-   - The right-hand **Workflow** panel shows each stage turning green.
+   - The right-hand **Workflow** panel shows each stage turning green. Only a registered (External) contract has this six-stage panel; a generated contract doesn't.
 
 ### B. Sell a plot (8 min, `demo.sales`, then `demo.manager`)
 
 1. **CRM → Leads → New:** a walk-in buyer (fictional name). Save.
-2. **CRM → Customers:** make the buyer a customer. Then **KYC → New**: the ID details, and the Sales Manager **verifies** them.
+2. **CRM → Customers → New:** make the buyer a customer. It's a separate record from the lead: converting a lead in one step isn't available yet.
+   - Then **KYC → New**: the ID details, and `demo.manager` **verifies** them. A generated contract refuses an unverified buyer.
 3. **Units:** open an available Masalaha Hagbad plot → **Reserve unit** → choose the customer, hold for 7 days.
    - The plot turns *Reserved* on the Inventory screen.
 4. **Sales → Quotations → New:**
-   - the plot, cash price or the 22-month plan;
-   - submit it.
-   - A discount above the Sales staff limit waits for **Approve discount** by the Sales Manager.
-5. **Contracts → New contract** (from the profile): the buyer, the plot, the plan.
-   - The terms are frozen from the profile.
+   - the plot and the cash price; submit it.
+   - Any cash discount waits for **Approve discount**: the Sales Manager up to 5%, the General Manager above that. Installment prices can't be discounted below the listed price (G13).
+5. **Contracts → New contract** (from the profile): the buyer, the plot and the profile.
+   - The terms are frozen from the **profile**: Profile A gives 14 installments. The quotation's plan doesn't change them.
+   - **Don't promise the 22-month plan here** unless an approved profile with those terms exists. Show it on the sample Inventory screen instead.
    - Attach the signed copy, then confirm as `demo.manager`.
    - The plot now shows *Under Contract*, and its installments appear on **Contracts & collections**.
 
@@ -116,8 +121,8 @@ This is how Sidra's paper contracts come into the system.
 3. **Record the client's acceptance** on the quotation: who accepted, the date, the signed acceptance.
 4. As `demo.gm` (private window), open the quotation → **Approve contract**. The job gets its contract value, dates and retention.
 5. Back on the job, as `demo.pm`:
-   - **New inspection report** for the first stage;
-   - **New variation order** (approved by another Project Manager up to $1,000, the General Manager above);
+   - **New inspection report** for the first stage. The Project Manager saves it as a **draft**; issuing it needs an Inspector. Present it as recorded, not approved.
+   - **New variation order**. It needs a second person's approval: another Project Manager up to $1,000, the General Manager above. The demo has one Project Manager, so **`demo.gm` approves it** in the private window. The person who raised it can't approve it, so show that refusal first if you like.
    - **Certify stage** once a stage is complete.
 6. **Construction → Portfolio → Live records:** the new job is there.
 

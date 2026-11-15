@@ -4,6 +4,9 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Fixed (v0.1.44 — deployment login-name verification)
+- Deployment helper v0.2 verifies the effective login app name from Website/System Settings. Frappe v16 renders a generic sign-in heading and logo without printing `app_name`, so searching the HTML for "Berjaya" incorrectly reported a failure even when settings were correct. The previous version is retained.
+
 ### Added (v0.1.43 — demo readiness check, 15 Nov 2026)
 - `sidra_realestate/demo_readiness.py` (`check_demo_readiness`): a read-only, Administrator-only check of everything walkthrough v0.2 needs on the test site. Each item reports PASS, WARN or FAIL, and each gap comes with its fix. It never creates, changes or posts anything, and prints no password or personal value. It checks:
   - the built interface;

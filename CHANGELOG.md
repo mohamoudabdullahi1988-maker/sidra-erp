@@ -4,10 +4,34 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
-### Fixed (v0.1.40 — deployment login-name verification)
+### Fixed (v0.1.44 — deployment login-name verification)
 - Deployment helper v0.2 verifies the effective login app name from Website/System Settings. Frappe v16 renders a generic sign-in heading and logo without printing `app_name`, so searching the HTML for "Berjaya" incorrectly reported a failure even when settings were correct. The previous version is retained.
 
 
+### Added (v0.1.42 — demo-ready live data: real project names and the missing records, 15 Nov 2026; decision G16)
+- **Live records on Real Estate Sales**: Inventory, Pipeline and Contracts & collections get the Sample data / Live records switch. They read the new read-only `api.realestate_live.get_realestate_live`:
+  - units by project and status, and the value available;
+  - reservations;
+  - sale contracts;
+  - installments scheduled per month on confirmed contracts, labelled as amounts due, not receipts (D8);
+  - leads by status and source.
+  Everything is permission-filtered. Unreadable groups say why, and a missing amount is never zero.
+- `docs/DEMO-SCRIPT_v0.2.md`: the walkthrough for Tuesday 17 Nov in three parts: sample dashboards, the same screens on live records, then the system working. The working part captures a contract, sells a plot and starts a construction project, each with the role that does it.
+- `sidra_realestate/pilot_extras.py` (`create_pilot_extras`): a one-time top-up of the pilot dataset for the client demonstration (Mohamoud: live screens show existing records, missing ones are created, real project names are used).
+  - The four pilot schemes are named after Sidra's projects: Masalaha Hagbad, Rayan Gardens, Safa Housing, Berbera Townhouses. Scheme codes stay `SHP-…`.
+  - Each pilot construction job's site names its project and gets a map location.
+  - Inspection reports the pilot plan marked but never created are added as drafts.
+  - Fictional CRM records: 30 leads (prefixed "SHP", no phone or email invented) and 10 opportunities from them.
+  - Same guards as the pilot: Administrator only, the three staging flags, the pilot's manifest must exist, one transaction with full rollback, its own private manifest, and a rerun that changes nothing. Nothing is posted, invoiced, submitted or approved.
+
+### Changed (v0.1.41 — CRM on ERPNext's own records, 15 Nov 2026)
+- **Customers becomes CRM** (Mohamoud): the menu item now holds ERPNext's own CRM records, **Leads**, **Opportunities** and **Contacts**, beside Customers and KYC. Each list and record page reads the ERPNext DocType through its standard permissions; a Lead's page lists its Opportunities.
+- Leads are created and edited in Berjaya (name, organisation, phone, email, source, status, qualification, territory, owner). Opportunities are progressed here (status, stage, amount, probability, expected closing) and created from their lead or customer in ERPNext, because their party is a dynamic link. Contacts are read only, kept by ERPNext from their parties.
+- Desk links to Lead, Opportunity and Contact open the matching Berjaya CRM page for staff (G24). The Real Estate Sales pipeline links to Leads and Opportunities.
+
+### Fixed (v0.1.40 — sign-in card centred; Sidra Homes logo shown, 15 Nov 2026; decision G19)
+- **Sign-in card centred.** The page wrapper laid its children out side by side at full width, so a second child Frappe adds (header or breadcrumbs) took half the row and pushed the card to the right. The wrapper now stacks its children and the card centres itself.
+- **Sidra Homes logo** (the company using Berjaya, G19): under the sign-in form, and at the right of the Berjaya top bar on every screen. It comes from `branding.COMPANY_LOGO` through the page's boot data (`company_logo`); nothing is renamed.
 ### Added (v0.1.39 — Executive overview backend connection)
 - Executive overview can now display live Company-scoped inventory, reservation and confirmed-contract counts through the existing staff dashboard API, with property status chart and record links. Sample mode remains explicit.
 - Live screens offer Company selection and refresh. Switching Company, module, tab or data source clears prior results and invalidates pending requests; request failures never show sample widgets.

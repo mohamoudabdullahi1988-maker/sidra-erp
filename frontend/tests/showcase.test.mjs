@@ -158,3 +158,32 @@ test('Executive rejects incompatible and wrong-Company responses', () => {
     assert.ok(!validExecutive(data, 'Synthetic Homes'))
   }
 })
+
+// ---------------------------------------------------------------- live Real Estate Sales (17 Nov demonstration)
+const { realestatePage } = await import('../src/showcase/live.js')
+const RE = {
+  company: 'Synthetic Homes',
+  today: '2026-11-15',
+  units: { available: true, total: 6, status_counts: { Available: 3, Reserved: 1, Sold: 2 }, value_available: '36000.00', schemes: [{ scheme: 'S1', name: 'Masalaha Hagbad', counts: { Available: 3, Reserved: 1, Sold: 2 }, total: 6 }], points: [] },
+  reservations: { available: true, counts: { Active: 1, Converted: 2 } },
+  contracts: { available: true, rows: [
+    { name: 'SSC-1', customer: 'Synthetic Buyer', type: 'Installment', source: 'Generated from profile', status: 'Confirmed', signed_on: '2026-11-05', agreed_price: '14300.00' },
+    { name: 'SSC-2', customer: 'Synthetic Buyer 2', type: 'Cash', source: 'External (registered)', status: 'Draft', signed_on: null, agreed_price: null },
+  ] },
+  schedule: { available: true, months: [{ month: '2026-11', amount: '650.00', rows: 1 }, { month: '2026-12', amount: '650.00', rows: 1 }] },
+  leads: { available: false, reason: 'Your role does not include leads.', status_counts: {}, source_counts: {} },
+}
+
+test('live Real Estate Sales shows recorded figures and says why a group is missing', () => {
+  const inv = realestatePage('inventory', RE, MODULES.realestate.tabs.inventory)
+  const tile = (page, label) => page.kpis.find((k) => k.label === label).value
+  assert.equal(tile(inv, 'Plots and units'), 6)
+  assert.equal(tile(inv, 'Value available'), 36000)
+  assert.equal(inv.widgets[1].rows[0].label, 'Masalaha Hagbad')
+  const con = realestatePage('contracts', RE, MODULES.realestate.tabs.contracts)
+  assert.equal(tile(con, 'Agreed value (confirmed)'), 14300) // drafts are not counted
+  assert.equal(tile(con, 'Scheduled, next 12 months'), 1300)
+  const pipe = realestatePage('pipeline', RE, MODULES.realestate.tabs.pipeline)
+  assert.equal(pipe.widgets[0].items[0].text, 'Your role does not include leads.')
+  assert.equal(tile(pipe, 'Active reservations'), 1)
+})

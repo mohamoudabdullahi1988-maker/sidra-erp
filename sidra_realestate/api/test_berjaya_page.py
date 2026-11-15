@@ -121,9 +121,14 @@ class TestBerjayaPage(IntegrationTestCase):
 			frappe._dict(name=name, default_currency="USD")
 			for name in ("Sidra Homes", "Sidra Demo Homes", "Sidra Finance Demo - Fictional")
 		]
+		original_get_list = frappe.get_list
+
+		def company_rows(doctype, *args, **kwargs):
+			return rows if doctype == "Company" else original_get_list(doctype, *args, **kwargs)
+
 		with (
 			as_user("Administrator"),
-			patch.object(page.frappe, "get_list", return_value=rows),
+			patch.object(page.frappe, "get_list", side_effect=company_rows),
 			patch.object(page.frappe.defaults, "get_user_default", return_value="Sidra Demo Homes"),
 		):
 			boot = page.get_boot()

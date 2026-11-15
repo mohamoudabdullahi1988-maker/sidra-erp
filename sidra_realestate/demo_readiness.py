@@ -18,7 +18,9 @@ from sidra_realestate.pilot_extras import MANIFEST as EXTRAS_MANIFEST
 from sidra_realestate.pilot_extras import PROJECTS
 from sidra_realestate.services.pilot_dataset import PREFIX
 
-BENCH = "cd /home/frappe/sidra/frappe-bench && sudo -u frappe bench --site sidra.local"
+# Run as the frappe user through its login shell: bench is on that user's PATH only (seen on the
+# test server, 15 Nov 2026: `sudo -u frappe bench` gives "command not found").
+BENCH = "sudo -u frappe -H bash -lc 'cd /home/frappe/sidra/frappe-bench && bench --site sidra.local"
 # The roles each demonstration user needs for its steps in the walkthrough (install.ROLE_PROFILES).
 DEMO_ROLES = {
 	"demo.sales@example.com": ("Sidra Sales User", "Sales User"),
@@ -89,13 +91,13 @@ def _data(add):
 		"Pilot dataset loaded",
 		bool(_manifest(PILOT_MANIFEST)),
 		"twelve-month fictional dataset (G16)",
-		f"{BENCH} execute sidra_realestate.pilot_demo.create_pilot_demo_data",
+		f"{BENCH} execute sidra_realestate.pilot_demo.create_pilot_demo_data'",
 	)
 	add(
 		"Top-up loaded",
 		bool(_manifest(EXTRAS_MANIFEST)),
 		"real project names, map points, inspections, leads",
-		f"{BENCH} execute sidra_realestate.pilot_extras.create_pilot_extras",
+		f"{BENCH} execute sidra_realestate.pilot_extras.create_pilot_extras'",
 	)
 	names = set(
 		frappe.get_all("Sidra Scheme", filters={"scheme_code": ("like", PREFIX + "-%")}, pluck="scheme_name")
@@ -105,7 +107,7 @@ def _data(add):
 		"Real project names",
 		wanted <= names,
 		", ".join(sorted(names & wanted)) or "none of the project names found",
-		f"{BENCH} execute sidra_realestate.pilot_extras.create_pilot_extras",
+		f"{BENCH} execute sidra_realestate.pilot_extras.create_pilot_extras'",
 	)
 
 
@@ -153,14 +155,14 @@ def _construction(add):
 		"Jobs on the map",
 		placed >= 5,
 		f"{placed} with a location",
-		f"{BENCH} execute sidra_realestate.pilot_extras.create_pilot_extras",
+		f"{BENCH} execute sidra_realestate.pilot_extras.create_pilot_extras'",
 	)
 	reports = frappe.db.count("Sidra Inspection Report", {"company": COMPANY})
 	add(
 		"Inspection reports",
 		reports >= 1,
 		f"{reports} reports",
-		f"{BENCH} execute sidra_realestate.pilot_extras.create_pilot_extras",
+		f"{BENCH} execute sidra_realestate.pilot_extras.create_pilot_extras'",
 	)
 	variations = frappe.db.count("Sidra Variation Order", {"company": COMPANY})
 	add(
@@ -185,13 +187,13 @@ def _crm(add):
 		"ERPNext's default stage 'Prospecting' exists"
 		if frappe.db.exists("Sales Stage", "Prospecting")
 		else "missing",
-		f"{BENCH} execute sidra_realestate.pilot_extras.create_pilot_extras  (adds ERPNext's standard sales stages)",
+		f"{BENCH} execute sidra_realestate.pilot_extras.create_pilot_extras'  (adds ERPNext's standard sales stages)",
 	)
 	add(
 		"CRM leads and opportunities",
 		leads >= 1 and opportunities >= 1,
 		f"{leads} leads, {opportunities} opportunities",
-		f"{BENCH} execute sidra_realestate.pilot_extras.create_pilot_extras",
+		f"{BENCH} execute sidra_realestate.pilot_extras.create_pilot_extras'",
 	)
 
 
@@ -202,7 +204,7 @@ def _users(add):
 				f"User {email}",
 				False,
 				"does not exist",
-				f"{BENCH} execute sidra_realestate.demo.ensure_demo_users  (then set the printed passwords)",
+				f"{BENCH} execute sidra_realestate.demo.ensure_demo_users'  (then set the printed passwords)",
 			)
 			continue
 		enabled = frappe.db.get_value("User", email, "enabled")
@@ -226,7 +228,7 @@ def _users(add):
 			f"User {email}",
 			not problems,
 			"ready" if not problems else "; ".join(problems),
-			f"{BENCH} set-password {email} <password>"
+			f"{BENCH} set-password {email}'  (prompts for the password)"
 			if problems == ["no password set"]
 			else f"Give {email} the role profile '{USERS.get(email)}' (Desk → User), enable it, and set a password.",
 		)

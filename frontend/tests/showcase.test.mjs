@@ -130,3 +130,31 @@ test('a missing value is a dash, never zero', () => {
   for (const fn of [money]) assert.equal(fn(null), '—')
   assert.equal(pct(undefined), '—')
 })
+
+const { executivePage, validExecutive } = await import('../src/showcase/live.js')
+const executiveData = {
+  schema_version: 1, as_of: '2026-11-15T10:00:00', scope: { company_id: 'Synthetic Homes', company_name: 'Synthetic Homes' },
+  summary: { units_available: 7, active_reservations: null, confirmed_contracts: 0 },
+  property: { total: 9, counts: [{ status: 'Available', count: 7 }, { status: 'Reserved', count: 2 }] },
+}
+test('live Executive presents server counts and live links, preserving withheld and zero values', () => {
+  const page = executivePage(executiveData, MODULES.executive.tabs.overview)
+  assert.deepEqual(page.kpis.map(k => k.value), [7, null, 0])
+  assert.equal(page.widgets[0].segments[0].value, 7)
+  assert.equal(page.widgets[0].segments[0].to.name, 'properties')
+  assert.equal(page.kpis[1].to.name, 'reservations-list')
+  assert.equal(page.workflow, undefined)
+  assert.match(page.subtitle, /Synthetic Homes/)
+})
+test('live Executive distinguishes unavailable inventory from an empty Company', () => {
+  const page = (property) => executivePage({ ...executiveData, property }, MODULES.executive.tabs.overview)
+  assert.match(page({ total: null, counts: [] }).widgets[0].items[0].text, /unavailable/)
+  assert.match(page({ total: 0, counts: [] }).widgets[0].items[0].text, /No units/)
+})
+test('Executive rejects incompatible and wrong-Company responses', () => {
+  assert.ok(validExecutive(executiveData, 'Synthetic Homes'))
+  assert.ok(!validExecutive(executiveData, 'Other Company'))
+  for (const data of [null, {}, { ...executiveData, schema_version: 2 }, { ...executiveData, property: {} }]) {
+    assert.ok(!validExecutive(data, 'Synthetic Homes'))
+  }
+})

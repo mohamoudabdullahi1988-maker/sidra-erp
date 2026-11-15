@@ -4,9 +4,13 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
-### Fixed (v0.1.39 — sign-in card centred; Sidra Homes logo shown, 15 Nov 2026; decision G19)
+### Fixed (v0.1.40 — sign-in card centred; Sidra Homes logo shown, 15 Nov 2026; decision G19)
 - **Sign-in card centred.** The page wrapper laid its children out side by side at full width, so a second child Frappe adds (header or breadcrumbs) took half the row and pushed the card to the right. The wrapper now stacks its children and the card centres itself.
 - **Sidra Homes logo** (the company using Berjaya, G19): under the sign-in form, and at the right of the Berjaya top bar on every screen. It comes from `branding.COMPANY_LOGO` through the page's boot data (`company_logo`); nothing is renamed.
+### Added (v0.1.39 — Executive overview backend connection)
+- Executive overview can now display live Company-scoped inventory, reservation and confirmed-contract counts through the existing staff dashboard API, with property status chart and record links. Sample mode remains explicit.
+- Live screens offer Company selection and refresh. Switching Company, module, tab or data source clears prior results and invalidates pending requests; request failures never show sample widgets.
+- Frontend coverage for server counts, unavailable inventory and incompatible or wrong-Company responses. No server business rules or financial posting behavior changed.
 
 ### Added (v0.1.38 — live Construction records and a Finance overview, after the demonstration; decision G25)
 - **Live records on Construction** (step 1 after the demonstration): Portfolio, Variations and Quality & inspections get a **Sample data / Live records** switch. Sample data stays the default. Live records come from the new read-only method `api.construction_live.get_construction_live`:

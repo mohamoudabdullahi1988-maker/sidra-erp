@@ -18,7 +18,8 @@ import { claimPanel, releasePanel } from '../panel'
 import { ApiError, apiGet } from '../api'
 import { company } from '../company'
 import StatePanel from '../components/StatePanel.vue'
-import { LIVE_METHOD, LIVE_TABS, livePage } from '../showcase/live'
+import CompanyPicker from '../components/CompanyPicker.vue'
+import { EXECUTIVE_METHOD, executivePage, validExecutive, LIVE_METHOD, LIVE_TABS, livePage } from '../showcase/live'
 
 // A sample screen (client demonstration): drawn from showcase/pages.js. Every figure is fictional
 // and labelled as such; real records keep their own screens, linked from here.
@@ -40,14 +41,22 @@ const liveError = ref(null)
 const loading = ref(false)
 let request = 0
 async function loadLive() {
-  if (!live.value) return
   const id = ++request
+  liveData.value = null
+  liveError.value = null
+  loading.value = false
+  if (!live.value) return
+  if (!company.value) {
+    liveError.value = 'No Company is available to your account.'
+    return
+  }
   loading.value = true
   liveError.value = null
   try {
-    const body = await apiGet(LIVE_METHOD, { company: company.value })
+    const body = await apiGet(route.meta.showcase === 'executive' ? EXECUTIVE_METHOD : LIVE_METHOD, { company: company.value, ...(route.meta.showcase === 'executive' ? { period: 'this_month' } : {}) })
     if (id !== request) return
     if (!body?.message || typeof body.message !== 'object') throw new ApiError('server', 'The server sent an unexpected answer.')
+    if (route.meta.showcase === 'executive' && !validExecutive(body.message, company.value)) throw new ApiError('server', 'The server sent an incompatible dashboard response.')
     liveData.value = body.message
   } catch (error) {
     if (id !== request) return
@@ -57,8 +66,8 @@ async function loadLive() {
     if (id === request) loading.value = false
   }
 }
-watch([live, () => company.value], loadLive, { immediate: true })
-const page = computed(() => (live.value && liveData.value ? livePage(tab.value, liveData.value, samplePage.value) : samplePage.value))
+watch([live, () => company.value, () => route.meta.showcase, tab], loadLive, { immediate: true })
+const page = computed(() => (live.value && liveData.value ? (route.meta.showcase === 'executive' ? executivePage(liveData.value, samplePage.value) : livePage(tab.value, liveData.value, samplePage.value)) : samplePage.value))
 const showWidgets = computed(() => !live.value || (liveData.value && !loading.value))
 function setSource(source) {
   router.replace({ query: { ...route.query, source: source === 'live' ? 'live' : undefined } })
@@ -98,6 +107,8 @@ onBeforeUnmount(releasePanel)
     </nav>
 
     <div v-if="canGoLive" class="sc__source" role="group" aria-label="What the screen shows">
+      <CompanyPicker v-if="live" />
+      <button v-if="live" type="button" :disabled="loading" @click="loadLive">Refresh</button>
       <button type="button" :class="{ on: !live }" :aria-pressed="!live" @click="setSource('sample')">Sample data</button>
       <button type="button" :class="{ on: live }" :aria-pressed="live" @click="setSource('live')">Live records</button>
     </div>

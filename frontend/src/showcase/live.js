@@ -7,7 +7,7 @@ import { detailRoute, listRoute } from '../records.js'
 export const LIVE_METHOD = '/api/method/sidra_realestate.api.construction_live.get_construction_live'
 
 /** Construction tabs that can show live records. */
-export const LIVE_TABS = { build: ['portfolio', 'variations', 'quality'] }
+export const LIVE_TABS = { executive: ['overview'], build: ['portfolio', 'variations', 'quality'] }
 
 const num = (value) => (value === null || value === undefined || value === '' ? null : Number(value))
 const sumOf = (rows, key) => {
@@ -139,4 +139,35 @@ const BUILDERS = { portfolio, variations, quality }
 export function livePage(tab, data, samplePage) {
   const built = BUILDERS[tab](data)
   return { ...samplePage, subtitle: `Live records for ${data.company}`, kpis: built.kpis, widgets: built.widgets }
+}
+
+
+export const EXECUTIVE_METHOD = '/api/method/sidra_realestate.api.staff_dashboard.get_dashboard'
+
+/** Present the server's counts without substituting sample figures or calculating business totals. */
+export function executivePage(data, samplePage) {
+  const summary = data.summary
+  const tiles = [
+    ['Units available', 'units_available', 'properties', 'green'],
+    ['Active reservations', 'active_reservations', 'reservations', 'blue'],
+    ['Contracts confirmed this month', 'confirmed_contracts', 'contracts', 'purple'],
+  ]
+  const property = data.property
+  const widgets = property.total == null
+    ? [notice('Property inventory', 'Property inventory is unavailable to your account.')]
+    : property.total === 0
+      ? [notice('Property inventory', 'No units are visible for this Company.')]
+      : [{ type: 'donut', title: 'Units by status', span: 6, kind: 'count', centre: 'units',
+          segments: property.counts.map((row) => ({ label: row.status, value: row.count, tone: JOB_TONE[row.status] ?? 'blue', to: { name: 'properties' } })) }]
+  widgets.push(notice('Reporting period', `Confirmed contracts are for this month. Inventory and reservations are current. Snapshot: ${data.as_of}.`))
+  return { title: samplePage.title, subtitle: `Live records for ${data.scope.company_name}`,
+    kpis: tiles.map(([label, key, route, tone]) => ({ label, value: summary[key] ?? null, kind: 'count', tone,
+      to: { name: route === 'reservations' ? listRoute(route) : route } })), widgets }
+}
+
+export function validExecutive(data, company) {
+  return data?.schema_version === 1 && data.scope?.company_id === company &&
+    typeof data.scope.company_name === 'string' && typeof data.as_of === 'string' &&
+    !!data.summary && !!data.property && Array.isArray(data.property.counts) &&
+    data.property.counts.every((row) => typeof row.status === 'string' && Number.isFinite(row.count))
 }

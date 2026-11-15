@@ -151,7 +151,7 @@ function schedule(data) {
   const overdue = stages.filter((st) => st.overdue)
   const counts = {}
   for (const st of stages) counts[state(st)] = (counts[state(st)] ?? 0) + 1
-  const upcoming = [...overdue, ...stages.filter((st) => !st.overdue && st.status === 'In Progress')].filter((st) => st.planned_start && st.planned_end).slice(0, 14)
+  const upcoming = stages.filter((st) => st.planned_start && st.planned_end)
   const widgets = [
     { type: 'donut', title: 'Stages by status', note: 'Overdue: not completed and past its planned end', span: 4, centre: 'stages', kind: 'count', to: list,
       segments: ['Completed', 'In Progress', 'Overdue', 'Planned'].filter((k) => counts[k]).map((label) => ({ label, value: counts[label], tone: STAGE_TONE[label], to: list })) },
@@ -159,9 +159,9 @@ function schedule(data) {
   if (upcoming.length) {
     const from = upcoming.reduce((a, st) => (st.planned_start < a ? st.planned_start : a), upcoming[0].planned_start)
     const until = upcoming.reduce((a, st) => (st.planned_end > a ? st.planned_end : a), data.today > upcoming[0].planned_end ? data.today : upcoming[0].planned_end)
-    widgets.push({ type: 'gantt', title: 'Overdue and current stages', span: 8, from, until, milestones: true, today: data.today,
-      rows: upcoming.map((st) => ({ label: st.stage, sub: `${st.site} · ${state(st)}`, start: st.planned_start, end: st.planned_end, tone: STAGE_TONE[state(st)], to: jobLink(st.job) })) })
-  } else widgets.push(notice('Overdue and current stages', 'No stage is overdue or in progress.', 8))
+    widgets.push({ type: 'gantt', title: 'All dated stages — recorded completion', span: 8, from, until, milestones: true, today: data.today,
+      rows: upcoming.map((st) => ({ label: st.stage, sub: `${st.site} · ${state(st)}`, start: st.planned_start, end: st.planned_end, progress: st.completion_pct ?? undefined, tone: STAGE_TONE[state(st)], to: jobLink(st.job) })) })
+  } else widgets.push(notice('Overdue and current stages', 'No stages have both planned dates recorded.', 8))
   widgets.push({
     type: 'table', title: 'Overdue stages', span: 12, to: list,
     columnDefs: [{ key: 'job', label: 'Job' }, { key: 'site', label: 'Site' }, { key: 'stage', label: 'Stage' }, { key: 'planned_end', label: 'Planned end', kind: 'date' }, { key: 'days_late', label: 'Days late', kind: 'count' }, { key: 'completion_pct', label: 'Recorded completion', kind: 'pct' }],
@@ -185,12 +185,12 @@ function cost(data) {
   const rows = jobs.rows
   if (!rows.length) return { kpis: [], widgets: [notice('Cost and budget', `No construction jobs are recorded for ${data.company} yet.`)] }
   const list = { name: 'construction' }
-  const recorded = (key) => rows.filter((r) => r[key] !== null)
+  const recorded = () => rows
   const certifiedValue = (job) => {
     const amounts = (job.stage_rows ?? []).filter((st) => st.certified).map((st) => num(st.billing_amount))
     return amounts.some((a) => a === null) ? null : amounts.reduce((a, v) => a + v, 0)
   }
-  const costRows = rows.filter((r) => r.boq_total !== null || r.current_contract_value !== null).slice(0, 12)
+  const costRows = rows.filter((r) => [r.boq_total, r.contract_value, r.current_contract_value].every((v) => v != null)).slice(0, 12)
   const variations = rows.filter((r) => num(r.approved_variations) > 0)
   return {
     kpis: [
@@ -202,12 +202,15 @@ function cost(data) {
     ],
     widgets: [
       costRows.length
-        ? { type: 'hbars', title: 'BOQ total and current contract value by job', span: 7, kind: 'money', series: [{ name: 'BOQ total', tone: 'sky' }, { name: 'Current contract value', tone: 'teal' }],
-            rows: costRows.map((r) => ({ label: jobLabel(r), values: [num(r.boq_total) ?? 0, num(r.current_contract_value) ?? 0], to: jobLink(r.name) })) }
+        ? { type: 'hbars', title: 'BOQ, original and current contract values', span: 7, kind: 'money', note: 'Only jobs with all three values are charted; every job appears in the table.', series: [{ name: 'BOQ total', tone: 'sky' }, { name: 'Original contract', tone: 'blue' }, { name: 'Current contract value', tone: 'teal' }],
+            rows: costRows.map((r) => ({ label: jobLabel(r), values: [num(r.boq_total), num(r.contract_value), num(r.current_contract_value)], to: jobLink(r.name) })) }
         : notice('BOQ and contract value', 'No BOQ total or contract value is recorded yet.', 7),
       variations.length
         ? { type: 'hbars', title: 'Approved variations by job', span: 5, kind: 'money', series: [{ name: 'Approved variations', tone: 'purple' }], rows: variations.map((r) => ({ label: jobLabel(r), values: [num(r.approved_variations)], to: jobLink(r.name) })) }
         : notice('Approved variations', 'No variation order has been approved yet.', 5),
+      { type: 'table', title: 'Billing milestones, not invoices', span: 12,
+        columnDefs: [{ key: 'job', label: 'Job' }, { key: 'stage', label: 'Stage' }, { key: 'billing_amount', label: 'Recorded milestone', kind: 'moneyFull' }],
+        rows: stagesOf(rows).map((r) => ({ ...r, _to: jobLink(r.job) })) },
       {
         type: 'table', title: 'Cost by job', note: 'Milestones are payment stages, not invoices: nothing is invoiced yet (CON-07).', span: 12, to: list,
         columnDefs: [{ key: 'name', label: 'Job' }, { key: 'site', label: 'Site' }, { key: 'boq_total', label: 'BOQ total', kind: 'moneyFull' }, { key: 'contract_value', label: 'Contract value', kind: 'moneyFull' }, { key: 'approved_variations', label: 'Variations', kind: 'moneyFull' }, { key: 'current_contract_value', label: 'Current value', kind: 'moneyFull' }, { key: 'certified_value', label: 'Certified milestones', kind: 'moneyFull' }],
@@ -243,7 +246,8 @@ export function executivePage(data, samplePage) {
       ? [notice('Property inventory', 'No units are visible for this Company.')]
       : [{ type: 'donut', title: 'Units by status', span: 6, kind: 'count', centre: 'units',
           segments: property.counts.map((row) => ({ label: row.status, value: row.count, tone: UNIT_TONE[row.status] ?? 'blue', to: { name: 'properties' } })) }]
-  widgets.push(notice('Reporting period', `Confirmed contracts are for this month. Inventory and reservations are current. Snapshot: ${data.as_of}.`))
+  if (data.dashboard_error) widgets.push(notice('Dashboard summary', data.dashboard_error))
+  widgets.push(notice('Reporting period', `Confirmed contracts are for this month. Inventory and reservations are current. Snapshot: ${data.as_of || 'unavailable'}.`))
   const kpis = tiles.map(([label, key, route, tone]) => ({ label, value: summary[key] ?? null, kind: 'count', tone,
     to: { name: route === 'reservations' ? listRoute(route) : route } }))
   // The whole business (issue #83): construction and real estate from their own read-only
@@ -261,63 +265,65 @@ export function executivePage(data, samplePage) {
   return { title: samplePage.title, subtitle: `Live records for ${data.scope.company_name}`, kpis, widgets }
 }
 
-/** Live Executive additions from construction_live and realestate_live answers ({ data } or { error }). */
+/** Every source and permission group keeps its own result; totals come from the server. */
 export function executiveExtras({ construction, realestate }) {
-  const kpis = []
-  const widgets = []
-  const attention = []
-  let jobTable = null
+  const kpis = [], widgets = [], attention = []
+  let incomplete = false
+  const missing = (title, reason) => { incomplete = true; widgets.push(notice(title, reason || 'These records are unavailable.', 6)) }
   const c = construction?.data
-  if (!c) widgets.push(notice('Construction', construction?.error || 'Construction records could not be loaded.', 4))
-  else if (!c.jobs.available) widgets.push(notice('Construction', c.jobs.reason, 4))
+  if (!c) missing('Construction', construction?.error)
   else {
-    const jobs = c.jobs.rows
-    const active = jobs.filter((r) => ACTIVE.has(r.status))
-    const overdue = jobs.reduce((a, r) => a + r.stages_overdue, 0)
-    kpis.push({ label: 'Active construction jobs', value: active.length, kind: 'count', tone: 'sky', to: { name: 'construction' } })
-    if (jobs.length) {
-      widgets.push({ type: 'map', title: 'Job sites', span: 4, empty: 'No job has a recorded location yet.',
+    if (!c.jobs.available) missing('Construction', c.jobs.reason)
+    else {
+      const jobs = c.jobs.rows
+      kpis.push({ label: 'Active construction jobs', value: c.jobs.summary?.active_jobs ?? null, kind: 'count', tone: 'sky', to: { name: 'construction' } })
+      kpis.push({ label: 'Overdue construction stages', value: c.jobs.summary?.overdue_stages ?? null, kind: 'count', tone: 'rose', to: { name: 'construction-hub', params: { tab: 'schedule' }, query: { source: 'live' } } })
+      widgets.push({ type: 'map', title: 'Job sites', span: 6, empty: 'No job has a recorded location yet.',
         pins: jobs.filter((r) => r.point).map((r) => ({ label: jobLabel(r), point: r.point, tone: JOB_TONE[r.status], sub: r.status, to: jobLink(r.name) })) })
-      jobTable = {
-        type: 'table', title: 'Construction jobs', span: 12, to: { name: 'construction' },
-        columnDefs: [{ key: 'name', label: 'Job' }, { key: 'site', label: 'Site' }, { key: 'status', label: 'Status', kind: 'chip' }, { key: 'progress', label: 'Progress', kind: 'progress' }, { key: 'stages_overdue', label: 'Overdue stages', kind: 'count' }],
-        rows: [...jobs].sort((a, b) => b.stages_overdue - a.stages_overdue).slice(0, 8).map((r) => ({ ...r, site: jobLabel(r), _to: jobLink(r.name) })),
-      }
-    } else widgets.push(notice('Construction', `No construction jobs are recorded for ${c.company} yet.`, 4))
-    if (overdue) attention.push({ tone: 'red', text: `${overdue} construction ${overdue === 1 ? 'stage is' : 'stages are'} overdue`, to: { name: 'construction-hub', params: { tab: 'schedule' }, query: { source: 'live' } } })
-    if (c.variations.available) {
-      const drafts = c.variations.rows.filter((r) => r.status === 'Draft').length
-      if (drafts) attention.push({ tone: 'amber', text: `${drafts} variation ${drafts === 1 ? 'order awaits' : 'orders await'} approval`, to: { name: listRoute('variations') } })
+      widgets.push({ type: 'table', title: 'Construction jobs', span: 12,
+        columnDefs: [{ key: 'name', label: 'Job' }, { key: 'site', label: 'Site' }, { key: 'status', label: 'Status', kind: 'chip' }, { key: 'progress', label: 'Recorded progress', kind: 'progress' }, { key: 'stages_overdue', label: 'Overdue stages', kind: 'count' }],
+        rows: jobs.map((r) => ({ ...r, site: jobLabel(r), _to: jobLink(r.name) })) })
+      for (const job of jobs.filter((r) => r.stages_overdue > 0)) attention.push({ tone: 'rose', text: `${jobLabel(job)}: ${job.stages_overdue} overdue stages`, to: jobLink(job.name) })
     }
-    if (c.inspections.available) {
-      const failed = c.inspections.rows.filter((r) => r.result === 'Fail').length
-      if (failed) attention.push({ tone: 'amber', text: `${failed} ${failed === 1 ? 'inspection' : 'inspections'} failed`, to: { name: listRoute('inspections') } })
-    }
+    if (!c.variations.available) missing('Variation orders', c.variations.reason)
+    else for (const row of c.variations.rows.filter((r) => r.status === 'Draft')) attention.push({ tone: 'amber', text: `${row.name}: variation awaiting approval`, to: { name: detailRoute('variations'), params: { name: row.name } } })
+    if (!c.inspections.available) missing('Inspection reports', c.inspections.reason)
+    else for (const row of c.inspections.rows.filter((r) => r.result === 'Fail' && r.status !== 'Cancelled')) attention.push({ tone: 'rose', text: `${row.name}: failed inspection (${row.status})`, to: { name: detailRoute('inspections'), params: { name: row.name } } })
   }
   const r = realestate?.data
-  if (!r) widgets.push(notice('Real estate sales', realestate?.error || 'Real estate records could not be loaded.', 6))
+  if (!r) missing('Real estate sales', realestate?.error)
   else {
-    if (r.units.available && r.units.total) {
+    if (!r.units.available) missing('Units by project', r.units.reason)
+    else {
       const statuses = UNIT_ORDER.filter((st) => r.units.status_counts[st])
-      widgets.push({ type: 'hbars', title: 'Units by project', span: 6, kind: 'count', stacked: true, series: statuses.map((st) => ({ name: st, tone: UNIT_TONE[st] })),
+      widgets.push({ type: 'hbars', title: 'Units by project', span: 6, kind: 'count', stacked: true,
+        series: statuses.map((st) => ({ name: st, tone: UNIT_TONE[st] })),
         rows: r.units.schemes.map((sc) => ({ label: sc.name, values: statuses.map((st) => sc.counts[st] ?? 0), to: { name: 'properties' } })) })
-    } else widgets.push(notice('Units by project', r.units.available ? `No units are recorded for ${r.company} yet.` : r.units.reason, 6))
-    if (r.schedule.available) {
-      kpis.push({ label: 'Installments due, 12 months', value: sumOf(r.schedule.months, 'amount'), kind: 'money', tone: 'teal', to: { name: 'realestate', params: { tab: 'contracts' }, query: { source: 'live' } } })
-      widgets.push({ type: 'bars', title: 'Installments scheduled per month', note: 'Amounts due on confirmed contracts, not money received.', span: 6, kind: 'money',
-        labels: r.schedule.months.map((m) => monthText(m.month)), series: [{ name: 'Scheduled', values: r.schedule.months.map((m) => Number(m.amount)), tone: 'sky' }] })
-    } else widgets.push(notice('Installment schedule', r.schedule.reason, 6))
-    if (r.leads.available) {
+    }
+    if (!r.schedule.available) missing('Installment schedule', r.schedule.reason)
+    else {
+      kpis.push({ label: 'Installments due, 12 months', value: r.schedule.total ?? null, kind: 'money', tone: 'teal', to: { name: 'collections' } })
+      widgets.push({ type: 'bars', title: 'Installments scheduled per month', note: 'Amounts due on confirmed contracts, not receipts.', span: 6, kind: 'money',
+        labels: r.schedule.months.map((m) => monthText(m.month)), series: [{ name: 'Scheduled', values: r.schedule.months.map((m) => num(m.amount)), tone: 'sky' }] })
+    }
+    if (!r.leads.available) missing('Leads', r.leads.reason)
+    else {
       kpis.push({ label: 'Leads', value: r.leads.total, kind: 'count', tone: 'purple', to: { name: listRoute('leads') } })
+      widgets.push({ type: 'donut', title: 'Leads by status', span: 6, centre: 'leads', kind: 'count',
+        segments: Object.entries(r.leads.status_counts).map(([label, value]) => ({ label, value, tone: 'blue', to: { name: listRoute('leads') } })) })
     }
-    if (r.contracts.available) {
-      const drafts = r.contracts.rows.filter((row) => row.status === 'Draft').length
-      if (drafts) attention.push({ tone: 'blue', text: `${drafts} sale ${drafts === 1 ? 'contract is' : 'contracts are'} still in draft`, to: { name: 'contracts' } })
+    if (!r.contracts.available) missing('Sale contracts', r.contracts.reason)
+    else {
+      kpis.push({ label: 'Confirmed contracts', value: r.contracts.status_counts?.Confirmed ?? (r.contracts.status_counts ? 0 : null), kind: 'count', tone: 'green', to: { name: 'contracts' } })
+      for (const row of r.contracts.rows.filter((row) => row.status === 'Draft')) attention.push({ tone: 'blue', text: `${row.name}: contract in draft`, to: { name: 'contract-detail', params: { name: row.name } } })
     }
+    if (!r.reservations?.available) missing('Reservations', r.reservations?.reason)
+    else if (!Array.isArray(r.reservations.expiring)) missing('Expiring reservations', 'Reservation expiry data is unavailable from this server version.')
+    else for (const row of r.reservations.expiring) attention.push({ tone: 'amber', text: `${row.name}: reservation expires ${row.expires_on}`, to: { name: detailRoute('reservations'), params: { name: row.name } } })
   }
-  // Attention sits beside the sites map (row 1); the job table closes the section.
-  widgets.splice(1, 0, { type: 'list', title: 'Needs attention', span: 4, items: attention.length ? attention : [{ tone: 'blue', text: 'Nothing recorded needs attention.' }] })
-  if (jobTable) widgets.push(jobTable)
+  if (incomplete) attention.push({ tone: 'amber', text: 'Some attention checks are unavailable; see the source reasons on this page.' })
+  if (!attention.length) attention.push({ tone: 'blue', text: 'No attention items in the records you can read.' })
+  widgets.unshift({ type: 'list', title: 'Needs attention', span: 12, items: attention })
   return { kpis, widgets }
 }
 

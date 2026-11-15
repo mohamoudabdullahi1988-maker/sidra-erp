@@ -19,7 +19,9 @@ import { ApiError, apiGet } from '../api'
 import { company } from '../company'
 import StatePanel from '../components/StatePanel.vue'
 import CompanyPicker from '../components/CompanyPicker.vue'
-import { EXECUTIVE_METHOD, executivePage, validExecutive, LIVE_METHOD, LIVE_TABS, livePage, REALESTATE_METHOD, realestatePage } from '../showcase/live'
+import { executivePage, LIVE_METHOD, LIVE_TABS, livePage, REALESTATE_METHOD, realestatePage } from '../showcase/live'
+
+import { loadExecutiveSources, validLiveSource } from '../showcase/liveSources'
 
 // A sample screen (client demonstration): drawn from showcase/pages.js. Every figure is fictional
 // and labelled as such; real records keep their own screens, linked from here.
@@ -53,28 +55,16 @@ async function loadLive() {
   loading.value = true
   liveError.value = null
   try {
-    const method = { executive: EXECUTIVE_METHOD, realestate: REALESTATE_METHOD }[route.meta.showcase] ?? LIVE_METHOD
-    const body = await apiGet(method, { company: company.value, ...(route.meta.showcase === 'executive' ? { period: 'this_month' } : {}) })
-    if (id !== request) return
-    if (!body?.message || typeof body.message !== 'object') throw new ApiError('server', 'The server sent an unexpected answer.')
-    if (route.meta.showcase === 'executive' && !validExecutive(body.message, company.value)) throw new ApiError('server', 'The server sent an incompatible dashboard response.')
+    const selectedCompany = company.value
     if (route.meta.showcase === 'executive') {
-      // Construction and sales beside the dashboard (issue #83): loaded together; one that fails
-      // or belongs to another Company shows its reason in place and never hides the others.
-      const answer = async (path) => {
-        try {
-          const reply = await apiGet(path, { company: company.value })
-          if (reply?.message?.company !== company.value) return { error: 'The server sent an answer for another Company.' }
-          return { data: reply.message }
-        } catch (error) {
-          return { error: error instanceof ApiError ? error.message : 'These records could not be loaded.' }
-        }
-      }
-      const [construction, realestate] = await Promise.all([answer(LIVE_METHOD), answer(REALESTATE_METHOD)])
-      if (id !== request) return
-      liveData.value = { ...body.message, extras: { construction, realestate } }
+      const result = await loadExecutiveSources(selectedCompany)
+      if (id === request) liveData.value = result
       return
     }
+    const kind = route.meta.showcase === 'realestate' ? 'realestate' : 'construction'
+    const body = await apiGet(kind === 'realestate' ? REALESTATE_METHOD : LIVE_METHOD, { company: selectedCompany })
+    if (id !== request) return
+    if (!validLiveSource(body?.message, selectedCompany, kind)) throw new ApiError('server', 'The server sent incompatible records or another Company.')
     liveData.value = body.message
   } catch (error) {
     if (id !== request) return
@@ -98,7 +88,7 @@ function setSource(source) {
 const records = computed(() => (module.value.records ?? []).map(recordAction).filter(Boolean))
 
 onMounted(claimPanel)
-onBeforeUnmount(releasePanel)
+onBeforeUnmount(() => { ++request; releasePanel() })
 </script>
 
 <template>

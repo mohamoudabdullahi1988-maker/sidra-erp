@@ -4,6 +4,12 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Fixed (v0.1.50 — live overview verification, 15 Nov 2026; issues #82–#83)
+- Executive sources start in parallel and fail independently; wrong-Company responses are refused. Restricted attention sources show reasons instead of an all-clear.
+- Added reservation expiry links, lead-status chart and confirmed-contract counts; Executive business totals now come from server responses.
+- Construction Schedule includes every dated stage. Cost charts compare BOQ, original and current values without substituting zero for missing data; individual billing milestones remain explicitly separate from invoices.
+- Added permission-scoped child queries, server summary/expiry tests and mixed-source frontend checks.
+
 ### Added (v0.1.49 — live Executive overview: the whole business from records, 15 Nov 2026; issue #83)
 - The Executive overview's **Live records** mode now loads construction (`api.construction_live`) and real estate (`api.realestate_live`) alongside the dashboard counts (Codex, v0.1.39), in parallel. It adds:
   - tiles for active construction jobs, installments due over 12 months and leads;

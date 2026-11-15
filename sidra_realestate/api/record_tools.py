@@ -9,6 +9,7 @@ from sidra_realestate.api.record_extras import _record
 @frappe.whitelist(methods=["GET"])
 def get_tools(doctype, name):
 	doc = _record(doctype, name)
+	permitted = set(frappe.get_meta(doctype).get_permitted_fieldnames(user=frappe.session.user))
 	versions = []
 	if doc.has_permission("write"):
 		versions = frappe.get_all(
@@ -31,7 +32,11 @@ def get_tools(doctype, name):
 				"name": v.name,
 				"by": v.owner,
 				"on": v.creation,
-				"changed": frappe.parse_json(v.data).get("changed", []),
+				"changed": [
+					change
+					for change in frappe.parse_json(v.data).get("changed", [])
+					if change and change[0] in permitted
+				],
 			}
 			for v in versions
 		],

@@ -26,9 +26,9 @@ const filterField = ref(''), filterValue = ref(''), filterOperator = ref('=')
 const sortField = ref('modified'), sortDirection = ref('desc')
 const appliedFilter = ref(null)
 const validColumns = new Set(config.list.map(c => c.field))
-const filters = () => ({ ...(config.filters ?? {}), ...(config.company && company.value ? { company: company.value } : {}), ...(appliedFilter.value ? { [appliedFilter.value.field]: [appliedFilter.value.operator, appliedFilter.value.value] } : {}) })
+const filters = () => ({ ...(config.fixedFilters ?? {}), ...(config.company && company.value ? { company: company.value } : {}), ...(appliedFilter.value ? { [appliedFilter.value.field]: [appliedFilter.value.operator, appliedFilter.value.value] } : {}) })
 function applyTools() {
-  appliedFilter.value = validColumns.has(filterField.value) && filterValue.value !== '' ? { field: filterField.value, operator: filterOperator.value, value: filterValue.value } : null
+  appliedFilter.value = validColumns.has(filterField.value) && !Object.hasOwn(config.fixedFilters ?? {}, filterField.value) && filterValue.value !== '' ? { field: filterField.value, operator: filterOperator.value, value: filterValue.value } : null
   reload()
 }
 function saveView() {
@@ -50,10 +50,7 @@ const fields = [...new Set(['name', ...config.list.map((c) => c.field), ...(conf
 const list = useList(config.doctype, {
   fields,
   // A list may have fixed conditions (e.g. design jobs are jobs with a design or inspection service).
-  filters: () => {
-    const conditions = { ...(config.fixedFilters ?? {}), ...(config.company && company.value ? { company: company.value } : {}) }
-    return Object.keys(conditions).length ? conditions : undefined
-  },
+  filters,
   orFilters: () => (applied.value ? config.search.map((field) => [field, 'like', `%${applied.value}%`]) : undefined),
   orderBy: () => `${validColumns.has(sortField.value) ? sortField.value : 'modified'} ${sortDirection.value === 'asc' ? 'asc' : 'desc'}`,
 })

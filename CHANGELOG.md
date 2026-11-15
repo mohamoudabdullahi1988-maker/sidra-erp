@@ -5,7 +5,8 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 ## [Unreleased]
 
 ### Added (v0.1.58 — staff record tools, 15 Nov 2026)
-- Contact and Address forms in Berjaya; Lead Company, phone, WhatsApp and contact preferences; Customer primary Contact/Address fields.
+- My work: personal native tasks and notification inbox, task completion and mark-read with user ownership checks. Sign-out control. Generic transaction lists support server filters/sorts and browser-saved view preferences.
+- Workflow guides throughout transaction pages. Contact and Address forms in Berjaya; Lead Company, phone, WhatsApp and contact preferences; Customer primary Contact/Address fields.
 - Record tools on saved forms: permission-checked Print/PDF, native assignments with due date, and latest tracked field changes for users who can write the record.
 - Hide retired demo companies from the picker; contact app links and unapproved construction-value explanations from rehearsal feedback.
 - Dashboard date selection and module submenus remain Claude's active work. No new financial operations.

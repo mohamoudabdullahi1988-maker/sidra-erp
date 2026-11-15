@@ -41,7 +41,7 @@ const CHILDREN = {
   'construction-hub': [DASHBOARD('construction-hub'), { ...page('construction', 'Jobs'), list: 'jobs' }, list('construction_quotations'), list('boq_revisions'), list('variations'), list('inspections'), list('risks')],
   design: [DASHBOARD('design'), list('design_jobs'), list('inspections')],
   realestate: [DASHBOARD('realestate'), { ...page('properties', 'Units'), list: 'units' }, list('reservations'), list('sale_quotations'), { ...page('contracts', 'Contracts'), list: 'contracts' }, list('title_transfers'), page('collections', 'Collections')],
-  'crm-hub': [DASHBOARD('crm-hub'), list('leads'), list('opportunities'), list('customers'), list('contacts'), list('kyc')],
+  'crm-hub': [DASHBOARD('crm-hub'), list('leads'), list('opportunities'), list('customers'), list('contacts'), list('addresses'), list('kyc')],
   'finance-hub': [DASHBOARD('finance-hub'), page('finance', 'Ledger and invoices')],
   setup: [list('profiles'), list('clauses'), list('imports'), list('contract_settings')],
 }
@@ -147,6 +147,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         </button>
         <span class="bar__wordmark">{{ PRODUCT_NAME }}</span>
         <span class="bar__spacer" />
+        <RouterLink class="bar__btn" :to="{ name: 'my-work' }" title="Tasks and notifications" aria-label="My work"><span class="lucide-bell" aria-hidden="true" /></RouterLink>
+        <a class="bar__btn" href="/api/method/logout" title="Sign out" aria-label="Sign out"><span class="lucide-log-out" aria-hidden="true" /></a>
         <!-- The company using Berjaya (decision G19): its own logo, supplied by the server. -->
         <img v-if="boot.company_logo" :src="boot.company_logo" :alt="boot.company || 'Company'" :title="boot.company || undefined" class="bar__company" />
         <span class="bar__user" :title="boot.user.name">{{ boot.user.full_name }}</span>

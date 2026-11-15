@@ -25,7 +25,11 @@ const fields = [...new Set(['name', ...config.list.map((c) => c.field), ...(conf
 
 const list = useList(config.doctype, {
   fields,
-  filters: () => (config.company && company.value ? { company: company.value } : undefined),
+  // A list may have fixed conditions (e.g. design jobs are jobs with a design or inspection service).
+  filters: () => {
+    const conditions = { ...(config.fixedFilters ?? {}), ...(config.company && company.value ? { company: company.value } : {}) }
+    return Object.keys(conditions).length ? conditions : undefined
+  },
   orFilters: () => (applied.value ? config.search.map((field) => [field, 'like', `%${applied.value}%`]) : undefined),
   orderBy: config.orderBy,
 })

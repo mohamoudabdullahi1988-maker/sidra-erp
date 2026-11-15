@@ -11,8 +11,9 @@ from collections import defaultdict
 
 import frappe
 from frappe import _
-from frappe.utils import add_months, getdate, nowdate
+from frappe.utils import getdate, nowdate
 
+from sidra_realestate.api.live_period import block, months, period, within
 from sidra_realestate.api.staff_dashboard import _staff_only, total
 
 MONTHS = 12
@@ -41,15 +42,21 @@ def _company(company):
 
 
 @frappe.whitelist(methods=["GET"])
-def get_finance_live(company: str) -> dict:
-	"""Income and expenses per month, cash and bank, and what is owed both ways, from the ledger."""
+def get_finance_live(company: str, from_date: str | None = None, to_date: str | None = None) -> dict:
+	"""Income and expenses per month, cash and bank, and what is owed both ways, from the ledger.
+
+	Income and expenses posted in the period; cash and bank balances at its end; what is owed as
+	of today (live_period).
+	"""
 	today = _company(company)
+	start, to = period(from_date, to_date)
 	return {
 		"company": company,
 		"currency": frappe.get_cached_value("Company", company, "default_currency"),
 		"today": str(today),
-		"pnl": _pnl(company, today),
-		"cash": _cash(company),
+		"period": block(start, to, ["pnl"], ["receivables", "payables"]) | {"cash_as_of": str(to)},
+		"pnl": _pnl(company, start, to),
+		"cash": _cash(company, to),
 		"receivables": _ageing("Sales Invoice", "customer", company, today),
 		"payables": _ageing("Purchase Invoice", "supplier", company, today),
 	}
@@ -67,23 +74,22 @@ def _accounts(company, field, values):
 	}
 
 
-def _pnl(company, today):
+def _pnl(company, start, to):
 	if not (_readable("GL Entry") and _readable("Account")):
 		return _unavailable(_("Your role does not include the ledger."), months=[])
-	first = add_months(today.replace(day=1), -(MONTHS - 1))
 	accounts = _accounts(company, "root_type", ["Income", "Expense"])
-	months = [str(add_months(first, i))[:7] for i in range(MONTHS)]
+	month_keys = months(start, to)
 	income, expense = defaultdict(list), defaultdict(list)
 	by_account = defaultdict(list)
 	if accounts:
 		for row in frappe.get_list(
 			"GL Entry",
-			filters={
-				"company": company,
-				"is_cancelled": 0,
-				"account": ["in", list(accounts)],
-				"posting_date": [">=", first],
-			},
+			filters=[
+				["company", "=", company],
+				["is_cancelled", "=", 0],
+				["account", "in", list(accounts)],
+				*within("posting_date", start, to),
+			],
 			fields=["posting_date", "account", "debit", "credit"],
 			limit_page_length=0,
 		):
@@ -98,7 +104,7 @@ def _pnl(company, today):
 		"reason": None,
 		"months": [
 			{"month": m, "income": total(income[m]) or "0.00", "expense": total(expense[m]) or "0.00"}
-			for m in months
+			for m in month_keys
 		],
 		"expense_accounts": sorted(
 			({"account": name, "amount": total(values)} for name, values in by_account.items()),
@@ -107,7 +113,7 @@ def _pnl(company, today):
 	}
 
 
-def _cash(company):
+def _cash(company, to):
 	if not (_readable("GL Entry") and _readable("Account")):
 		return _unavailable(_("Your role does not include the ledger."), accounts=[])
 	accounts = _accounts(company, "account_type", ["Bank", "Cash"])
@@ -115,7 +121,12 @@ def _cash(company):
 	if accounts:
 		for row in frappe.get_list(
 			"GL Entry",
-			filters={"company": company, "is_cancelled": 0, "account": ["in", list(accounts)]},
+			filters={
+				"company": company,
+				"is_cancelled": 0,
+				"account": ["in", list(accounts)],
+				"posting_date": ["<=", str(to)],
+			},
 			fields=["account", "debit", "credit"],
 			limit_page_length=0,
 		):
@@ -171,19 +182,24 @@ def _ageing(doctype, party_field, company, today):
 
 
 @frappe.whitelist(methods=["GET"])
-def get_operations_live(company: str) -> dict:
-	"""Suppliers and subcontractors with what was invoiced and is still owed; stock on hand."""
+def get_operations_live(company: str, from_date: str | None = None, to_date: str | None = None) -> dict:
+	"""Suppliers and subcontractors with what was invoiced and is still owed; stock on hand.
+
+	Supplier invoices posted in the period; stock on hand today (live_period).
+	"""
 	today = _company(company)
+	start, to = period(from_date, to_date)
 	return {
 		"company": company,
 		"currency": frappe.get_cached_value("Company", company, "default_currency"),
 		"today": str(today),
-		"suppliers": _suppliers(company),
+		"period": block(start, to, ["suppliers"], ["stock"]),
+		"suppliers": _suppliers(company, start, to),
 		"stock": _stock(company),
 	}
 
 
-def _suppliers(company):
+def _suppliers(company, start, to):
 	if not (_readable("Supplier") and _readable("Purchase Invoice")):
 		return _unavailable(_("Your role does not include suppliers and purchase invoices."), rows=[])
 	suppliers = {
@@ -198,7 +214,7 @@ def _suppliers(company):
 	invoiced, owed, counts = defaultdict(list), defaultdict(list), defaultdict(int)
 	for row in frappe.get_list(
 		"Purchase Invoice",
-		filters={"company": company, "docstatus": 1},
+		filters=[["company", "=", company], ["docstatus", "=", 1], *within("posting_date", start, to)],
 		fields=["supplier", "grand_total", "outstanding_amount"],
 		limit_page_length=0,
 	):

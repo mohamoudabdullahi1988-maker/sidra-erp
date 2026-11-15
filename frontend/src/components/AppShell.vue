@@ -2,9 +2,10 @@
 import { computed, onBeforeUnmount, onMounted, ref, toRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
-import { boot, navItems } from '../boot'
+import { boot, canOpen, canRead, navItems } from '../boot'
 import { PRODUCT_NAME } from '../brand'
 import { panel } from '../panel'
+import { RECORDS, listRoute } from '../records'
 import { DATASETS } from '../showcase/datasets'
 
 const ICONS = {
@@ -29,6 +30,25 @@ const SHARED = ['customers', 'finance', 'setup']
 const SHARED_ROUTE = { customers: { key: 'crm-hub', also: ['customers'] }, finance: { key: 'finance-hub', also: ['finance'] } }
 const SET_LINE = { build: 'construction-hub', design: 'design', realestate: 'realestate', crm: 'crm-hub', brokerage: 'brokerage', finance: 'finance-hub' }
 
+// Each business line's sub-menu (Mohamoud, 15 Nov 2026): its dashboard, then the record screens
+// of its transactions. A record list shows only when the server lets this user read it; a page of
+// its own (Units, Contracts, ...) only when its section is open to the user.
+const list = (key) => ({ key, label: RECORDS[key].title, to: { name: listRoute(key) }, show: () => canRead(key) })
+const page = (name, label, section = name) => ({ key: name, label, to: { name }, show: () => canOpen(section) })
+const DASHBOARD = (name) => ({ key: name, label: 'Dashboard', to: { name }, show: () => true })
+const CHILDREN = {
+  executive: [DASHBOARD('executive'), page('dashboard', 'Live dashboard')],
+  'construction-hub': [DASHBOARD('construction-hub'), { ...page('construction', 'Jobs'), list: 'jobs' }, list('construction_quotations'), list('boq_revisions'), list('variations'), list('inspections'), list('risks')],
+  design: [DASHBOARD('design'), list('design_jobs'), list('inspections')],
+  realestate: [DASHBOARD('realestate'), { ...page('properties', 'Units'), list: 'units' }, list('reservations'), list('sale_quotations'), { ...page('contracts', 'Contracts'), list: 'contracts' }, list('title_transfers'), page('collections', 'Collections')],
+  'crm-hub': [DASHBOARD('crm-hub'), list('leads'), list('opportunities'), list('customers'), list('contacts'), list('kyc')],
+  'finance-hub': [DASHBOARD('finance-hub'), page('finance', 'Ledger and invoices')],
+  setup: [list('profiles'), list('clauses'), list('imports'), list('contract_settings')],
+}
+const children = (key) => (CHILDREN[key] ?? []).filter((child) => child.show())
+const childActive = (child) =>
+  route.name === child.to.name || (child.list && route.meta.list === child.list) || (child.key && route.meta.list === child.key && !route.meta.showcase)
+
 const items = [
   ...LINES,
   ...SHARED.map((key) => navItems().find((item) => item.key === key))
@@ -39,6 +59,8 @@ const route = useRoute()
 // The menu item of the page on screen; its list and record pages keep it highlighted.
 const activeSection = computed(() => {
   if (route.name === 'sample') return SET_LINE[DATASETS[route.params.set]?.section] ?? null
+  const line = RECORDS[route.meta.list]?.navLine // a list shown under another line (design jobs)
+  if (line) return line
   const section = route.meta.section ?? route.name
   return items.find((item) => item.key === section || item.also.includes(section))?.key ?? section
 })
@@ -71,18 +93,29 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
       </div>
 
       <nav class="nav__items">
-        <RouterLink
-          v-for="item in items"
-          :key="item.key"
-          :to="{ name: item.key }"
-          class="nav__item"
-          :class="{ 'nav__item--active': activeSection === item.key }"
-          :aria-current="activeSection === item.key ? 'page' : undefined"
-          :title="navCollapsed ? item.label : undefined"
-        >
-          <span class="nav__icon" :class="item.icon" aria-hidden="true" />
-          <span class="nav__label">{{ item.label }}</span>
-        </RouterLink>
+        <template v-for="item in items" :key="item.key">
+          <RouterLink
+            :to="{ name: item.key }"
+            class="nav__item"
+            :class="{ 'nav__item--active': activeSection === item.key }"
+            :aria-current="activeSection === item.key ? 'page' : undefined"
+            :title="navCollapsed ? item.label : undefined"
+          >
+            <span class="nav__icon" :class="item.icon" aria-hidden="true" />
+            <span class="nav__label">{{ item.label }}</span>
+          </RouterLink>
+          <!-- Sub-menu of the open business line: its dashboard and its transactions. -->
+          <div v-if="activeSection === item.key && !navCollapsed && children(item.key).length" class="nav__sub" :aria-label="item.label + ' screens'" role="group">
+            <RouterLink
+              v-for="child in children(item.key)"
+              :key="child.key"
+              :to="child.to"
+              class="nav__subitem"
+              :class="{ 'nav__subitem--active': childActive(child) }"
+              :aria-current="childActive(child) ? 'page' : undefined"
+            >{{ child.label }}</RouterLink>
+          </div>
+        </template>
         <p v-if="!items.length" class="nav__none">No sections are available to your account.</p>
       </nav>
 
@@ -232,6 +265,34 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 .nav__item--active,
 .nav__item--active:hover {
   background: var(--bj-terracotta);
+  color: #fff;
+  font-weight: 500;
+}
+.nav__sub {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 2px 0 6px 21px;
+  padding-left: 12px;
+  border-left: 1px solid rgb(255 255 255 / 0.14);
+}
+.nav__subitem {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: rgb(255 255 255 / 0.62);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nav__subitem:hover {
+  background: rgb(255 255 255 / 0.07);
+  color: #fff;
+}
+.nav__subitem--active,
+.nav__subitem--active:hover {
+  background: rgb(255 255 255 / 0.12);
   color: #fff;
   font-weight: 500;
 }

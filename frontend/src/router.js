@@ -10,9 +10,11 @@ const Showcase = () => import('./pages/Showcase.vue')
 
 // Every generic list and its record page, from records.js. Static paths such as
 // /construction/quotations rank above /construction/:name, so they never collide.
+// A list whose records open another page (design jobs open the job page) gets no record page of
+// its own: a second route with the same name would replace that page's route.
 const generic = GENERIC.flatMap((key) => [
   { path: RECORDS[key].path, name: listRoute(key), component: RecordList, meta: { list: key, section: RECORDS[key].section } },
-  { path: `${RECORDS[key].path}/:name`, name: detailRoute(key), component: RecordDetail, meta: { list: key, section: RECORDS[key].section } },
+  ...(RECORDS[key].detailRoute ? [] : [{ path: `${RECORDS[key].path}/:name`, name: detailRoute(key), component: RecordDetail, meta: { list: key, section: RECORDS[key].section } }]),
 ])
 
 // Create and edit pages for every list the server's form engine serves (G23), and the generic

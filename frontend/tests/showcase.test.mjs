@@ -123,7 +123,7 @@ test('an unavailable or empty live group says why instead of showing zero', () =
   assert.equal(vo.widgets[0].items[0].text, 'Your role does not include variation orders.')
   const ir = livePage('quality', LIVE, MODULES.build.tabs.quality)
   assert.match(ir.widgets[0].items[0].text, /No inspection reports are recorded for Synthetic Homes/)
-  assert.deepEqual(LIVE_TABS.build, ['portfolio', 'schedule', 'cost', 'variations', 'quality', 'stock', 'subcontractors'])
+  assert.deepEqual(LIVE_TABS.build, ['portfolio', 'schedule', 'cost', 'variations', 'quality', 'stock', 'subcontractors', 'risk'])
 })
 
 test('a missing value is a dash, never zero', () => {
@@ -268,4 +268,24 @@ test('live Finance, Design, Subcontractors and Stock read their own sources and 
   assert.match(emptyStock.widgets[0].items[0].text, /No stock is recorded/)
   const subs = livePageFor('build', 'subcontractors', { company: 'Synthetic Homes', suppliers: { available: true, rows: [{ supplier: 'S1', name: 'Synthetic Supplier', invoices: 3, invoiced: '6000.00', owed: '1500.00' }] }, stock: {} }, MODULES.build.tabs.subcontractors)
   assert.equal(tile(subs, 'Still owed'), 1500)
+})
+
+test('live Risk register counts open risks only and says why when missing', () => {
+  const tile = (page, label) => page.kpis.find((k) => k.label === label).value
+  const risks = { available: true, rows: [
+    { name: 'RSK-1', project: 'Masalaha Hagbad', category: 'Weather disruption', rating: 'High', status: 'Open' },
+    { name: 'RSK-2', project: 'All projects', category: 'Cost overruns', rating: 'Medium', status: 'Mitigating' },
+    { name: 'RSK-3', project: 'All projects', category: 'Currency movement', rating: 'Low', status: 'Closed' },
+  ] }
+  const page = livePageFor('build', 'risk', { company: 'Synthetic Homes', risks }, MODULES.build.tabs.risk)
+  assert.equal(tile(page, 'Open risks'), 2)
+  assert.equal(tile(page, 'High'), 1)
+  assert.equal(tile(page, 'Low'), 0) // the closed risk is not open
+  assert.equal(page.widgets.find((w) => w.type === 'table').rows.length, 3)
+  const hidden = livePageFor('build', 'risk', { company: 'Synthetic Homes', risks: { available: false, reason: 'Your role does not include the risk register.', rows: [] } }, MODULES.build.tabs.risk)
+  assert.equal(hidden.kpis.length, 0)
+  assert.equal(hidden.widgets[0].items[0].text, 'Your role does not include the risk register.')
+  const empty = livePageFor('build', 'risk', { company: 'Synthetic Homes', risks: { available: true, rows: [] } }, MODULES.build.tabs.risk)
+  assert.match(empty.widgets[0].items[0].text, /No risks are recorded for Synthetic Homes/)
+  assert.match(liveMethod('build', 'risk'), /construction_live/)
 })

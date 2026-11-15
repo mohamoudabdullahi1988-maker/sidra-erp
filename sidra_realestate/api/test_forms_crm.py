@@ -53,6 +53,9 @@ class TestCrmForms(IntegrationTestCase):
 			)
 			values = get_form("Opportunity", opportunity["name"])["values"]
 			self.assertEqual((values["opportunity_from"], values["party_name"]), ("Lead", lead["name"]))
+			# Creating the opportunity updates the lead (ERPNext sets its status), so the page is
+			# reloaded before the next action, as the lead page does after returning to it.
+			form = get_form("Lead", lead["name"])
 			converted = run_action("Lead", lead["name"], "make_customer", {}, form["modified"])
 			customer = get_form("Customer", converted["open"]["name"])
 			self.assertEqual(customer["values"]["lead_name"], lead["name"])

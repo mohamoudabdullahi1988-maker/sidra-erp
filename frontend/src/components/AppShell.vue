@@ -558,3 +558,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 .bar__btn:has(.workflow-label) { display: flex; gap: 8px; padding: 8px; }
 .bar__btn > .workflow-label { width: auto; height: auto; }
 </style>
+
+<style scoped>
+@media (max-width: 600px) {
+  .bar__user, .bar__wordmark, .bar__btn > .workflow-label { display: none; }
+  .bar { gap: 4px; padding: 0 8px; }
+}
+</style>

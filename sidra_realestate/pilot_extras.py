@@ -28,6 +28,7 @@ import frappe
 from sidra_realestate.finance_demo import COMPANY
 from sidra_realestate.pilot_demo import MANIFEST as PILOT_MANIFEST
 from sidra_realestate.pilot_demo import _guard, _read_manifest
+from sidra_realestate.services.construction_jobs import CLOSED_STATUSES
 from sidra_realestate.services.pilot_dataset import FAMILY, GIVEN, PREFIX
 
 MANIFEST = "sidra-pilot-extras-v1.json"
@@ -160,14 +161,16 @@ def _place_jobs(pilot, rng):
 
 
 def _inspections(pilot, today, rng):
-	"""Reports for active pilot jobs: on a stage the job has, dated in the past, never submitted."""
+	"""Reports for open pilot jobs: on a stage the job has, dated in the past, never submitted."""
 	created = []
 	jobs = pilot.get("jobs", {}).get("jobs", [])
 	for index, job in enumerate(jobs):
 		if index % 2:
 			continue
 		doc = frappe.get_doc("Sidra Construction Job", job)
-		if doc.status not in ("Contracted", "In Progress", "On Hold") or not doc.stages:
+		# Any job that is not closed: the pilot jobs keep their default status (the pilot plan's
+		# statuses are not applied by its loader), so the status itself is not a filter here.
+		if doc.status in CLOSED_STATUSES or not doc.stages:
 			continue
 		stage = next((s for s in doc.stages if s.status != "Planned"), doc.stages[0])
 		result = INSPECTION_RESULTS[len(created) % len(INSPECTION_RESULTS)]

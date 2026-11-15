@@ -1,14 +1,19 @@
 # Copyright (c) 2026, Mohamoud Abdullahi Sheikh
-from unittest.mock import patch
+"""Live records for the Berjaya CRM dashboard: leads by channel, opportunities, customers."""
 
 import frappe
 from frappe.tests import IntegrationTestCase
 
 from sidra_realestate.api.crm_live import get_crm_live
-from sidra_realestate.api.forms import get_form
-from sidra_realestate.api.realestate_live import _leads
-from sidra_realestate.patches.v0_4.add_crm_channels import CHANNELS, execute
-from sidra_realestate.tests.helpers import COMPANY, OTHER_COMPANY, OUTSIDER, as_user, ensure_base_records
+from sidra_realestate.tests.helpers import (
+	COMPANY,
+	INSPECTOR,
+	OUTSIDER,
+	SALES_USER,
+	as_user,
+	ensure_base_records,
+	unique,
+)
 
 
 class TestCrmLive(IntegrationTestCase):
@@ -16,46 +21,48 @@ class TestCrmLive(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		ensure_base_records()
+		from sidra_realestate.services.crm_channels import channel_field, ensure_channel
 
-	def test_native_channels_and_lead_queries(self):
-		with as_user("Administrator"):
-			execute()
-			count = frappe.db.count("UTM Source")
-			execute()
-			self.assertEqual(count, frappe.db.count("UTM Source"))
-			self.assertTrue(all(frappe.db.exists("UTM Source", c) for c in CHANNELS))
-			before = get_crm_live(COMPANY)["leads"]["total"]
-			for company in (COMPANY, OTHER_COMPANY):
-				frappe.get_doc(
-					{
-						"doctype": "Lead",
-						"first_name": "_Test Channel Buyer",
-						"company": company,
-						"utm_source": "WhatsApp",
-					}
-				).insert()
-			result = get_crm_live(COMPANY)
-			self.assertEqual(result["leads"]["total"], before + 1)
-			self.assertGreaterEqual(result["leads"]["channel_counts"]["WhatsApp"], 1)
-			self.assertGreaterEqual(_leads(COMPANY)["source_counts"]["WhatsApp"], 1)
-			# Exact frontend Lead list fields, on the pinned ERPNext schema.
-			rows = frappe.get_list(
-				"Lead",
-				fields=["name", "lead_name", "status", "utm_source", "mobile_no", "territory", "modified"],
-			)
-			self.assertTrue(rows)
-			form = get_form("Lead")
-			fields = {f["fieldname"] for s in form["layout"] for f in s["fields"]}
-			self.assertIn("utm_source", fields)
-			self.assertNotIn("source", fields)
+		field = channel_field("Lead")
+		linked = frappe.get_meta("Lead").get_field(field).options if field else None
+		# What this ERPNext calls the channel; printed so a CI failure shows it.
+		print("CRM channel:", field, linked)
+		for channel in ("WhatsApp", "Email"):
+			ensure_channel(channel)
+		cls.leads = [
+			frappe.get_doc(
+				{
+					"doctype": "Lead",
+					"first_name": unique("_Test CRM Lead"),
+					"company": COMPANY,
+					field: source,
+				}
+			).insert(ignore_permissions=True)
+			for source in ("WhatsApp", "WhatsApp", "Email", None)
+		]
 
-	def test_denied_groups_and_outsider(self):
+	def test_sales_staff_see_leads_by_channel(self):
+		with as_user(SALES_USER):
+			data = get_crm_live(COMPANY)
+		leads = data["leads"]
+		self.assertTrue(leads["available"])
+		self.assertGreaterEqual(leads["by_channel"]["WhatsApp"], 2)
+		self.assertGreaterEqual(leads["by_channel"]["Email"], 1)
+		self.assertGreaterEqual(leads["by_channel"]["Not recorded"], 1)  # no channel is said, not guessed
+		self.assertEqual(len(leads["months"]), 12)
+		self.assertGreaterEqual(leads["months"][-1]["count"], 4)
+		self.assertTrue(data["opportunities"]["available"])
+		self.assertIsInstance(data["opportunities"]["open_amount"], str)
+
+	def test_unreadable_groups_say_why(self):
+		with as_user(INSPECTOR):  # construction only: no CRM records
+			data = get_crm_live(COMPANY)
+		self.assertFalse(data["leads"]["available"])
+		self.assertTrue(data["leads"]["reason"])
+		self.assertFalse(data["opportunities"]["available"])
+
+	def test_outsiders_and_unknown_companies_are_refused(self):
 		with as_user(OUTSIDER), self.assertRaises(frappe.PermissionError):
 			get_crm_live(COMPANY)
-		with (
-			as_user("Administrator"),
-			patch("sidra_realestate.api.crm_live.frappe.has_permission", return_value=False),
-		):
-			result = get_crm_live(COMPANY)
-			self.assertFalse(result["leads"]["available"])
-			self.assertNotIn("total", result["leads"])
+		with as_user(SALES_USER), self.assertRaises(frappe.ValidationError):
+			get_crm_live("_Test No Such Company")

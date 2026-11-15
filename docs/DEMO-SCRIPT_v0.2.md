@@ -33,6 +33,20 @@ Order of the meeting:
    ```bash
    sudo -u frappe -H bash -lc 'cd /home/frappe/sidra/frappe-bench && bench --site sidra.local execute sidra_realestate.pilot_risks.create_pilot_risks'
    ```
+
+   Then approve the test data's drafts and give leads their channels (same guards; safe to run twice). It needs the demo users (step 3), because approvals are recorded as `demo.gm` and `demo.manager`:
+   ```bash
+   sudo -u frappe -H bash -lc 'cd /home/frappe/sidra/frappe-bench && bench --site sidra.local execute sidra_realestate.pilot_approvals.approve_pilot_documents'
+   ```
+   - **What it does:**
+     - construction quotations are issued, accepted and approved as contracts, so jobs get contract values;
+     - variation orders are approved;
+     - inspection reports are issued;
+     - sale quotations that are still valid are issued.
+   - **What it leaves alone:**
+     - two of each stay drafts, for the approval steps you show;
+     - expired quotations are left as they are.
+   - **Channels:** leads get channels (WhatsApp, Email, Phone Call, Facebook, Instagram, Website, Walk In, Reference).
 3. **Demo users:** one per role, so approvals happen by a second person, as in real life. Set passwords with `sudo -u frappe -H bash -lc 'cd /home/frappe/sidra/frappe-bench && bench --site sidra.local set-password <email>'`. It prompts for the password.
 
    | User | Role |
@@ -87,7 +101,9 @@ Sign in as `demo.gm`. You land on **Executive**.
   - real contracts;
   - the installments falling due over the next 12 months;
   - say: "amounts due; receipts come next."
-- **CRM** in the menu: real leads and opportunities, with tabs for Customers, Contacts and KYC.
+- **CRM** in the menu opens the CRM dashboard.
+  - Show **Sample data**, then **Live records**: leads by channel (WhatsApp, Email, …), new leads per month, opportunities by stage, customers and verified KYC.
+  - The buttons at the top open Leads, Opportunities, Customers, Contacts and KYC.
 
 *Say:* "Same screens. Sample data shows what's possible; live records show what's in the system today."
 

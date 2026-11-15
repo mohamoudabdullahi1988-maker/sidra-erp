@@ -1,12 +1,10 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRef, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, toRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { boot, navItems } from '../boot'
 import { PRODUCT_NAME } from '../brand'
 import { panel } from '../panel'
-import TransactionWorkflow from './TransactionWorkflow.vue'
-import { sectionLinks } from '../navigation'
 import { DATASETS } from '../showcase/datasets'
 
 const ICONS = {
@@ -26,10 +24,10 @@ const LINES = [
   { key: 'brokerage', label: 'Brokerage', icon: 'lucide-key-round', also: [] },
 ]
 const SHARED = ['customers', 'finance', 'setup']
-// Finance opens its sample overview, for the users the server already shows Finance to; the
+// CRM and Finance open their dashboards, for the users the server already shows Finance to; the
 // live ledger screen is one click away from it.
-const SHARED_ROUTE = { finance: { key: 'finance-hub', also: ['finance'] } }
-const SET_LINE = { build: 'construction-hub', design: 'design', realestate: 'realestate', brokerage: 'brokerage', finance: 'finance-hub' }
+const SHARED_ROUTE = { customers: { key: 'crm-hub', also: ['customers'] }, finance: { key: 'finance-hub', also: ['finance'] } }
+const SET_LINE = { build: 'construction-hub', design: 'design', realestate: 'realestate', crm: 'crm-hub', brokerage: 'brokerage', finance: 'finance-hub' }
 
 const items = [
   ...LINES,
@@ -45,10 +43,6 @@ const activeSection = computed(() => {
   return items.find((item) => item.key === section || item.also.includes(section))?.key ?? section
 })
 
-const expanded = ref({})
-const children = (key) => sectionLinks(key, boot.lists, boot.nav)
-const isExpanded = (key) => expanded.value[key] ?? activeSection.value === key
-const fallbackWorkflow = computed(() => !route.meta.showcase && !['no-access', 'not-found', 'home'].includes(route.name))
 const navCollapsed = ref(false) // desktop: icon-only rail
 const navDrawer = ref(false) // phone: slide-over
 const panelOpen = toRef(panel, 'open') // desktop: column; phone: slide-over. Pages open it (panel.js).
@@ -61,11 +55,7 @@ function onKey(event) {
   if (event.key === 'Escape') closeDrawers()
 }
 
-watch(() => route.fullPath, async () => {
-  navDrawer.value = false
-  await nextTick()
-  if (fallbackWorkflow.value && window.matchMedia('(min-width: 1100px)').matches) panelOpen.value = true
-}, { immediate: true })
+watch(() => route.fullPath, () => (navDrawer.value = false))
 onMounted(() => window.addEventListener('keydown', onKey))
 onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </script>
@@ -81,17 +71,18 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
       </div>
 
       <nav class="nav__items">
-        <div v-for="item in items" :key="item.key" class="nav__group">
-          <div class="nav__row">
-            <RouterLink :to="{ name: item.key }" class="nav__item" :class="{ 'nav__item--active': activeSection === item.key }" :title="navCollapsed ? item.label : undefined">
-              <span class="nav__icon" :class="item.icon" aria-hidden="true" /><span class="nav__label">{{ item.label }}</span>
-            </RouterLink>
-            <button v-if="children(item.key).length" class="nav__expand" :aria-label="`Toggle ${item.label} menu`" :aria-expanded="isExpanded(item.key)" @click="expanded[item.key] = !isExpanded(item.key)">{{ isExpanded(item.key) ? '−' : '+' }}</button>
-          </div>
-          <nav v-if="isExpanded(item.key)" class="nav__children" :aria-label="`${item.label} transactions and reports`">
-            <RouterLink v-for="child in children(item.key)" :key="child.label" :to="child.to">{{ child.label }}</RouterLink>
-          </nav>
-        </div>
+        <RouterLink
+          v-for="item in items"
+          :key="item.key"
+          :to="{ name: item.key }"
+          class="nav__item"
+          :class="{ 'nav__item--active': activeSection === item.key }"
+          :aria-current="activeSection === item.key ? 'page' : undefined"
+          :title="navCollapsed ? item.label : undefined"
+        >
+          <span class="nav__icon" :class="item.icon" aria-hidden="true" />
+          <span class="nav__label">{{ item.label }}</span>
+        </RouterLink>
         <p v-if="!items.length" class="nav__none">No sections are available to your account.</p>
       </nav>
 
@@ -127,7 +118,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         <img v-if="boot.company_logo" :src="boot.company_logo" :alt="boot.company || 'Company'" :title="boot.company || undefined" class="bar__company" />
         <span class="bar__user" :title="boot.user.name">{{ boot.user.full_name }}</span>
         <button
-          v-if="panel.inUse || fallbackWorkflow"
+          v-if="panel.inUse"
           type="button"
           class="bar__btn"
           :aria-label="panelOpen ? 'Close workflow' : 'Open workflow'"
@@ -151,7 +142,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         </button>
       </div>
       <!-- A page teleports its workflow panel here (ContractDetail.vue). -->
-      <div class="panel__body"><div id="berjaya-panel" /><TransactionWorkflow v-if="fallbackWorkflow && !panel.inUse" :key="route.fullPath" /></div>
+      <div id="berjaya-panel" class="panel__body" />
     </aside>
   </div>
 </template>
@@ -211,13 +202,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   font-weight: 600;
   letter-spacing: -0.01em;
 }
-.nav__row { display: flex; align-items: center; }
-.nav__row .nav__item { flex: 1; min-width: 0; }
-.nav__expand { border: 0; background: transparent; color: white; min-width: 36px; min-height: 44px; cursor: pointer; }
-.nav__children { display: grid; margin: 2px 0 8px 30px; border-left: 1px solid #ffffff30; }
-.nav__children a { color: #ffffffb8; padding: 9px 10px; font-size: 12px; text-decoration: none; }
-.nav__children a:hover, .nav__children a.router-link-exact-active { color: white; background: #ffffff12; }
-@media(min-width: 800px) { .shell--rail .nav__children, .shell--rail .nav__expand { display: none; } }
 .nav__items {
   flex: 1;
   min-height: 0;

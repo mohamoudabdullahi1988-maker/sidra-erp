@@ -14,7 +14,7 @@ import sys
 from frappe.tests import IntegrationTestCase
 
 from sidra_realestate.tests.test_finance_demo import FinanceDemoChecks
-from sidra_realestate.tests.test_pilot_approvals import PilotApprovalChecks
+from sidra_realestate.tests.test_pilot_approvals import PilotApprovalsChecks
 from sidra_realestate.tests.test_pilot_demo import PilotDemoChecks
 from sidra_realestate.tests.test_pilot_extras import PilotExtrasChecks
 from sidra_realestate.tests.test_pilot_risks import PilotRisksChecks
@@ -41,5 +41,5 @@ class TestDemo4Risks(PilotRisksChecks, IntegrationTestCase):
 	"""Fictional risks for the risk register (G26) need the top-up loaded first."""
 
 
-class TestDemo5Approvals(PilotApprovalChecks, IntegrationTestCase):
-	"""Approve only the fictional construction jobs after all original loader checks."""
+class TestDemo5Approvals(PilotApprovalsChecks, IntegrationTestCase):
+	"""Approving the pilot's drafts (and lead channels) needs the pilot and its top-up loaded first."""

@@ -4,13 +4,20 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
-### Fixed and added (v0.1.56 — rehearsal feedback and CRM, 15 Nov 2026; issue #96)
-- Fix ERPNext v16 Lead/Opportunity sources (`utm_source`), including live sales summaries and the demo loader. Add a live CRM dashboard, native Email/WhatsApp/Phone/Web/social acquisition channels and explicit contact links.
-- Hide the two retired demo companies from Berjaya's Company choices; keep their records intact.
-- Add permission-aware transaction/report submenus and a workflow guide on transaction lists, forms and details, with saved status and permitted actions where available. Preserve the existing contract timeline.
-- Unapproved construction/design contract values show unknown with an explanation, rather than a default zero.
-- Add an Administrator-only, staging-guarded demo quotation approval loader, explicitly requested by Mohamoud. Only pilot-owned construction jobs/quotations are touched; missing quotations use existing BOQs; acceptance is explicitly fictional, normal submit/approval controllers run, and a private manifest makes reruns no-ops. No ledger posting.
-
+### Added (v0.1.56 — CRM dashboard, lead channels, approved test data, 15 Nov 2026)
+- **CRM dashboard.** The CRM menu item now opens a dashboard (`/berjaya/crm`) instead of the leads list, with Sample data and Live records.
+  - Shows leads by channel, new leads per month, opportunities by stage, open opportunity value, customers and verified KYC.
+  - Buttons open Leads, Opportunities, Customers, Contacts and KYC.
+  - Live data comes from `api.crm_live.get_crm_live`: read only, from ERPNext's Lead, Opportunity, Customer and Sidra Customer KYC, filtered by permission. A group the role can't read says why. KYC counts stay hidden from roles that may not read KYC (G12).
+- **Lead channels.** WhatsApp, Email, Phone Call, Facebook, Instagram, Website, Walk In and Reference. ERPNext v16 stores a lead's channel in `utm_source`, a link to UTM Source; versions before v15 used Lead Source. `services/crm_channels.py` picks whichever field the site has. The Leads and Opportunities screens show it as **Channel**, and Real Estate → Pipeline now counts it too, where it previously read the old field. The sample screens use the same channels.
+- **`pilot_approvals.approve_pilot_documents`** (test site only, same guards as the pilot) approves the pilot's draft documents through their own rules, keeping two of each as drafts for the live approval steps:
+  - construction quotations are issued, the client's acceptance is recorded, and the General Manager approves them as contracts;
+  - the General Manager approves variation orders;
+  - inspection reports are issued;
+  - sale quotations that are still valid are issued, with any discount approved first.
+  
+  It also spreads the top-up's leads across the channels. Approvals are recorded as `demo.gm` and `demo.manager`, never as the preparer. A document a rule refuses stays a draft and is reported. Nothing is posted.
+- Readiness check: warnings when no job has an approved contract or no lead has a channel.
 
 ### Added (v0.1.55 — screen check before the demonstration, risks on the job page, 15 Nov 2026)
 - `frontend/tests/showcase_browser.py`: opens every business-line screen (sample data, and live records where a tab has them) at laptop (1440px) and phone (390px) width with synthetic server answers. On each screen it checks for script errors, sideways page scroll, broken text ("NaN", "undefined") and the sample / live label, and saves screenshots to `frontend/.verify/showcase/`. It fails if a module or live tab is added without being checked. 66 screens pass.

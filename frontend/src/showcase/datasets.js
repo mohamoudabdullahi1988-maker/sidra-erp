@@ -76,8 +76,14 @@ export const DATASETS = {
   leads: {
     title: 'Leads',
     section: 'realestate',
-    columns: [['id', 'Lead'], ['name', 'Name'], ['source', 'Source'], ['interest', 'Interested in'], ['stage', 'Stage', 'chip'], ['agent', 'Agent'], ['created', 'Created', 'date']],
+    columns: [['id', 'Lead'], ['name', 'Name'], ['source', 'Channel'], ['interest', 'Interested in'], ['stage', 'Stage', 'chip'], ['agent', 'Agent'], ['created', 'Created', 'date']],
     rows: D.LEADS,
+  },
+  opportunities: {
+    title: 'Opportunities',
+    section: 'crm',
+    columns: [['id', 'Opportunity'], ['party', 'Lead'], ['channel', 'Channel'], ['interest', 'Interested in'], ['stage', 'Stage', 'chip'], ['amount', 'Value', 'money'], ['closing', 'Expected closing', 'date']],
+    rows: D.OPPORTUNITIES,
   },
   agents: {
     title: 'Sales agents',

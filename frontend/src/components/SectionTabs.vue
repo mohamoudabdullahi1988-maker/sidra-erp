@@ -13,7 +13,6 @@ const tabs = computed(() =>
 
 <template>
   <nav v-if="tabs.length > 1" class="tabs" aria-label="Lists in this section">
-    <RouterLink v-if="section === 'customers'" class="tabs__item" :to="{ name: 'customers' }">Dashboard</RouterLink>
     <RouterLink
       v-for="tab in tabs"
       :key="tab.key"

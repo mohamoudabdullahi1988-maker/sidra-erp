@@ -262,7 +262,9 @@ export const FUNNEL = [
   ['Contracts', 41],
 ]
 
-export const LEAD_SOURCES = { 'Diaspora referral': 165, 'Facebook & WhatsApp': 131, 'Walk-in office': 87, 'Broker or agent': 63, Website: 40 }
+// Lead channels: how each lead first reached Sidra (ERPNext Lead Source on live records).
+export const LEAD_SOURCES = { WhatsApp: 128, 'Diaspora referral': 104, Facebook: 71, 'Walk In': 64, 'Phone Call': 52, Email: 29, Instagram: 21, Website: 17 }
+export const CHANNEL_TONES = ['green', 'purple', 'blue', 'orange', 'teal', 'sky', 'rose', 'slate']
 export const LEADS_BY_MONTH = [31, 28, 36, 39, 42, 37, 44, 46, 41, 49, 45, 48]
 
 export const LEADS = (() => {
@@ -279,6 +281,28 @@ export const LEADS = (() => {
   }
   return rows.sort((a, b) => (a.created < b.created ? 1 : -1))
 })()
+
+/** CRM opportunities by sales stage (ERPNext's standard stages): count and value in USD. */
+export const OPPORTUNITY_STAGES = [
+  ['Prospecting', 64, 812000],
+  ['Qualification', 41, 598000],
+  ['Needs Analysis', 27, 402000],
+  ['Proposal/Price Quote', 19, 311000],
+  ['Negotiation/Review', 11, 176000],
+]
+export const OPPORTUNITIES = (() => {
+  const rand = seeded(11)
+  const rows = []
+  let n = 1
+  for (const [stage, count, value] of OPPORTUNITY_STAGES) {
+    for (let i = 0; i < count; i++) {
+      const lead = LEADS[Math.floor(rand() * LEADS.length)]
+      rows.push({ id: `OPP-${String(n++).padStart(4, '0')}`, party: lead.name, channel: lead.source, interest: lead.interest, stage, amount: Math.round(value / count / 100) * 100, closing: addDays(TODAY, 7 + Math.floor(rand() * 80)) })
+    }
+  }
+  return rows
+})()
+export const CRM_CUSTOMERS = { total: 412, kyc_verified: 356, kyc_draft: 31 }
 
 /** Diaspora buyer support: where overseas buyers live, and remote steps completed (90 days). */
 export const DIASPORA_COUNTRIES = { 'United Kingdom': 54, 'United States': 38, Canada: 21, 'Nordic countries': 29, 'Gulf states': 17, Other: 6 }

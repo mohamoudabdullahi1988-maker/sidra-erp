@@ -1,44 +1,77 @@
-"""Approve manifest-owned fictional construction quotations for the rehearsal.
+"""Approve the pilot's draft documents and give leads their channels (test site only, 15 Nov 2026).
 
-Mohamoud, 15 Nov 2026: approve demo documents so live screens have values. Only construction
-quotations for the pilot's own jobs are in scope. Missing quotations use the job's recorded BOQ.
-Acceptance files explicitly say FICTIONAL DEMO. No sales contract, inspection, variation,
-invoice, payment, ledger entry, customer or Company is changed. Normal submit/approve controls
-run; all work rolls back on failure. A private manifest makes a rerun a no-op.
+Mohamoud, for the client demonstration: "approve all documents so that they can show data", keeping
+two or three drafts of each kind for the approval steps shown live. On the pilot dataset (G16) and
+its top-up, this loader once:
+
+- issues each draft construction quotation, records the client's acceptance (fictional, with a
+  placeholder scan) and has the General Manager approve it as the job's contract (CON-03, G11);
+- has the General Manager approve the draft variation orders on those jobs (G11 second person);
+- issues the draft inspection reports of the top-up;
+- issues the draft sale quotations that are still valid and quotable, with any discount approved by
+  the Sales Manager or General Manager first (G13); expired ones and ones whose plot has since been
+  sold stay as they are;
+- adds lead channels (ERPNext's UTM Sources, Lead Sources on older versions: WhatsApp, Email, Phone Call, Facebook, Instagram,
+  Website) and spreads the top-up's leads across them.
+
+Every step goes through the same controller rules as a user's click: nothing is forced, and a
+document a rule refuses stays a draft and is reported. Approvals are recorded as the demo users
+(`demo.gm`, `demo.manager`), never as the person who prepared the document. Nothing is posted,
+invoiced or paid; no contract, title or unit is changed by hand.
+
+The guards are the pilot's: Administrator only, the three staging flags, the top-up's manifest must
+exist, one transaction with full rollback, a private manifest of its own, and a rerun that changes
+nothing.
+
+	bench --site <staging> execute sidra_realestate.pilot_approvals.approve_pilot_documents
 """
 
 import json
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import frappe
-from frappe.utils import add_days, date_diff, getdate, today
+from frappe.utils import getdate
 
 from sidra_realestate.finance_demo import COMPANY
 from sidra_realestate.pilot_demo import MANIFEST as PILOT_MANIFEST
-from sidra_realestate.pilot_demo import _guard, _read_manifest, _refuse_foreign_gl
-from sidra_realestate.sidra_construction.doctype.sidra_construction_quotation.sidra_construction_quotation import (
-	approve_contract,
-)
+from sidra_realestate.pilot_demo import _guard, _read_manifest
+from sidra_realestate.pilot_extras import MANIFEST as EXTRAS_MANIFEST
 
 MANIFEST = "sidra-pilot-approvals-v1.json"
 SCHEMA = 1
-QUOTE = "Sidra Construction Quotation"
-JOB = "Sidra Construction Job"
+KEEP_DRAFTS = 2  # of each kind, for the approval steps shown live
+GENERAL_MANAGER = "demo.gm@example.com"
+SALES_MANAGER = "demo.manager@example.com"
+CHANNELS = ("WhatsApp", "Email", "Phone Call", "Facebook", "Instagram", "Website", "Walk In", "Reference")
 
 
-def approve_pilot_quotations():
+def approve_pilot_documents():
+	"""Approve once and commit; a rerun returns the manifest and changes nothing."""
 	_guard()
-	pilot = _read_manifest(PILOT_MANIFEST, None)
-	_refuse_foreign_gl()
+	pilot = _read_manifest(PILOT_MANIFEST, None, required=False)
+	if not pilot or not _read_manifest(EXTRAS_MANIFEST, None, required=False):
+		frappe.throw(
+			"Refusing: load the pilot dataset and its top-up first (pilot_extras.create_pilot_extras)."
+		)
+	missing = [user for user in (GENERAL_MANAGER, SALES_MANAGER) if not frappe.db.exists("User", user)]
+	if missing:
+		frappe.throw(
+			"Refusing: approvals are recorded as the demo users, and these do not exist: "
+			+ ", ".join(missing)
+			+ ". Run sidra_realestate.demo.ensure_demo_users first. No data was changed."
+		)
 	existing = _read_manifest(MANIFEST, SCHEMA, required=False)
 	if existing:
 		return {**existing, "created": False}
+	extras = _read_manifest(EXTRAS_MANIFEST, None, required=False)
 	try:
-		data = _approve(pilot)
+		data = _approve(pilot, extras)
 		frappe.get_doc(
 			{
 				"doctype": "File",
 				"file_name": MANIFEST,
-				"content": json.dumps(data, indent=2),
+				"content": json.dumps(data, indent=2, default=str),
 				"is_private": 1,
 				"attached_to_doctype": "Company",
 				"attached_to_name": COMPANY,
@@ -47,86 +80,163 @@ def approve_pilot_quotations():
 	except Exception:
 		frappe.db.rollback()
 		raise
+	finally:
+		frappe.set_user("Administrator")
 	frappe.db.commit()
 	return {**data, "created": True}
 
 
-def _approve(pilot):
-	owned = pilot.get("jobs", {})
-	names = owned.get("jobs", [])
-	if not names or not all(isinstance(name, str) for name in names):
-		frappe.throw("Refusing: pilot job ownership is missing.")
-	quotes = set(owned.get("quotations", []))
-	approved, created, files, skipped = [], [], [], []
-	for name in names:
-		job = frappe.get_doc(JOB, name)
-		if job.company != COMPANY:
-			frappe.throw("Refusing: a pilot job belongs to another Company.")
-		if job.contract_quotation:
-			skipped.append(name)
-			continue  # preserve an existing approval and its evidence
-		candidates = frappe.get_all(QUOTE, filters={"job": name}, pluck="name")
-		if any(q not in quotes for q in candidates) or len(candidates) > 1:
-			frappe.throw(
-				f"Refusing: {name} has a quotation outside the pilot's ownership or multiple quotations."
-			)
-		if candidates:
-			quote = frappe.get_doc(QUOTE, candidates[0])
-			if (
-				quote.company != COMPANY
-				or quote.docstatus != 0
-				or quote.client_acceptance_document
-				or quote.client_accepted_by
-			):
-				frappe.throw(
-					f"Refusing: {quote.name} was already issued or has client acceptance; review it manually."
-				)
-			if getdate(quote.valid_until) < getdate(today()):
-				quote.valid_until = add_days(today(), 30)
-			quote.save()
-		else:
-			starts = [row.planned_start for row in job.stages if row.planned_start]
-			ends = [row.planned_end for row in job.stages if row.planned_end]
-			if not job.boq or not starts or not ends:
-				frappe.throw(f"Refusing: {name} needs a recorded BOQ and planned dates.")
-			quote = frappe.get_doc(
-				{
-					"doctype": QUOTE,
-					"job": name,
-					"pricing_basis": "BOQ",
-					"scope": "FICTIONAL DEMO ONLY: quotation from this pilot job's recorded BOQ.",
-					"start_date": min(starts),
-					"duration_days": max(1, date_diff(max(ends), min(starts)) + 1),
-					"valid_until": add_days(today(), 30),
-					"retention_pct": 0,
-					"retention_period_months": 0,
-				}
-			).insert()
-			created.append(quote.name)
-		quote.submit()
-		file = frappe.get_doc(
+def _approve(pilot, extras):
+	today = datetime.now(ZoneInfo("Africa/Mogadishu")).date()
+	result = {"schema": SCHEMA, "company": COMPANY, "as_of": str(today)}
+	result["contracts"] = _construction_contracts(pilot.get("jobs", {}).get("quotations", []), today)
+	result["variations"] = _variations(pilot.get("jobs", {}).get("variations", []), today)
+	result["inspections"] = _inspections(extras.get("inspections", []))
+	result["sale_quotations"] = _sale_quotations(pilot.get("sales", {}).get("quotations", []), today)
+	result["channels"] = _channels(extras.get("leads", []))
+	return result
+
+
+def _drafts(doctype, names):
+	"""This loader's own drafts, oldest first; the newest KEEP_DRAFTS stay drafts."""
+	drafts = [n for n in names if frappe.db.get_value(doctype, n, "docstatus") == 0]
+	return drafts[: max(len(drafts) - KEEP_DRAFTS, 0)], drafts[max(len(drafts) - KEEP_DRAFTS, 0) :]
+
+
+def _attach(doc, fieldname, label):
+	from sidra_realestate.demo import _placeholder_scan
+
+	return (
+		frappe.get_doc(
 			{
 				"doctype": "File",
-				"file_name": f"FICTIONAL-DEMO-acceptance-{quote.name}.txt",
-				"content": f"FICTIONAL DEMO ONLY — NOT A REAL SIGNATURE OR CLIENT ACCEPTANCE.\nQuotation: {quote.name}\nJob: {job.name}\nDemonstration acceptance authorised by Mohamoud for the pilot rehearsal on {today()}.\n",
+				"file_name": f"{doc.name}-pilot-{label}.pdf",
+				"content": _placeholder_scan(doc.name),
 				"is_private": 1,
-				"attached_to_doctype": QUOTE,
-				"attached_to_name": quote.name,
+				"attached_to_doctype": doc.doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": fieldname,
 			}
-		).insert()
-		files.append(file.name)
-		quote.client_accepted_by = "FICTIONAL DEMO CLIENT (rehearsal only)"
-		quote.client_accepted_on = today()
-		quote.client_acceptance_document = file.file_url
-		quote.save()
-		approve_contract(quote.name)
-		approved.append(quote.name)
-	return {
-		"schema": SCHEMA,
-		"company": COMPANY,
-		"approved_on": today(),
-		"quotations_approved": approved,
-		"quotations_created": created,
-		"acceptance_files": files,
-		"already_contracted_jobs": skipped,
-	}
+		)
+		.insert(ignore_permissions=True)
+		.file_url
+	)
+
+
+def _refused(name, exc):
+	frappe.clear_messages()
+	return {"name": name, "reason": str(exc).strip() or type(exc).__name__}
+
+
+def _construction_contracts(names, today):
+	from sidra_realestate.sidra_construction.doctype.sidra_construction_quotation.sidra_construction_quotation import (
+		approve_contract,
+	)
+
+	approve, kept = _drafts("Sidra Construction Quotation", names)
+	done, refused = [], []
+	for name in approve:
+		savepoint = f"contract_{frappe.scrub(name)}"
+		frappe.db.savepoint(savepoint)
+		try:
+			frappe.set_user("Administrator")
+			doc = frappe.get_doc("Sidra Construction Quotation", name)
+			doc.submit()  # issued
+			customer = frappe.db.get_value("Sidra Construction Job", doc.job, "customer")
+			doc.client_accepted_by = customer
+			doc.client_accepted_on = today
+			doc.client_acceptance_document = _attach(doc, "client_acceptance_document", "acceptance")
+			doc.save()
+			frappe.set_user(GENERAL_MANAGER)
+			approve_contract(name)
+			done.append(name)
+		except Exception as exc:
+			frappe.db.rollback(save_point=savepoint)
+			refused.append(_refused(name, exc))
+	return {"approved": done, "kept_as_drafts": kept, "refused": refused}
+
+
+def _variations(names, today):
+	approve, kept = _drafts("Sidra Variation Order", names)
+	done, refused = [], []
+	for name in approve:
+		savepoint = f"variation_{frappe.scrub(name)}"
+		frappe.db.savepoint(savepoint)
+		try:
+			frappe.set_user("Administrator")
+			doc = frappe.get_doc("Sidra Variation Order", name)
+			doc.client_approved_by = frappe.db.get_value("Sidra Construction Job", doc.job, "customer")
+			doc.client_approved_on = today
+			doc.client_approval_document = _attach(doc, "client_approval_document", "client-approval")
+			doc.save()
+			frappe.set_user(GENERAL_MANAGER)  # a second person; the GM may approve any amount (G11)
+			frappe.get_doc("Sidra Variation Order", name).submit()
+			done.append(name)
+		except Exception as exc:
+			frappe.db.rollback(save_point=savepoint)
+			refused.append(_refused(name, exc))
+	return {"approved": done, "kept_as_drafts": kept, "refused": refused}
+
+
+def _inspections(names):
+	approve, kept = _drafts("Sidra Inspection Report", names)
+	done, refused = [], []
+	for name in approve:
+		savepoint = f"inspection_{frappe.scrub(name)}"
+		frappe.db.savepoint(savepoint)
+		try:
+			frappe.set_user("Administrator")
+			frappe.get_doc("Sidra Inspection Report", name).submit()  # issued
+			done.append(name)
+		except Exception as exc:
+			frappe.db.rollback(save_point=savepoint)
+			refused.append(_refused(name, exc))
+	return {"issued": done, "kept_as_drafts": kept, "refused": refused}
+
+
+def _sale_quotations(names, today):
+	from sidra_realestate.services.quotation import GENERAL_MANAGER as GM_LEVEL
+	from sidra_realestate.services.quotation import NO_APPROVAL
+	from sidra_realestate.sidra_sales.doctype.sidra_sale_quotation.sidra_sale_quotation import (
+		approve_discount,
+	)
+
+	drafts = [n for n in names if frappe.db.get_value("Sidra Sale Quotation", n, "docstatus") == 0]
+	# Expired quotations are left as they are: a past offer is not issued after its date.
+	valid = [
+		n for n in drafts if getdate(frappe.db.get_value("Sidra Sale Quotation", n, "valid_until")) >= today
+	]
+	expired = [n for n in drafts if n not in valid]
+	approve, kept = valid[: max(len(valid) - KEEP_DRAFTS, 0)], valid[max(len(valid) - KEEP_DRAFTS, 0) :]
+	done, refused = [], []
+	for name in approve:
+		savepoint = f"sale_{frappe.scrub(name)}"
+		frappe.db.savepoint(savepoint)
+		try:
+			level = frappe.db.get_value("Sidra Sale Quotation", name, "discount_approval")
+			if level and level != NO_APPROVAL:
+				frappe.set_user(GENERAL_MANAGER if level == GM_LEVEL else SALES_MANAGER)
+				approve_discount(name)
+			frappe.set_user("Administrator")
+			frappe.get_doc("Sidra Sale Quotation", name).submit()  # issued
+			done.append(name)
+		except Exception as exc:
+			frappe.db.rollback(save_point=savepoint)
+			refused.append(_refused(name, exc))
+	return {"issued": done, "kept_as_drafts": kept, "expired_left_as_is": expired, "refused": refused}
+
+
+def _channels(leads):
+	"""The channels Sidra uses, and the top-up's leads spread across them (services.crm_channels)."""
+	from sidra_realestate.services.crm_channels import channel_field, ensure_channel
+
+	frappe.set_user("Administrator")
+	field = channel_field("Lead")
+	if not field:
+		return {"channels_added": [], "leads": 0, "previous": {}, "note": "Lead has no channel field"}
+	added = [channel for channel in CHANNELS if ensure_channel(channel)]
+	previous = {}
+	for index, name in enumerate(n for n in leads if frappe.db.exists("Lead", n)):
+		previous[name] = frappe.db.get_value("Lead", name, field)
+		frappe.db.set_value("Lead", name, field, CHANNELS[index % len(CHANNELS)], update_modified=False)
+	return {"field": field, "channels_added": added, "leads": len(previous), "previous": previous}

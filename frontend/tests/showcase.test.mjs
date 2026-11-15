@@ -366,3 +366,28 @@ test('additional live sources accept denied groups and reject another Company', 
   assert.equal(validLiveSource(finance, 'Other Company', 'finance'), false)
   assert.equal(validLiveSource({ ...operations, stock: {} }, 'Synthetic Homes', 'operations'), false)
 })
+
+test('CRM dashboard: sample channels, live leads by channel and opportunities, and why a group is missing', async () => {
+  assert.equal(MODULES.crm.route, 'crm-hub')
+  const sampleKpi = (label) => MODULES.crm.tabs.overview.kpis.find((k) => k.label === label).value
+  assert.equal(sampleKpi('Leads'), Object.values((await import('../src/showcase/data.js')).LEAD_SOURCES).reduce((a, v) => a + v, 0))
+  assert.match(liveMethod('crm', 'overview'), /crm_live.get_crm_live/)
+  const data = {
+    company: 'Synthetic Homes',
+    leads: { available: true, total: 3, by_channel: { WhatsApp: 2, Email: 1 }, by_status: { Lead: 2, Open: 1 }, months: [{ month: '2026-11', count: 3 }], rows: [{ name: 'CRM-LEAD-1', lead: 'Synthetic Lead', channel: 'WhatsApp', status: 'Lead', created: '2026-11-14' }] },
+    opportunities: { available: true, total: 2, open: 1, open_amount: '14300.00', stages: [{ stage: 'Prospecting', count: 2, amount: '20000.00' }], rows: [] },
+    customers: { available: true, total: 40, kyc: null },
+  }
+  const { validLiveSource } = await import('../src/showcase/liveSources.js')
+  assert.equal(validLiveSource(data, 'Synthetic Homes', 'crm'), true)
+  assert.equal(validLiveSource({ ...data, leads: { available: true, rows: [] } }, 'Synthetic Homes', 'crm'), false)
+  const page = livePageFor('crm', 'overview', data, MODULES.crm.tabs.overview)
+  const tile = (label) => page.kpis.find((k) => k.label === label)?.value
+  assert.equal(tile('Leads'), 3)
+  assert.equal(tile('From WhatsApp'), 2)
+  assert.equal(tile('Open opportunity value'), 14300)
+  assert.equal(tile('KYC verified'), undefined) // KYC is restricted (G12): no tile rather than a zero
+  assert.deepEqual(page.widgets.find((w) => w.title === 'Leads by channel').segments.map((s) => [s.label, s.value]), [['WhatsApp', 2], ['Email', 1]])
+  const denied = livePageFor('crm', 'overview', { ...data, opportunities: { available: false, reason: 'Your role does not include opportunities.', rows: [] } }, MODULES.crm.tabs.overview)
+  assert.ok(denied.widgets.some((w) => w.items?.[0]?.text === 'Your role does not include opportunities.'))
+})

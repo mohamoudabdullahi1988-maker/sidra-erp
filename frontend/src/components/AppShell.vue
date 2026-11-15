@@ -24,10 +24,10 @@ const LINES = [
   { key: 'brokerage', label: 'Brokerage', icon: 'lucide-key-round', also: [] },
 ]
 const SHARED = ['customers', 'finance', 'setup']
-// Finance opens its sample overview, for the users the server already shows Finance to; the
+// CRM and Finance open their dashboards, for the users the server already shows Finance to; the
 // live ledger screen is one click away from it.
-const SHARED_ROUTE = { finance: { key: 'finance-hub', also: ['finance'] } }
-const SET_LINE = { build: 'construction-hub', design: 'design', realestate: 'realestate', brokerage: 'brokerage', finance: 'finance-hub' }
+const SHARED_ROUTE = { customers: { key: 'crm-hub', also: ['customers'] }, finance: { key: 'finance-hub', also: ['finance'] } }
+const SET_LINE = { build: 'construction-hub', design: 'design', realestate: 'realestate', crm: 'crm-hub', brokerage: 'brokerage', finance: 'finance-hub' }
 
 const items = [
   ...LINES,

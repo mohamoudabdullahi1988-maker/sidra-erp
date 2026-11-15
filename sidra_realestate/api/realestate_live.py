@@ -211,13 +211,19 @@ def _schedule(contracts, today):
 def _leads(company):
 	if not _readable(LEAD):
 		return _unavailable(_("Your role does not include leads."), status_counts={}, source_counts={})
+	from sidra_realestate.services.crm_channels import channel_field
+
+	channel = channel_field(LEAD)
 	rows = frappe.get_list(
-		LEAD, filters={"company": company}, fields=["status", "source"], limit_page_length=0
+		LEAD,
+		filters={"company": company},
+		fields=["status"] + ([f"{channel} as channel"] if channel else []),
+		limit_page_length=0,
 	)
 	return {
 		"available": True,
 		"reason": None,
 		"total": len(rows),
 		"status_counts": dict(Counter(r.status or "Not set" for r in rows)),
-		"source_counts": dict(Counter(r.source or "Not set" for r in rows)),
+		"source_counts": dict(Counter(r.get("channel") or "Not set" for r in rows)),
 	}

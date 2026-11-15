@@ -164,6 +164,14 @@ def _construction(add):
 		f"{reports} reports",
 		f"{BENCH} execute sidra_realestate.pilot_extras.create_pilot_extras'",
 	)
+	contracted = sum(1 for j in jobs if j.contract_quotation)
+	add(
+		"Jobs with an approved contract",
+		contracted >= 5,
+		f"{contracted} jobs",
+		f"{BENCH} execute sidra_realestate.pilot_approvals.approve_pilot_documents'  (needs the demo users)",
+		warn=True,
+	)
 	variations = frappe.db.count("Sidra Variation Order", {"company": COMPANY})
 	add(
 		"Variation orders",
@@ -206,6 +214,17 @@ def _crm(add):
 		leads >= 1 and opportunities >= 1,
 		f"{leads} leads, {opportunities} opportunities",
 		f"{BENCH} execute sidra_realestate.pilot_extras.create_pilot_extras'",
+	)
+	from sidra_realestate.services.crm_channels import channel_field
+
+	field = channel_field("Lead") if frappe.db.exists("DocType", "Lead") else None
+	channels = frappe.db.count("Lead", {"company": COMPANY, field: "WhatsApp"}) if field else 0
+	add(
+		"Leads with channels",
+		channels >= 1,
+		f"{channels} leads from WhatsApp",
+		f"{BENCH} execute sidra_realestate.pilot_approvals.approve_pilot_documents'",
+		warn=True,
 	)
 
 

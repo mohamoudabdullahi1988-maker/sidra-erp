@@ -423,7 +423,7 @@ const realestate = {
       },
       {
         type: 'donut', title: 'Where leads come from', span: 6, centre: 'leads', kind: 'count', to: set('leads'),
-        segments: Object.entries(D.LEAD_SOURCES).map(([label, value], i) => ({ label, value, tone: ['purple', 'blue', 'teal', 'orange', 'sky'][i], to: set('leads', { source: label }) })),
+        segments: Object.entries(D.LEAD_SOURCES).map(([label, value], i) => ({ label, value, tone: D.CHANNEL_TONES[i], to: set('leads', { source: label }) })),
       },
       {
         type: 'bars', title: 'New leads and contracts per month', span: 7, kind: 'count', labels: M,
@@ -627,6 +627,48 @@ const executive = {
 const incomeByMonth = seriesTotal(Object.values(D.INCOME))
 const expenseByMonth = seriesTotal(Object.values(D.EXPENSES))
 const netByMonth = incomeByMonth.map((v, i) => v - expenseByMonth[i])
+const crm = {
+  overview: {
+    title: 'CRM',
+    subtitle: 'Leads by channel, opportunities and customers (last 90 days)',
+    kpis: [
+      { label: 'Leads', value: D.LEADS.length, kind: 'count', tone: 'sky', to: set('leads') },
+      { label: 'From WhatsApp', value: D.LEAD_SOURCES.WhatsApp, kind: 'count', tone: 'green', to: set('leads', { source: 'WhatsApp' }) },
+      { label: 'Open opportunities', value: D.OPPORTUNITIES.length, kind: 'count', tone: 'purple', to: set('opportunities') },
+      { label: 'Opportunity value', value: D.sum(D.OPPORTUNITIES, 'amount'), kind: 'money', tone: 'teal', to: set('opportunities') },
+      { label: 'Lead to contract', value: Math.round((D.FUNNEL.at(-1)[1] / D.FUNNEL[0][1]) * 1000) / 10, kind: 'pct', tone: 'amber', to: set('leads', { stage: 'Contracts' }) },
+    ],
+    widgets: [
+      {
+        type: 'donut', title: 'Leads by channel', span: 5, centre: 'leads', kind: 'count', to: set('leads'),
+        segments: Object.entries(D.LEAD_SOURCES).map(([label, value], i) => ({ label, value, tone: D.CHANNEL_TONES[i], to: set('leads', { source: label }) })),
+      },
+      { type: 'bars', title: 'New leads per month', span: 7, kind: 'count', labels: M, series: [{ name: 'Leads', values: D.LEADS_BY_MONTH, tone: 'sky' }] },
+      {
+        type: 'hbars', title: 'Opportunities by stage', note: 'Value of open opportunities at each sales stage', span: 7, kind: 'money',
+        series: [{ name: 'Value', tone: 'purple' }],
+        rows: D.OPPORTUNITY_STAGES.map(([label, , value]) => ({ label, values: [value], to: set('opportunities', { stage: label }) })),
+      },
+      {
+        type: 'hbars', title: 'Lead to contract', note: 'Each stage counts the leads that reached it', span: 5, kind: 'count', funnel: true,
+        series: [{ name: 'Leads', tone: 'blue' }],
+        rows: D.FUNNEL.map(([label, value], i) => ({ label, values: [value], tone: ['sky', 'blue', 'teal', 'amber', 'green'][i], to: set('leads', i ? { stage: label } : undefined) })),
+      },
+      { type: 'table', title: 'Latest leads', span: 12, set: 'leads', columns: ['id', 'name', 'source', 'interest', 'stage', 'created'] },
+    ],
+    workflow: {
+      title: 'From enquiry to buyer',
+      steps: [
+        { label: 'Lead (WhatsApp, call, walk-in…)', state: 'done' },
+        { label: 'Opportunity', state: 'done', note: 'Interest in a project, value, closing date' },
+        { label: 'Customer', state: 'current', note: "ERPNext's lead-to-customer conversion" },
+        { label: 'KYC verified', state: 'next', note: 'Sales Manager verifies' },
+        { label: 'Quotation and reservation', state: 'next' },
+      ],
+    },
+  },
+}
+
 const finance = {
   overview: {
     title: 'Finance overview',
@@ -712,6 +754,16 @@ export const MODULES = {
       { label: 'Reservations', to: { name: 'reservations-list' }, list: 'reservations' },
       { label: 'Contracts', to: { name: 'contracts' }, section: 'contracts' },
       { label: 'Collections', to: { name: 'collections' }, section: 'collections' },
+    ],
+  },
+  crm: {
+    label: 'CRM', route: 'crm-hub', icon: 'lucide-users', tabs: crm, tabLabels: { overview: 'Overview' },
+    records: [
+      { label: 'Leads', to: { name: 'leads-list' }, list: 'leads' },
+      { label: 'Opportunities', to: { name: 'opportunities-list' }, list: 'opportunities' },
+      { label: 'Customers', to: { name: 'customers-list' }, list: 'customers' },
+      { label: 'Contacts', to: { name: 'contacts-list' }, list: 'contacts' },
+      { label: 'KYC', to: { name: 'kyc-list' }, list: 'kyc' },
     ],
   },
   brokerage: { label: 'Brokerage', route: 'brokerage', icon: 'lucide-key-round', tabs: brokerage, tabLabels: { overview: 'Overview' } },

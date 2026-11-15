@@ -537,6 +537,7 @@ FORMS = {
 			"company_name",
 			"mobile_no",
 			"email_id",
+			"utm_source",  # the channel (ERPNext v15+); the form engine skips a field the DocType lacks
 			"source",
 			"status",
 			"qualification_status",
@@ -556,6 +557,7 @@ FORMS = {
 			"status",
 			"sales_stage",
 			"opportunity_type",
+			"utm_source",
 			"source",
 			"opportunity_amount",
 			"probability",

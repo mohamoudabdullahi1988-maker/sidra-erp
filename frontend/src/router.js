@@ -51,6 +51,7 @@ const routes = [
   { path: '/build/:tab?', name: 'construction-hub', component: Showcase, meta: { showcase: 'build' } },
   { path: '/design/:tab?', name: 'design', component: Showcase, meta: { showcase: 'design' } },
   { path: '/real-estate/:tab?', name: 'realestate', component: Showcase, meta: { showcase: 'realestate' } },
+  { path: '/crm', name: 'crm-hub', component: Showcase, meta: { showcase: 'crm' } },
   { path: '/brokerage', name: 'brokerage', component: Showcase, meta: { showcase: 'brokerage' } },
   { path: '/finance-overview', name: 'finance-hub', component: Showcase, meta: { showcase: 'finance' } },
   { path: '/sample/:set', name: 'sample', component: () => import('./pages/SampleList.vue'), meta: { showcase: 'sample' } },

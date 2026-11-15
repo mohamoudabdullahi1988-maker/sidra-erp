@@ -564,6 +564,7 @@ function stock(data) {
 export function liveMethod(module, tab) {
   if (module === 'realestate') return REALESTATE_METHOD
   if (module === 'finance') return FINANCE_METHOD
+  if (module === 'crm') return CRM_METHOD
   if (module === 'build' && (tab === 'stock' || tab === 'subcontractors')) return OPERATIONS_METHOD
   return LIVE_METHOD
 }
@@ -602,7 +603,50 @@ function risk(data) {
   }
 }
 
-const MORE_BUILDERS = { finance: { overview: finance }, design: { overview: designOverview, inspection: designInspection }, build: { stock, subcontractors, risk } }
+// ---------------------------------------------------------------- CRM (15 Nov 2026)
+export const CRM_METHOD = '/api/method/sidra_realestate.api.crm_live.get_crm_live'
+LIVE_TABS.crm = ['overview']
+const CHANNEL_TONE = ['green', 'purple', 'blue', 'orange', 'teal', 'sky', 'rose', 'slate', 'amber']
+function crmOverview(data) {
+  const l = data.leads
+  const o = data.opportunities
+  const c = data.customers
+  const kpis = []
+  const widgets = []
+  const leads = { name: listRoute('leads') }
+  const opportunities = { name: listRoute('opportunities') }
+  if (l.available) {
+    kpis.push({ label: 'Leads', value: l.total, kind: 'count', tone: 'sky', to: leads })
+    kpis.push({ label: 'From WhatsApp', value: l.by_channel.WhatsApp ?? 0, kind: 'count', tone: 'green', to: leads })
+    if (l.total) {
+      widgets.push({ type: 'donut', title: 'Leads by channel', span: 5, centre: 'leads', kind: 'count', to: leads,
+        segments: Object.entries(l.by_channel).map(([label, value], i) => ({ label, value, tone: label === 'Not recorded' ? 'slate' : CHANNEL_TONE[i % CHANNEL_TONE.length], to: leads })) })
+      widgets.push({ type: 'bars', title: 'New leads per month', span: 7, kind: 'count', labels: l.months.map((m) => monthText(m.month)), series: [{ name: 'Leads', values: l.months.map((m) => m.count), tone: 'sky' }] })
+      widgets.push({ type: 'donut', title: 'Leads by status', span: 5, centre: 'leads', kind: 'count', to: leads,
+        segments: Object.entries(l.by_status).map(([label, value], i) => ({ label, value, tone: ['sky', 'blue', 'teal', 'amber', 'green', 'purple', 'rose', 'slate'][i % 8], to: leads })) })
+    } else widgets.push(notice('Leads', `No leads are recorded for ${data.company} yet.`))
+  } else widgets.push(notice('Leads', l.reason, 6))
+  if (o.available) {
+    kpis.push({ label: 'Open opportunities', value: o.open, kind: 'count', tone: 'purple', to: opportunities })
+    kpis.push({ label: 'Open opportunity value', value: num(o.open_amount), kind: 'money', tone: 'teal', to: opportunities })
+    if (o.total) {
+      widgets.push({ type: 'hbars', title: 'Opportunities by stage', note: 'Number of opportunities at each sales stage', span: 7, kind: 'count', series: [{ name: 'Opportunities', tone: 'purple' }],
+        rows: o.stages.map((st) => ({ label: st.stage, values: [st.count], to: opportunities })) })
+    } else widgets.push(notice('Opportunities', `No opportunities are recorded for ${data.company} yet.`, 7))
+  } else widgets.push(notice('Opportunities', o.reason, 6))
+  if (c.available) {
+    kpis.push({ label: 'Customers', value: c.total, kind: 'count', tone: 'blue', to: { name: listRoute('customers') } })
+    if (c.kyc) kpis.push({ label: 'KYC verified', value: c.kyc.Verified ?? 0, kind: 'count', tone: 'green', to: { name: listRoute('kyc') } })
+  } else widgets.push(notice('Customers', c.reason, 6))
+  if (l.available && l.rows.length) {
+    widgets.push({ type: 'table', title: 'Latest leads', span: 12, to: leads,
+      columnDefs: [{ key: 'name', label: 'Lead' }, { key: 'lead', label: 'Name' }, { key: 'channel', label: 'Channel', kind: 'chip' }, { key: 'status', label: 'Status', kind: 'chip' }, { key: 'created', label: 'Created', kind: 'date' }],
+      rows: l.rows.map((r) => ({ ...r, _to: { name: detailRoute('leads'), params: { name: r.name } } })) })
+  }
+  return { kpis, widgets }
+}
+
+const MORE_BUILDERS = { finance: { overview: finance }, crm: { overview: crmOverview }, design: { overview: designOverview, inspection: designInspection }, build: { stock, subcontractors, risk } }
 
 /** The live page for any module and tab other than Executive. */
 export function livePageFor(module, tab, data, samplePage) {

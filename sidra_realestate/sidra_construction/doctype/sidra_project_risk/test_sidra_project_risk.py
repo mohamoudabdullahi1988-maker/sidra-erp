@@ -16,6 +16,15 @@ from sidra_realestate.tests.helpers import (
 	make_job,
 )
 
+IGNORE_TEST_RECORD_DEPENDENCIES = [
+	"Sidra Construction Job",
+	"Sidra Scheme",
+	"Company",
+	"Customer",
+	"User",
+	"UOM",
+]
+
 
 class TestSidraProjectRisk(IntegrationTestCase):
 	@classmethod

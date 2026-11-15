@@ -120,6 +120,8 @@ def get_boot() -> dict:
 		# The software's name and icon, from the one source (branding.py, decisions G17-G19).
 		"product_name": branding.BRAND_NAME,
 		"favicon": branding.ICON,
+		# The client company's own logo (decision G19: Sidra is the company using Berjaya).
+		"company_logo": branding.COMPANY_LOGO,
 		"user": {"name": user, "full_name": frappe.utils.get_fullname(user)},
 		"company": frappe.defaults.get_user_default("Company"),
 		"nav": [

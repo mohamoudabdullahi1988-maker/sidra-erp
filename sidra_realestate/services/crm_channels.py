@@ -1,8 +1,9 @@
 """Where ERPNext keeps a lead's channel (WhatsApp, Email, Phone Call, ...).
 
-ERPNext v15+ records it in `utm_source`, a link to Frappe's UTM Source; older versions used `source`,
-a link to Lead Source. Everything in this app asks here instead of naming either, so the CRM
-dashboard, the readiness check and the test-site loaders work on both.
+ERPNext records it in a Link field on Lead and Opportunity: `utm_source` on current versions,
+`source` on older ones. The DocType it links to also differs (UTM Source, or Lead Source, whose
+controller module is missing on some ERPNext v16 sites). Everything in this app asks here instead
+of naming either, so the CRM dashboard, the readiness check and the test-site loaders work on all.
 """
 
 import frappe
@@ -13,7 +14,7 @@ def channel_field(doctype: str = "Lead") -> str | None:
 	meta = frappe.get_meta(doctype)
 	for fieldname in ("utm_source", "source"):
 		field = meta.get_field(fieldname)
-		if field and field.fieldtype == "Link":
+		if field and field.fieldtype == "Link" and frappe.db.has_column(doctype, fieldname):
 			return fieldname
 	return None
 
@@ -25,12 +26,35 @@ def channel_doctype(doctype: str = "Lead") -> str | None:
 
 
 def ensure_channel(name: str) -> bool:
-	"""Create the channel record if it is missing; True when it was created."""
+	"""Create the channel record if it is missing; True when it was created.
+
+	The record is written with Frappe's plain insert of a named row when the linked DocType's
+	controller cannot be loaded (seen on ERPNext v16: "No module named
+	'frappe.core.doctype.lead_source'"); a channel has no fields that need a controller.
+	"""
 	doctype = channel_doctype()
 	if not doctype or frappe.db.exists(doctype, name):
 		return False
 	values = {"doctype": doctype}
-	if doctype == "Lead Source":
+	if frappe.get_meta(doctype).get_field("source_name"):
 		values["source_name"] = name
-	frappe.get_doc(values).insert(ignore_permissions=True, set_name=name)
+	try:
+		frappe.get_doc(values).insert(ignore_permissions=True, set_name=name)
+	except ImportError:
+		frappe.clear_messages()
+		now = frappe.utils.now()
+		row = {
+			"name": name,
+			"owner": "Administrator",
+			"modified_by": "Administrator",
+			"creation": now,
+			"modified": now,
+		}
+		if "source_name" in values and frappe.db.has_column(doctype, "source_name"):
+			row["source_name"] = name
+		columns = ", ".join(f"`{c}`" for c in row)
+		frappe.db.sql(
+			f"insert into `tab{doctype}` ({columns}) values ({', '.join(['%s'] * len(row))})",  # noqa: S608
+			tuple(row.values()),
+		)
 	return True

@@ -4,6 +4,14 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.42 — demo-ready live data: real project names and the missing records, 15 Nov 2026; decision G16)
+- `sidra_realestate/pilot_extras.py` (`create_pilot_extras`): a one-time top-up of the pilot dataset for the client demonstration (Mohamoud: live screens show existing records, missing ones are created, real project names are used).
+  - The four pilot schemes are named after Sidra's projects: Masalaha Hagbad, Rayan Gardens, Safa Housing, Berbera Townhouses. Scheme codes stay `SHP-…`.
+  - Each pilot construction job's site names its project and gets a map location.
+  - Inspection reports the pilot plan marked but never created are added as drafts.
+  - Fictional CRM records: 30 leads (prefixed "SHP", no phone or email invented) and 10 opportunities from them.
+  - Same guards as the pilot: Administrator only, the three staging flags, the pilot's manifest must exist, one transaction with full rollback, its own private manifest, and a rerun that changes nothing. Nothing is posted, invoiced, submitted or approved.
+
 ### Changed (v0.1.41 — CRM on ERPNext's own records, 15 Nov 2026)
 - **Customers becomes CRM** (Mohamoud): the menu item now holds ERPNext's own CRM records, **Leads**, **Opportunities** and **Contacts**, beside Customers and KYC. Each list and record page reads the ERPNext DocType through its standard permissions; a Lead's page lists its Opportunities.
 - Leads are created and edited in Berjaya (name, organisation, phone, email, source, status, qualification, territory, owner). Opportunities are progressed here (status, stage, amount, probability, expected closing) and created from their lead or customer in ERPNext, because their party is a dynamic link. Contacts are read only, kept by ERPNext from their parties.

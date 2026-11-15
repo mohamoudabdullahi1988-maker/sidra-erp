@@ -15,6 +15,7 @@ from frappe.tests import IntegrationTestCase
 
 from sidra_realestate.tests.test_finance_demo import FinanceDemoChecks
 from sidra_realestate.tests.test_pilot_demo import PilotDemoChecks
+from sidra_realestate.tests.test_pilot_extras import PilotExtrasChecks
 
 
 class TestDemo1Finance(FinanceDemoChecks, IntegrationTestCase):
@@ -24,4 +25,8 @@ class TestDemo1Finance(FinanceDemoChecks, IntegrationTestCase):
 class TestDemo2Pilot(PilotDemoChecks, IntegrationTestCase):
 	def test_order(self):
 		classes = [name for name in sorted(dir(sys.modules[__name__])) if name.startswith("TestDemo")]
-		self.assertEqual(classes, ["TestDemo1Finance", "TestDemo2Pilot"])
+		self.assertEqual(classes, ["TestDemo1Finance", "TestDemo2Pilot", "TestDemo3Extras"])
+
+
+class TestDemo3Extras(PilotExtrasChecks, IntegrationTestCase):
+	"""The pilot top-up (real project names, inspections, CRM) needs the pilot loaded first."""

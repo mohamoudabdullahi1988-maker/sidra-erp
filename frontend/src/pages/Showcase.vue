@@ -61,7 +61,7 @@ async function loadLive() {
       return
     }
     const method = liveMethod(route.meta.showcase, tab.value)
-    const kind = method === LIVE_METHOD ? 'construction' : method === REALESTATE_METHOD ? 'realestate' : method.endsWith('get_operations_live') ? 'operations' : 'finance'
+    const kind = method === LIVE_METHOD ? 'construction' : method === REALESTATE_METHOD ? 'realestate' : method.endsWith('get_operations_live') ? 'operations' : method.endsWith('get_crm_live') ? 'crm' : 'finance'
     const body = await apiGet(method, { company: selectedCompany })
     if (id !== request) return
     if (!validLiveSource(body?.message, selectedCompany, kind)) throw new ApiError('server', 'The server sent incompatible records or another Company.')

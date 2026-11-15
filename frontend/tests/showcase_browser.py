@@ -46,6 +46,7 @@ MODULES = {
 	),
 	"design": ("/design", ["overview", "architecture", "civil", "inspection"], ["overview", "inspection"]),
 	"realestate": ("/real-estate", ["inventory", "pipeline", "contracts"], ["inventory", "pipeline", "contracts"]),
+	"crm": ("/crm", ["overview"], ["overview"]),
 	"brokerage": ("/brokerage", ["overview"], []),
 	"finance": ("/finance-overview", ["overview"], ["overview"]),
 }
@@ -132,7 +133,26 @@ OPERATIONS = {
 	]},
 }
 
+CRM = {
+	"company": COMPANY, "currency": "USD", "today": "2026-11-15",
+	"leads": {
+		"available": True, "reason": None, "total": 30,
+		"by_channel": {"WhatsApp": 9, "Email": 5, "Phone Call": 5, "Facebook": 4, "Walk In": 4, "Not recorded": 3},
+		"by_status": {"Lead": 12, "Open": 8, "Interested": 6, "Replied": 4},
+		"months": [{"month": f"2026-{m:02d}" if m <= 12 else f"2027-{m - 12:02d}", "count": (m * 7) % 9} for m in range(1, 13)],
+		"rows": [{"name": f"CRM-LEAD-2026-000{i}", "lead": f"Synthetic Lead {i}", "channel": "WhatsApp", "status": "Lead", "created": "2026-11-14"} for i in range(1, 6)],
+	},
+	"opportunities": {
+		"available": True, "reason": None, "total": 10, "open": 8, "open_amount": "114400.00",
+		"by_status": {"Open": 8, "Converted": 2},
+		"stages": [{"stage": "Prospecting", "count": 4, "amount": "57200.00"}, {"stage": "Qualification", "count": 3, "amount": "42900.00"}, {"stage": "Negotiation/Review", "count": 3, "amount": None}],
+		"rows": [],
+	},
+	"customers": {"available": True, "reason": None, "total": 40, "kyc": {"Verified": 31, "Draft": 9}},
+}
+
 LIVE_ANSWERS = {
+	"get_crm_live": CRM,
 	"get_construction_live": CONSTRUCTION,
 	"get_realestate_live": REALESTATE,
 	"get_finance_live": FINANCE,

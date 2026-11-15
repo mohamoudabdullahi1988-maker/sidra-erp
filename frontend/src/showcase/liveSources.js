@@ -9,6 +9,8 @@ export function validLiveSource(data, company, kind) {
   if (kind === 'construction') return ['jobs', 'variations', 'inspections'].every((key) => group(data[key], true))
   if (kind === 'finance') return ['pnl', 'cash', 'receivables', 'payables'].every((key) => group(data[key]))
   if (kind === 'operations') return ['stock', 'suppliers'].every((key) => group(data[key], true))
+  if (kind === 'crm') return group(data.leads, true) && (!data.leads.available || (!!data.leads.by_channel && Array.isArray(data.leads.months))) &&
+    group(data.opportunities, true) && (!data.opportunities.available || Array.isArray(data.opportunities.stages)) && group(data.customers)
   if (kind !== 'realestate') return false
   return group(data.units) && (!data.units.available || (Array.isArray(data.units.schemes) && data.units.status_counts)) &&
     group(data.contracts, true) && group(data.reservations) && group(data.leads) &&

@@ -33,6 +33,7 @@ ROUTES = {
 	"lead": "/crm/leads",
 	"opportunity": "/crm/opportunities",
 	"contact": "/crm/contacts",
+	"address": "/crm/addresses",
 	"sidra-customer-kyc": "/customers/kyc",
 	"sidra-reservation": "/sales/reservations",
 	"sidra-sale-quotation": "/sales/quotations",

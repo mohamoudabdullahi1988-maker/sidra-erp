@@ -36,6 +36,7 @@ LISTS = {
 	"leads": "Lead",
 	"opportunities": "Opportunity",
 	"contacts": "Contact",
+	"addresses": "Address",
 	"reservations": "Sidra Reservation",
 	"sale_quotations": "Sidra Sale Quotation",
 	"contracts": "Sidra Sale Contract",
@@ -60,7 +61,7 @@ NAV = (
 	("dashboard", "Dashboard", ()),
 	("properties", "Properties", ("units", "schemes", "price_history")),
 	# CRM (Mohamoud, 15 Nov 2026): ERPNext's Lead, Opportunity and Contact beside Customer and KYC.
-	("customers", "CRM", ("leads", "opportunities", "customers", "contacts", "kyc")),
+	("customers", "CRM", ("leads", "opportunities", "customers", "contacts", "addresses", "kyc")),
 	("sales", "Sales", ("reservations", "sale_quotations")),
 	("contracts", "Contracts", ("contracts", "title_transfers")),
 	("collections", "Collections", ("contracts",)),

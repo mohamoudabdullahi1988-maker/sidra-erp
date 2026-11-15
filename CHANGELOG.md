@@ -4,6 +4,13 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.57 — staff record tools, 15 Nov 2026)
+- Contact and Address forms in Berjaya; Lead Company, phone, WhatsApp and contact preferences; Customer primary Contact/Address fields.
+- Record tools on saved forms: permission-checked Print/PDF, native assignments with due date, and latest tracked field changes for users who can write the record.
+- Hide retired demo companies from the picker; contact app links and unapproved construction-value explanations from rehearsal feedback.
+- Dashboard date selection and module submenus remain Claude's active work. No new financial operations.
+
+
 ### Added (v0.1.56 — CRM dashboard, lead channels, approved test data, 15 Nov 2026)
 - **CRM dashboard.** The CRM menu item now opens a dashboard (`/berjaya/crm`) instead of the leads list, with Sample data and Live records.
   - Shows leads by channel, new leads per month, opportunities by stage, open opportunity value, customers and verified KYC.

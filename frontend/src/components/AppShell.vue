@@ -114,6 +114,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         </button>
         <span class="bar__wordmark">{{ PRODUCT_NAME }}</span>
         <span class="bar__spacer" />
+        <!-- The company using Berjaya (decision G19): its own logo, supplied by the server. -->
+        <img v-if="boot.company_logo" :src="boot.company_logo" :alt="boot.company || 'Company'" :title="boot.company || undefined" class="bar__company" />
         <span class="bar__user" :title="boot.user.name">{{ boot.user.full_name }}</span>
         <button
           v-if="panel.inUse"
@@ -316,6 +318,19 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 .bar__wordmark {
   display: none;
   color: var(--bj-ink);
+}
+.bar__company {
+  height: 36px;
+  width: auto;
+  margin-right: 6px;
+  padding-right: 12px;
+  border-right: 1px solid var(--bj-line);
+}
+@media (max-width: 420px) {
+  .bar__company {
+    height: 24px;
+    padding-right: 8px;
+  }
 }
 .bar__user {
   font-size: 13px;

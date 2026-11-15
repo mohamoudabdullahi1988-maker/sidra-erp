@@ -78,13 +78,24 @@ class TestBerjayaPage(IntegrationTestCase):
 			boot = page.get_boot()
 		self.assertEqual(boot["user"]["name"], SALES_MANAGER)
 		self.assertEqual(boot["product_name"], branding.BRAND_NAME)
+		self.assertEqual(boot["company_logo"], branding.COMPANY_LOGO)
 		self.assertTrue(set(boot["properties"]["readable_fields"]) <= set(page.UNIT_LIST_FIELDS))
 		self.assertIn("unit_code", boot["properties"]["readable_fields"])
 		with as_user(PROJECT_MANAGER):
 			self.assertEqual(page.get_boot()["properties"]["readable_fields"], [])
 		self.assertEqual(
 			set(boot),
-			{"product_name", "favicon", "user", "company", "nav", "lists", "properties", "currencies"},
+			{
+				"product_name",
+				"favicon",
+				"company_logo",
+				"user",
+				"company",
+				"nav",
+				"lists",
+				"properties",
+				"currencies",
+			},
 		)
 
 	def test_every_path_under_berjaya_reaches_the_page(self):

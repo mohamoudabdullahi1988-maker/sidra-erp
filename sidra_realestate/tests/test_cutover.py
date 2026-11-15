@@ -62,6 +62,11 @@ class TestCutover(IntegrationTestCase):
 			self.visit("/desk/sidra-contract-settings", SALES_USER), "/berjaya/setup/contract-settings"
 		)
 		self.assertEqual(self.visit("/desk/user/x", SALES_USER), "/berjaya")
+		# CRM: ERPNext's own records open in Berjaya's CRM screens.
+		self.assertEqual(
+			self.visit("/app/lead/CRM-LEAD-2026-00001", SALES_USER), "/berjaya/crm/leads/CRM-LEAD-2026-00001"
+		)
+		self.assertEqual(self.visit("/app/opportunity", SALES_USER), "/berjaya/crm/opportunities")
 
 	def test_administrators_and_finance_keep_desk(self):
 		for user in (SYSTEM_ONLY, FINANCE, "Administrator"):

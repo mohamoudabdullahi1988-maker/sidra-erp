@@ -1,6 +1,6 @@
 # Berjaya client demonstration: click path v0.2
 
-Tuesday 17 Nov 2026 · for Mohamoud · about 40 minutes · laptop, then phone. Built on `develop` at v0.1.42 or later. Replaces v0.1.
+Tuesday 17 Nov 2026 · for Mohamoud · about 40 minutes · laptop, then phone. Requires `develop` v0.1.54 or later for the live-screen checks below. Replaces v0.1.
 
 Order of the meeting:
 1. **The picture:** sample dashboards.
@@ -16,14 +16,24 @@ Order of the meeting:
 
 ## Before Tuesday (on the server, once)
 
-1. **Deploy `develop`:** `bash /root/berjaya-deploy_v0.1.sh`
+1. **Deploy `develop`:** `bash /root/berjaya-deploy_v0.2.sh`. After the deploy, refresh the script copy and clear both caches before checking:
+   ```bash
+   cp /home/frappe/sidra/frappe-bench/apps/sidra_realestate/deploy/berjaya-deploy_v0.2.sh /root/berjaya-deploy_v0.2.sh
+   sudo -u frappe -H bash -lc 'cd /home/frappe/sidra/frappe-bench && bench --site sidra.local clear-cache && bench --site sidra.local clear-website-cache'
+   bash /root/berjaya-deploy_v0.2.sh check
+   ```
 2. **Run the top-up of the test data.** It gives the projects their real names, adds map points, inspection reports, leads and opportunities, and changes nothing when run again:
    ```bash
    cd /home/frappe/sidra/frappe-bench
-   sudo -u frappe bench --site sidra.local execute sidra_realestate.pilot_extras.create_pilot_extras
+   sudo -u frappe -H bash -lc 'cd /home/frappe/sidra/frappe-bench && bench --site sidra.local execute sidra_realestate.pilot_extras.create_pilot_extras'
    ```
    It prints what it did. A second run prints `"created": false`.
-3. **Demo users:** one per role, so approvals happen by a second person, as in real life. Set passwords with `bench --site sidra.local set-password <email> <password>`.
+
+   Then add the fictional risks for the risk register (same guards; also safe to run twice):
+   ```bash
+   sudo -u frappe -H bash -lc 'cd /home/frappe/sidra/frappe-bench && bench --site sidra.local execute sidra_realestate.pilot_risks.create_pilot_risks'
+   ```
+3. **Demo users:** one per role, so approvals happen by a second person, as in real life. Set passwords with `sudo -u frappe -H bash -lc 'cd /home/frappe/sidra/frappe-bench && bench --site sidra.local set-password <email>'`. It prompts for the password.
 
    | User | Role |
    |---|---|
@@ -32,15 +42,11 @@ Order of the meeting:
    | `demo.gm@example.com` | General Manager |
    | `demo.pm@example.com` | Project Manager |
 
-   If they don't exist yet, create them with the role profiles they need. Nothing else changes, and no password is set:
-   ```bash
-   sudo -u frappe bench --site sidra.local execute sidra_realestate.demo.ensure_demo_users
-   ```
-   It prints the `set-password` commands to run. Details: `docs/DEMO-REHEARSAL-CHECKS_v0.1.md`.
+   The four users already exist in the last reported readiness check. Set passwords interactively; do not put passwords into code or shared output. If a user is missing, the administrator should resolve it before rehearsal. Details: `docs/DEMO-REHEARSAL-CHECKS_v0.1.md`.
 4. **Browser:** use one normal window and one private window, so two users are signed in at once. Laptop at 100% zoom.
 5. **Run the readiness check.** It reads only, and lists PASS, WARN or FAIL with the fix for each gap:
    ```bash
-   sudo -u frappe bench --site sidra.local execute sidra_realestate.demo_readiness.check_demo_readiness
+   sudo -u frappe -H bash -lc 'cd /home/frappe/sidra/frappe-bench && bench --site sidra.local execute sidra_realestate.demo_readiness.check_demo_readiness'
    ```
    It covers:
    - the interface;
@@ -67,11 +73,15 @@ Sign in as `demo.gm`. You land on **Executive**.
 
 ## 2. The proof: the same screens on real records (6 min)
 
+- **Executive → Live records:** construction, sales and dashboard counts load independently. A restricted source shows its reason; it must not hide the sources the user can read or claim everything is clear. Check the reservation-expiry links and leads chart if those records are available.
 - **Construction → Portfolio → Live records** (top of the screen):
   - the jobs in the system, with their real project sites on the map;
   - stages done, overdue stages, contract values;
   - click a job: its record opens.
+- **Schedule → Live records:** all dated stages appear; an overdue stage still counts as in progress when its recorded status is In Progress.
+- **Cost & budget → Live records:** unknown values show a dash, with no invented zero in the comparison chart. Billing milestones are labelled separately from invoices.
 - **Variations** and **Quality & inspections** tabs, still on **Live records**: real variation orders and inspection reports.
+- **Risk** tab, **Live records:** the risk register; click a risk to open it. "Every project risk has an owner, a rating and a next review date."
 - **Real Estate Sales → Inventory → Live records:** every plot and unit by project and status.
 - **Contracts & collections → Live records:**
   - real contracts;
@@ -80,6 +90,8 @@ Sign in as `demo.gm`. You land on **Executive**.
 - **CRM** in the menu: real leads and opportunities, with tabs for Customers, Contacts and KYC.
 
 *Say:* "Same screens. Sample data shows what's possible; live records show what's in the system today."
+
+Architecture, Civil and Brokerage remain labelled sample screens until their decisions and implementation are complete.
 
 ## 3. The system working (20 min)
 
@@ -130,7 +142,7 @@ This is how Sidra's paper contracts come into the system.
 
 ## 4. Finance and the phone (4 min)
 
-- **Finance:** the overview (sample), then **Ledger and invoices (live)**. "ERPNext is the ledger; nothing is kept twice."
+- **Finance:** the overview (sample), then **Live records**, then **Ledger and invoices (live)**. "ERPNext is the ledger; nothing is kept twice."
 - **Phone:** open `/berjaya`. Same screens; **menu** for the business lines, **Workflow** for the steps.
 
 ## Close

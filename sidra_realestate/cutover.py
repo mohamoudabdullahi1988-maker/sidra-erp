@@ -43,6 +43,7 @@ ROUTES = {
 	"sidra-boq-revision": "/construction/boq-revisions",
 	"sidra-variation-order": "/construction/variations",
 	"sidra-inspection-report": "/construction/inspections",
+	"sidra-project-risk": "/construction/risks",
 	"sidra-contract-profile": "/setup/profiles",
 	"sidra-contract-clause": "/setup/clauses",
 	"sidra-contract-import": "/setup/imports",

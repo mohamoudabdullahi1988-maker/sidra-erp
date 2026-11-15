@@ -45,6 +45,7 @@ LISTS = {
 	"boq_revisions": "Sidra BOQ Revision",
 	"variations": "Sidra Variation Order",
 	"inspections": "Sidra Inspection Report",
+	"risks": "Sidra Project Risk",
 	"profiles": "Sidra Contract Profile",
 	"clauses": "Sidra Contract Clause",
 	"imports": "Sidra Contract Import",
@@ -66,7 +67,7 @@ NAV = (
 	(
 		"construction",
 		"Construction",
-		("jobs", "construction_quotations", "boq_revisions", "variations", "inspections"),
+		("jobs", "construction_quotations", "boq_revisions", "variations", "inspections", "risks"),
 	),
 	("setup", "Setup", ("profiles", "clauses", "imports", "contract_settings")),
 	("finance", "Finance", ("ledger",)),

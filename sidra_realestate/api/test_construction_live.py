@@ -62,6 +62,19 @@ class TestConstructionLive(IntegrationTestCase):
 					"next_action": "Re-fix the rebar and call for re-inspection",
 				}
 			).insert()
+		with as_user(PROJECT_MANAGER):
+			cls.risk = frappe.get_doc(
+				{
+					"doctype": "Sidra Project Risk",
+					"company": COMPANY,
+					"job": cls.job.name,
+					"category": "Schedule delays",
+					"description": "_Test structure behind plan",
+					"rating": "High",
+					"status": "Open",
+					"risk_owner": "Site Manager",
+				}
+			).insert()
 
 	def row(self, data):
 		return next(r for r in data["jobs"]["rows"] if r["name"] == self.job.name)
@@ -85,6 +98,8 @@ class TestConstructionLive(IntegrationTestCase):
 		self.assertTrue(data["variations"]["available"])
 		report = next(r for r in data["inspections"]["rows"] if r["name"] == self.report.name)
 		self.assertEqual((report["result"], report["status"]), ("Fail", "Draft"))
+		risk = next(r for r in data["risks"]["rows"] if r["name"] == self.risk.name)
+		self.assertEqual((risk["rating"], risk["status"], risk["project"]), ("High", "Open", self.job.name))
 
 	def test_unreadable_groups_are_unavailable_not_zero(self):
 		with as_user(INSPECTOR):  # reads jobs and inspections, not variation orders
@@ -98,6 +113,8 @@ class TestConstructionLive(IntegrationTestCase):
 			data = get_construction_live(COMPANY)
 		self.assertFalse(data["jobs"]["available"])
 		self.assertFalse(data["inspections"]["available"])
+		self.assertFalse(data["risks"]["available"])
+		self.assertTrue(data["risks"]["reason"])
 
 	def test_outsiders_and_unknown_companies_are_refused(self):
 		with as_user(OUTSIDER), self.assertRaises(frappe.PermissionError):

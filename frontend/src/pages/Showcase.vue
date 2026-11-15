@@ -19,8 +19,7 @@ import { ApiError, apiGet } from '../api'
 import { company } from '../company'
 import StatePanel from '../components/StatePanel.vue'
 import CompanyPicker from '../components/CompanyPicker.vue'
-import { executivePage, LIVE_METHOD, LIVE_TABS, livePage, REALESTATE_METHOD, realestatePage } from '../showcase/live'
-
+import { executivePage, LIVE_METHOD, LIVE_TABS, REALESTATE_METHOD, liveMethod, livePageFor } from '../showcase/live'
 import { loadExecutiveSources, validLiveSource } from '../showcase/liveSources'
 
 // A sample screen (client demonstration): drawn from showcase/pages.js. Every figure is fictional
@@ -61,8 +60,9 @@ async function loadLive() {
       if (id === request) liveData.value = result
       return
     }
-    const kind = route.meta.showcase === 'realestate' ? 'realestate' : 'construction'
-    const body = await apiGet(kind === 'realestate' ? REALESTATE_METHOD : LIVE_METHOD, { company: selectedCompany })
+    const method = liveMethod(route.meta.showcase, tab.value)
+    const kind = method === LIVE_METHOD ? 'construction' : method === REALESTATE_METHOD ? 'realestate' : method.endsWith('get_operations_live') ? 'operations' : 'finance'
+    const body = await apiGet(method, { company: selectedCompany })
     if (id !== request) return
     if (!validLiveSource(body?.message, selectedCompany, kind)) throw new ApiError('server', 'The server sent incompatible records or another Company.')
     liveData.value = body.message
@@ -78,8 +78,7 @@ watch([live, () => company.value, () => route.meta.showcase, tab], loadLive, { i
 const page = computed(() => {
   if (!live.value || !liveData.value) return samplePage.value
   if (route.meta.showcase === 'executive') return executivePage(liveData.value, samplePage.value)
-  if (route.meta.showcase === 'realestate') return realestatePage(tab.value, liveData.value, samplePage.value)
-  return livePage(tab.value, liveData.value, samplePage.value)
+  return livePageFor(route.meta.showcase, tab.value, liveData.value, samplePage.value)
 })
 const showWidgets = computed(() => !live.value || (liveData.value && !loading.value))
 function setSource(source) {

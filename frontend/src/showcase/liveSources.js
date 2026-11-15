@@ -7,6 +7,9 @@ const group = (value, rows = false) => value && typeof value.available === 'bool
 export function validLiveSource(data, company, kind) {
   if (data?.company !== company) return false
   if (kind === 'construction') return ['jobs', 'variations', 'inspections'].every((key) => group(data[key], true))
+  if (kind === 'finance') return ['pnl', 'cash', 'receivables', 'payables'].every((key) => group(data[key]))
+  if (kind === 'operations') return ['stock', 'suppliers'].every((key) => group(data[key], true))
+  if (kind !== 'realestate') return false
   return group(data.units) && (!data.units.available || (Array.isArray(data.units.schemes) && data.units.status_counts)) &&
     group(data.contracts, true) && group(data.reservations) && group(data.leads) &&
     (!data.leads.available || !!data.leads.status_counts) && group(data.schedule) && (!data.schedule.available || Array.isArray(data.schedule.months))

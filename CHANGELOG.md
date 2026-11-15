@@ -4,11 +4,38 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
-### Fixed (v0.1.50 — live overview verification, 15 Nov 2026; issues #82–#83)
+### Fixed (v0.1.54 — demo readiness: live overview verification, 15 Nov 2026; issue #96)
 - Executive sources start in parallel and fail independently; wrong-Company responses are refused. Restricted attention sources show reasons instead of an all-clear.
 - Added reservation expiry links, lead-status chart and confirmed-contract counts; Executive business totals now come from server responses.
 - Construction Schedule includes every dated stage. Cost charts compare BOQ, original and current values without substituting zero for missing data; individual billing milestones remain explicitly separate from invoices.
 - Added permission-scoped child queries, server summary/expiry tests and mixed-source frontend checks.
+- Updated the rehearsal script for deploy v0.2 and live-screen checks; published handover v0.2 with server verification and decision blockers.
+
+### Docs (v0.1.53 — Codex handover, 15 Nov 2026)
+- `docs/CODEX-HANDOVER_v0.1.md`: the state at v0.1.52 (the demonstration, the test server, the loaders, which screens are live) and Codex's tasks: demo-readiness support (#96), live Design → Architecture and Civil (#97), and Brokerage records, blocked on #95 (#98).
+
+### Added (v0.1.52 — project risk register, decision G26, 15 Nov 2026)
+- Mohamoud: build the Risk register. New record **Sidra Project Risk** (Construction → Risk register, `/berjaya/construction/risks`): Company, job and/or project, category, description, owner, rating, status, mitigation action, next review. Closing a risk records the date. Project Managers and the General Manager record risks; Inspectors read them. Record only: no money, nothing else changes.
+- **Construction → Risk** gets the Sample data / Live records switch (`get_construction_live` now returns `risks`): open risks by rating, status, open risks by project, and the register.
+- `pilot_risks.create_pilot_risks`: twelve fictional risks for Sidra Homes on the test site, with the pilot's guards (Administrator, the three staging flags, the top-up loaded first, a private manifest, rerun changes nothing). Posts nothing.
+- Readiness check: a warning when the risk register is empty, with the loader command.
+- Desk's risk form redirects to Berjaya (cutover, G24).
+
+### Added (v0.1.51 — live Finance, Design & Engineering, Subcontractors and Stock, 15 Nov 2026)
+- Mohamoud: link the sample screens. Four more screens get the Sample data / Live records switch. Sample data stays the default.
+  - **Finance overview** (`api.finance_live.get_finance_live`), from ERPNext's ledger:
+    - income and expenses per month for 12 months, from posted GL entries on Income and Expense accounts;
+    - expenses by account;
+    - bank and cash balances;
+    - receivables and payables by age, from submitted invoices with an amount outstanding.
+  - **Construction → Subcontractors** (`get_operations_live`): suppliers this Company has purchase invoices from, with the amount invoiced and still owed.
+  - **Construction → Stock & materials** (`get_operations_live`): stock on hand from ERPNext Stock (Bin and Warehouse). Until goods are received it says that nothing is recorded. No test stock is created, because that would post to the ledger.
+  - **Design & Engineering** (`get_construction_live`): Overview and Inspection services show construction jobs with service type Design Only or Inspection Only, and the inspection reports. Architecture and Civil engineering stay sample-only, because the records don't tell them apart yet.
+- Read only, permission-filtered through `frappe.get_list`. A group the role can't read says why and is never shown as zero. ERPNext stays the only ledger (G4).
+
+### Fixed (v0.1.50 — deploy check reads the app name as bench prints it, 15 Nov 2026)
+- `deploy/berjaya-deploy_v0.2.sh`: the effective sign-in app name check failed on the test server although both settings held "Berjaya". Bench there prints a string return value bare (`Berjaya`), not as JSON (`"Berjaya"`), and the check only parsed JSON. It now accepts either form, treats an empty value or `null` as not set, and still fails when the name isn't Berjaya.
+- `demo_readiness`: each printed fix runs bench as the frappe user through its login shell (`sudo -u frappe -H bash -lc '…'`). On the test server `bench` is on that user's PATH only, so `sudo -u frappe bench` failed. The `set-password` fixes prompt for the password instead of taking it on the command line.
 
 ### Added (v0.1.49 — live Executive overview: the whole business from records, 15 Nov 2026; issue #83)
 - The Executive overview's **Live records** mode now loads construction (`api.construction_live`) and real estate (`api.realestate_live`) alongside the dashboard counts (Codex, v0.1.39), in parallel. It adds:

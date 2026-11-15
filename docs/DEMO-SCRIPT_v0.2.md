@@ -34,7 +34,19 @@ Order of the meeting:
 
    If they don't exist yet, they come from the demo setup (`demo.py`); ask Claude for the exact command.
 4. **Browser:** use one normal window and one private window, so two users are signed in at once. Laptop at 100% zoom.
-5. **Rehearse once, end to end.** Every step below creates real test records on the test site; nothing is posted to the ledger.
+5. **Run the readiness check.** It reads only, and lists PASS, WARN or FAIL with the fix for each gap:
+   ```bash
+   sudo -u frappe bench --site sidra.local execute sidra_realestate.demo_readiness.check_demo_readiness
+   ```
+   It covers:
+   - the interface;
+   - the data, and the real project names;
+   - a Masalaha Hagbad plot to sell;
+   - an active contract profile and a verified buyer;
+   - jobs, map points and inspections;
+   - leads and opportunities;
+   - each demo user's roles and password.
+6. **Rehearse once, end to end.** Every step below creates real test records on the test site; nothing is posted to the ledger.
 
 ---
 

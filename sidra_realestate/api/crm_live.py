@@ -12,12 +12,12 @@ from collections import Counter, defaultdict
 
 import frappe
 from frappe import _
-from frappe.utils import add_months, getdate, nowdate
+from frappe.utils import getdate, nowdate
 
+from sidra_realestate.api.live_period import block, months, period, within
 from sidra_realestate.api.staff_dashboard import _staff_only, total
 from sidra_realestate.services.crm_channels import channel_field
 
-MONTHS = 12
 NO_CHANNEL = "Not recorded"
 
 
@@ -30,36 +30,40 @@ def _unavailable(reason, **empty):
 
 
 @frappe.whitelist(methods=["GET"])
-def get_crm_live(company: str) -> dict:
-	"""Leads by channel, status and month; opportunities by stage; customers and their KYC."""
+def get_crm_live(company: str, from_date: str | None = None, to_date: str | None = None) -> dict:
+	"""Leads by channel, status and month; opportunities by stage; customers and their KYC.
+
+	Leads and opportunities created in the period (live_period); customers and KYC as of today.
+	"""
 	_staff_only()
 	if not company or not frappe.db.exists("Company", company):
 		frappe.throw(_("Choose a Company"))
 	today = getdate(nowdate())
+	start, to = period(from_date, to_date)
 	return {
 		"company": company,
 		"currency": frappe.get_cached_value("Company", company, "default_currency"),
 		"today": str(today),
-		"leads": _leads(company, today),
-		"opportunities": _opportunities(company),
+		"period": block(start, to, ["leads", "opportunities"], ["customers"]),
+		"leads": _leads(company, start, to),
+		"opportunities": _opportunities(company, start, to),
 		"customers": _customers(),
 	}
 
 
-def _leads(company, today):
+def _leads(company, start, to):
 	if not _readable("Lead"):
 		return _unavailable(_("Your role does not include leads."), total=0, rows=[])
 	channel = channel_field("Lead")
 	rows = frappe.get_list(
 		"Lead",
-		filters={"company": company},
+		filters=[["company", "=", company], *within("creation", start, to)],
 		fields=["name", "lead_name", "company_name", "status", "creation"]
 		+ ([f"{channel} as channel"] if channel else []),
 		order_by="creation desc",
 		limit_page_length=0,
 	)
-	first = add_months(today.replace(day=1), -(MONTHS - 1))
-	months = [str(add_months(first, i))[:7] for i in range(MONTHS)]
+	month_keys = months(start, to)
 	per_month = Counter(str(r.creation)[:7] for r in rows)
 	return {
 		"available": True,
@@ -67,7 +71,7 @@ def _leads(company, today):
 		"total": len(rows),
 		"by_channel": dict(Counter(r.get("channel") or NO_CHANNEL for r in rows).most_common()),
 		"by_status": dict(Counter(r.status or NO_CHANNEL for r in rows).most_common()),
-		"months": [{"month": m, "count": per_month.get(m, 0)} for m in months],
+		"months": [{"month": m, "count": per_month.get(m, 0)} for m in month_keys],
 		"rows": [
 			{
 				"name": r.name,
@@ -81,12 +85,12 @@ def _leads(company, today):
 	}
 
 
-def _opportunities(company):
+def _opportunities(company, start, to):
 	if not _readable("Opportunity"):
 		return _unavailable(_("Your role does not include opportunities."), stages=[], rows=[])
 	rows = frappe.get_list(
 		"Opportunity",
-		filters={"company": company},
+		filters=[["company", "=", company], *within("creation", start, to)],
 		fields=["name", "party_name", "sales_stage", "status", "opportunity_amount", "expected_closing"],
 		order_by="modified desc",
 		limit_page_length=0,

@@ -270,6 +270,23 @@ def main():
 				assert not errors, errors
 				page.screenshot(path=str(OUT / "submenu-1440.png"))
 				print("PASS 1440px business-line sub-menus open their record screens")
+				# Date selection: a preset or a custom range is sent to the live source.
+				sent = []
+				page.on("request", lambda r: sent.append(r.url) if "get_crm_live" in r.url else None)
+				page.goto(BASE + "/crm?source=live")
+				expect(page.get_by_text("Live records for Last 12 months.")).to_be_visible()
+				page.get_by_role("button", name="Last 3 months").click()
+				expect(page).to_have_url(BASE + "/crm?source=live&period=3m")
+				page.get_by_role("button", name="Custom").click()
+				page.get_by_label("From", exact=True).fill("2026-03-01")
+				page.get_by_label("To", exact=True).fill("2026-06-30")
+				page.get_by_role("button", name="Apply").click()
+				expect(page.get_by_text("Live records for 2026-03-01 to 2026-06-30.")).to_be_visible()
+				page.wait_for_load_state("networkidle")
+				assert any("from_date=2026-03-01" in u and "to_date=2026-06-30" in u for u in sent), sent
+				assert not errors, errors
+				page.screenshot(path=str(OUT / "period-1440.png"))
+				print("PASS 1440px period picker sends presets and custom ranges to the live records")
 			# A construction job lists its risks (G26).
 			page.goto(BASE + "/construction/SCJ-2026-00007")
 			expect(page.get_by_role("heading", name="Risks")).to_be_visible()

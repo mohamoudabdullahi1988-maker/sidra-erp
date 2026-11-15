@@ -4,6 +4,10 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Fixed (v0.1.50 — deploy check reads the app name as bench prints it, 15 Nov 2026)
+- `deploy/berjaya-deploy_v0.2.sh`: the effective sign-in app name check failed on the test server although both settings held "Berjaya". Bench there prints a string return value bare (`Berjaya`), not as JSON (`"Berjaya"`), and the check only parsed JSON. It now accepts either form, treats an empty value or `null` as not set, and still fails when the name isn't Berjaya.
+- `demo_readiness`: each printed fix runs bench as the frappe user through its login shell (`sudo -u frappe -H bash -lc '…'`). On the test server `bench` is on that user's PATH only, so `sudo -u frappe bench` failed. The `set-password` fixes prompt for the password instead of taking it on the command line.
+
 ### Added (v0.1.49 — live Executive overview: the whole business from records, 15 Nov 2026; issue #83)
 - The Executive overview's **Live records** mode now loads construction (`api.construction_live`) and real estate (`api.realestate_live`) alongside the dashboard counts (Codex, v0.1.39), in parallel. It adds:
   - tiles for active construction jobs, installments due over 12 months and leads;

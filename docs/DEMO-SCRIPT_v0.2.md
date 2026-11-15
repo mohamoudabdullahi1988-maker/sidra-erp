@@ -20,10 +20,10 @@ Order of the meeting:
 2. **Run the top-up of the test data.** It gives the projects their real names, adds map points, inspection reports, leads and opportunities, and changes nothing when run again:
    ```bash
    cd /home/frappe/sidra/frappe-bench
-   sudo -u frappe bench --site sidra.local execute sidra_realestate.pilot_extras.create_pilot_extras
+   sudo -u frappe -H bash -lc 'cd /home/frappe/sidra/frappe-bench && bench --site sidra.local execute sidra_realestate.pilot_extras.create_pilot_extras'
    ```
    It prints what it did. A second run prints `"created": false`.
-3. **Demo users:** one per role, so approvals happen by a second person, as in real life. Set passwords with `bench --site sidra.local set-password <email> <password>`.
+3. **Demo users:** one per role, so approvals happen by a second person, as in real life. Set passwords with `sudo -u frappe -H bash -lc 'cd /home/frappe/sidra/frappe-bench && bench --site sidra.local set-password <email>'`. It prompts for the password.
 
    | User | Role |
    |---|---|
@@ -34,13 +34,13 @@ Order of the meeting:
 
    If they don't exist yet, create them with the role profiles they need. Nothing else changes, and no password is set:
    ```bash
-   sudo -u frappe bench --site sidra.local execute sidra_realestate.demo.ensure_demo_users
+   sudo -u frappe -H bash -lc 'cd /home/frappe/sidra/frappe-bench && bench --site sidra.local execute sidra_realestate.demo.ensure_demo_users'
    ```
    It prints the `set-password` commands to run. Details: `docs/DEMO-REHEARSAL-CHECKS_v0.1.md`.
 4. **Browser:** use one normal window and one private window, so two users are signed in at once. Laptop at 100% zoom.
 5. **Run the readiness check.** It reads only, and lists PASS, WARN or FAIL with the fix for each gap:
    ```bash
-   sudo -u frappe bench --site sidra.local execute sidra_realestate.demo_readiness.check_demo_readiness
+   sudo -u frappe -H bash -lc 'cd /home/frappe/sidra/frappe-bench && bench --site sidra.local execute sidra_realestate.demo_readiness.check_demo_readiness'
    ```
    It covers:
    - the interface;

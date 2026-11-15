@@ -269,10 +269,17 @@ $down"; fi
   system_name=$(bexec frappe.db.get_single_value --args "['System Settings', 'app_name']")
   if python3 -c '
 import json, sys
-try:
-    website, system = (json.loads(value) for value in sys.argv[1:])
-except (ValueError, TypeError):
-    sys.exit(1)
+def value(text):
+    # bench execute prints a string return value bare on this bench (Berjaya), or as JSON
+    # ("Berjaya") on others; an empty line or "null" means not set.
+    text = (text or "").strip()
+    if text in ("", "null", "None"):
+        return None
+    try:
+        return json.loads(text)
+    except ValueError:
+        return text
+website, system = (value(arg) for arg in sys.argv[1:])
 sys.exit(0 if (website or system or "Frappe") == "Berjaya" else 1)
 ' "$website_name" "$system_name"; then
     pass "effective login app_name is Berjaya (Website Settings, falling back to System Settings)"

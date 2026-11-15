@@ -1,4 +1,5 @@
 <script setup>
+import TransactionGuide from '../components/TransactionGuide.vue'
 import LocationPanel from '../components/LocationPanel.vue'
 import RecordExtras from '../components/RecordExtras.vue'
 import RelatedList from '../components/RelatedList.vue'
@@ -46,6 +47,7 @@ onBeforeUnmount(() => ++request)
 </script>
 
 <template>
+  <TransactionGuide />
   <section class="page">
     <nav class="bj-crumb" aria-label="Breadcrumb">
       <RouterLink class="bj-link" :to="{ name: 'construction' }">Construction</RouterLink>

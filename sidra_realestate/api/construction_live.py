@@ -74,6 +74,7 @@ def _jobs(company, today):
 			"site_location",
 			"sidra_location",
 			"gps",
+			"contract_quotation",
 			"contract_value",
 			"approved_variations",
 			"current_contract_value",
@@ -129,9 +130,14 @@ def _jobs(company, today):
 				"service_type": job.service_type,
 				"site": job.site_location,
 				"point": list(point) if point else None,  # [latitude, longitude]
-				"contract_value": money(job.contract_value),
+				"contract_value": money(job.contract_value) if job.contract_quotation else None,
+				"contract_value_reason": None
+				if job.contract_quotation
+				else _("No approved construction quotation yet."),
 				"approved_variations": money(job.approved_variations),
-				"current_contract_value": money(job.current_contract_value),
+				"current_contract_value": money(job.current_contract_value)
+				if job.contract_quotation
+				else None,
 				"boq_total": money(job.boq_total),
 				# Each stage as recorded (Schedule and Cost & budget tabs). Billing amounts are
 				# payment milestones, not invoices: nothing is invoiced before P2 (CON-07).
@@ -147,7 +153,7 @@ def _jobs(company, today):
 						"certified": bool(s.certified),
 						"overdue": s in overdue,
 						"billing_pct": float(s.billing_pct or 0),
-						"billing_amount": money(s.billing_amount),
+						"billing_amount": money(s.billing_amount) if job.contract_quotation else None,
 					}
 					for s in own
 				],

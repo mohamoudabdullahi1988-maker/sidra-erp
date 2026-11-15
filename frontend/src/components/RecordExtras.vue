@@ -1,4 +1,5 @@
 <script setup>
+import RecordTools from './RecordTools.vue'
 import { ref, watch } from 'vue'
 
 import { apiGet, apiPost, apiUpload } from '../api'
@@ -133,6 +134,7 @@ watch(() => [props.doctype, props.name, props.reloadKey], load, { immediate: tru
       </template>
       <p v-else class="bj-muted" role="status">Loading…</p>
     </div>
+    <RecordTools :doctype="doctype" :name="name" :reload-key="reloadKey" />
   </section>
 </template>
 

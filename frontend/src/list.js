@@ -44,7 +44,7 @@ export function useList(doctype, { fields, filters = () => undefined, orFilters 
         fields,
         filters: filters(),
         or_filters: orFilters(),
-        order_by: orderBy,
+        order_by: typeof orderBy === 'function' ? orderBy() : orderBy,
         limit_start: reset ? 0 : rows.value.length,
         limit_page_length: pageSize + 1, // one extra row tells whether there is a next page
       })

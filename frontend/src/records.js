@@ -248,7 +248,13 @@ export const RECORDS = {
       ],
     },
   },
+  addresses: {
+    form: true, section: 'customers', title: 'Addresses', noun: 'addresses', doctype: 'Address', path: '/crm/addresses', icon: 'lucide-map-pin', orderBy: 'modified desc', search: ['name', 'address_title', 'city'], searchLabel: 'Title or city',
+    list: [{ field: 'name', label: 'Address', type: 'id' }, { field: 'address_title', label: 'Title' }, { field: 'address_type', label: 'Type' }, { field: 'city', label: 'City' }],
+    detail: { title: 'address_title', groups: [{ title: 'Address', fields: [{ field: 'address_line1', label: 'Address line 1' }, { field: 'address_line2', label: 'Address line 2' }, { field: 'city', label: 'City' }, { field: 'country', label: 'Country' }, { field: 'pincode', label: 'Postal code' }] }] },
+  },
   contacts: {
+    form: true,
     section: 'customers',
     title: 'Contacts',
     noun: 'contacts',
@@ -1115,7 +1121,7 @@ for (const config of Object.values(RECORDS)) {
 // Sections in navigation order, with their lists. A section shows only the lists the server allows.
 export const SECTIONS = {
   properties: ['units', 'schemes', 'price_history'],
-  customers: ['leads', 'opportunities', 'customers', 'contacts', 'kyc'],
+  customers: ['leads', 'opportunities', 'customers', 'contacts', 'addresses', 'kyc'],
   sales: ['reservations', 'sale_quotations'],
   contracts: ['contracts', 'title_transfers'],
   construction: ['jobs', 'construction_quotations', 'boq_revisions', 'variations', 'inspections', 'risks', 'design_jobs'],

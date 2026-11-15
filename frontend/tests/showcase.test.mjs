@@ -108,7 +108,7 @@ test('live portfolio shows recorded figures only', () => {
   const tile = (label) => page.kpis.find((k) => k.label === label).value
   assert.equal(tile('Jobs'), 2)
   assert.equal(tile('Active'), 1)
-  assert.equal(tile('Current contract value'), 20000) // a job with no recorded value is left out, not counted as 0
+  assert.equal(tile('Current contract value'), null) // an unapproved job makes the combined total unknown
   assert.equal(tile('Average progress'), 40) // a job without stages has no progress
   const map = page.widgets.find((w) => w.type === 'map')
   assert.deepEqual(map.pins.map((p) => p.point), [[9.56, 44.06]])
@@ -309,7 +309,7 @@ test('live Finance, Design, Subcontractors and Stock read their own sources and 
   const des = livePageFor('design', 'overview', { company: 'Synthetic Homes', jobs, inspections: { available: true, rows: [] } }, MODULES.design.tabs.overview)
   assert.equal(tile(des, 'Design jobs'), 1)
   assert.equal(tile(des, 'Open'), 1)
-  assert.equal(tile(des, 'Contract value'), 5000) // full construction jobs are not design work
+  assert.equal(tile(des, 'Contract value'), null) // an unapproved job makes the combined value unknown
   const emptyStock = livePageFor('build', 'stock', { company: 'Synthetic Homes', stock: { available: true, warehouses: 2, rows: [] }, suppliers: { available: true, rows: [] } }, MODULES.build.tabs.stock)
   assert.match(emptyStock.widgets[0].items[0].text, /No stock is recorded/)
   const subs = livePageFor('build', 'subcontractors', { company: 'Synthetic Homes', suppliers: { available: true, rows: [{ supplier: 'S1', name: 'Synthetic Supplier', invoices: 3, invoiced: '6000.00', owed: '1500.00' }] }, stock: {} }, MODULES.build.tabs.subcontractors)

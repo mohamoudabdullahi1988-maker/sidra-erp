@@ -1,4 +1,5 @@
 <script setup>
+import TransactionGuide from '../components/TransactionGuide.vue'
 import ListInsights from '../components/ListInsights.vue'
 import { ref, watch } from 'vue'
 
@@ -25,6 +26,7 @@ watch([company, status], reload, { immediate: true })
 </script>
 
 <template>
+  <TransactionGuide />
   <section class="page">
     <header class="bj-head">
       <div>

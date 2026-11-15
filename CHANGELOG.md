@@ -4,6 +4,13 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.58 — staff record tools, 15 Nov 2026)
+- My work: personal native tasks and notification inbox, task completion and mark-read with user ownership checks. Sign-out control. Generic transaction lists support server filters/sorts and browser-saved view preferences.
+- Workflow guides throughout transaction pages. Contact and Address forms in Berjaya; Lead Company, phone, WhatsApp and contact preferences; Customer primary Contact/Address fields.
+- Record tools on saved forms: permission-checked Print/PDF, native assignments with due date, and latest tracked field changes for users who can write the record.
+- Hide retired demo companies from the picker; contact app links and unapproved construction-value explanations from rehearsal feedback.
+- Dashboard date selection and module submenus remain Claude's active work. No new financial operations.
+
 ### Added (v0.1.57 — date selection on dashboards, sub-menus per business line, 15 Nov 2026)
 - **Date selection on every dashboard.** This month, Last 3 months, This year, Last 12 months (default), or a custom From–To range.
   - The choice is kept in the address, so a link opens the same period.

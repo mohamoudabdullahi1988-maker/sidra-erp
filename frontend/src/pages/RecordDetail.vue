@@ -1,4 +1,6 @@
 <script setup>
+import TransactionGuide from '../components/TransactionGuide.vue'
+import ContactChannels from '../components/ContactChannels.vue'
 import LocationPanel from '../components/LocationPanel.vue'
 import RecordExtras from '../components/RecordExtras.vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
@@ -62,6 +64,7 @@ onBeforeUnmount(() => ++request)
 </script>
 
 <template>
+  <TransactionGuide />
   <section class="page">
     <nav class="bj-crumb" aria-label="Breadcrumb">
       <RouterLink class="bj-link" :to="{ name: listRoute(key) }">{{ config.title }}</RouterLink>
@@ -118,6 +121,7 @@ onBeforeUnmount(() => ++request)
         @form="(form) => (formValues = form?.values ?? null)"
       />
 
+      <ContactChannels v-if="['leads', 'customers', 'contacts'].includes(key)" :doc="doc" />
       <div class="bj-grid">
         <article v-for="group in detail.groups" :key="group.title" class="bj-card">
           <h2>{{ group.title }}</h2>

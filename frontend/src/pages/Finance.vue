@@ -1,4 +1,5 @@
 <script setup>
+import TransactionGuide from '../components/TransactionGuide.vue'
 import ListInsights from '../components/ListInsights.vue'
 import { computed, ref, watch } from 'vue'
 import { LoadingIndicator } from 'frappe-ui'
@@ -83,6 +84,7 @@ watch(company, reloadAll, { immediate: true })
 </script>
 
 <template>
+  <TransactionGuide />
   <section class="page">
     <header class="bj-head">
       <div>

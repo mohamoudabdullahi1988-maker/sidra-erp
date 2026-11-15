@@ -511,6 +511,8 @@ RUNNERS = {
 # fields the DocType marks read-only that its controller reads on insert; `create`/`edit`: False
 # when the record changes only through actions.
 FORMS = {
+	"Contact": {},
+	"Address": {},
 	"Customer": {
 		"fields": (
 			"customer_name",
@@ -522,6 +524,8 @@ FORMS = {
 			"tax_id",
 			"default_currency",
 			"customer_details",
+			"customer_primary_contact",
+			"customer_primary_address",
 			"disabled",
 		),
 		"create_only": ("mobile_no", "email_id"),
@@ -534,6 +538,11 @@ FORMS = {
 		"fields": (
 			"first_name",
 			"last_name",
+			"company",
+			"phone",
+			"whatsapp_no",
+			"unsubscribed",
+			"language",
 			"company_name",
 			"mobile_no",
 			"email_id",

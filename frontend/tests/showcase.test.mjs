@@ -207,6 +207,7 @@ test('live Schedule and Cost show recorded stages and values only', () => {
   const sched = livePage('schedule', data, MODULES.build.tabs.schedule)
   assert.equal(tile(sched, 'Stages'), 3)
   assert.equal(tile(sched, 'Overdue'), 1)
+  assert.equal(tile(sched, 'In progress'), 1) // overdue work can still be in progress
   assert.equal(tile(sched, 'Certified'), 1)
   const late = sched.widgets.find((w) => w.title === 'Overdue stages').rows
   assert.deepEqual(late.map((r) => [r.stage, r.days_late]), [['Structure', 14]])

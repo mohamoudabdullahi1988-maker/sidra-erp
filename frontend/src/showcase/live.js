@@ -171,7 +171,7 @@ function schedule(data) {
     kpis: [
       { label: 'Stages', value: stages.length, kind: 'count', tone: 'blue', to: list },
       { label: 'Completed', value: counts.Completed ?? 0, kind: 'count', tone: 'green', to: list },
-      { label: 'In progress', value: counts['In Progress'] ?? 0, kind: 'count', tone: 'sky', to: list },
+      { label: 'In progress', value: stages.filter((st) => st.status === 'In Progress').length, kind: 'count', tone: 'sky', to: list },
       { label: 'Overdue', value: overdue.length, kind: 'count', tone: 'rose', to: list },
       { label: 'Certified', value: stages.filter((st) => st.certified).length, kind: 'count', tone: 'purple', to: list },
     ],

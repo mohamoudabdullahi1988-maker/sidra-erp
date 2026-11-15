@@ -158,3 +158,7 @@ reported as "not verified" — never inferred from a neighbouring check.
 
 There is no unload script. The dataset is removed by restoring the backup taken before the load.
 Deleting a Company, merging one, or editing GL tables directly remains forbidden.
+
+## Demo accounts for rehearsal (15 Nov 2026)
+
+Run `bench --site sidra.local execute sidra_realestate.demo.ensure_demo_users` as the bench owner. Administrator and the staging flag are required. This creates no business data and sets no passwords; it prints the interactive password commands. See [Demo rehearsal checks v0.1](DEMO-REHEARSAL-CHECKS_v0.1.md) for role limits and the three flow tests.

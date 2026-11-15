@@ -4,6 +4,11 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.46 — demo rehearsal checks, 15 Nov 2026; issue #79)
+- Integration journeys for External contract capture, plot sale and construction through Berjaya endpoints, including approval refusals and no ledger side effects.
+- Administrator-only staging command `demo.ensure_demo_users`, reusing existing role profiles, printing interactive password commands and setting no passwords.
+- Rehearsal notes document inspection submission permissions, the second Project Manager account, and generated-profile installment terms.
+
 ### Fixed (v0.1.44 — deployment login-name verification)
 - Deployment helper v0.2 verifies the effective login app name from Website/System Settings. Frappe v16 renders a generic sign-in heading and logo without printing `app_name`, so searching the HTML for "Berjaya" incorrectly reported a failure even when settings were correct. The previous version is retained.
 

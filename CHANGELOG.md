@@ -4,6 +4,11 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.39 — Executive overview backend connection)
+- Executive overview can now display live Company-scoped inventory, reservation and confirmed-contract counts through the existing staff dashboard API, with property status chart and record links. Sample mode remains explicit.
+- Live screens offer Company selection and refresh. Switching Company, module, tab or data source clears prior results and invalidates pending requests; request failures never show sample widgets.
+- Frontend coverage for server counts, unavailable inventory and incompatible or wrong-Company responses. No server business rules or financial posting behavior changed.
+
 ### Added (v0.1.38 — live Construction records and a Finance overview, after the demonstration; decision G25)
 - **Live records on Construction** (step 1 after the demonstration): Portfolio, Variations and Quality & inspections get a **Sample data / Live records** switch. Sample data stays the default. Live records come from the new read-only method `api.construction_live.get_construction_live`:
   - construction jobs with their recorded stages (progress is the average of recorded stage completion; overdue stages; location; contract value and approved variations);

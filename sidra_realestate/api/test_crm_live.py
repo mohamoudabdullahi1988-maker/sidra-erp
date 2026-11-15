@@ -21,18 +21,21 @@ class TestCrmLive(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		ensure_base_records()
+		from sidra_realestate.services.crm_channels import channel_field, ensure_channel
+
+		field = channel_field("Lead")
+		linked = frappe.get_meta("Lead").get_field(field).options if field else None
+		# What this ERPNext calls the channel; printed so a CI failure shows it.
+		print("CRM channel:", field, linked)
 		for channel in ("WhatsApp", "Email"):
-			if not frappe.db.exists("Lead Source", channel):
-				frappe.get_doc({"doctype": "Lead Source", "source_name": channel}).insert(
-					ignore_permissions=True
-				)
+			ensure_channel(channel)
 		cls.leads = [
 			frappe.get_doc(
 				{
 					"doctype": "Lead",
 					"first_name": unique("_Test CRM Lead"),
 					"company": COMPANY,
-					"source": source,
+					field: source,
 				}
 			).insert(ignore_permissions=True)
 			for source in ("WhatsApp", "WhatsApp", "Email", None)

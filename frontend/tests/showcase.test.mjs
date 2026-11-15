@@ -85,3 +85,48 @@ test('display formats', () => {
   assert.equal(pct(91), '91%')
   assert.equal(date('2026-11-14'), '14 Nov 2026')
 })
+
+// ---------------------------------------------------------------- live records (G25 step 1)
+const { livePage, LIVE_TABS } = await import('../src/showcase/live.js')
+const sample = MODULES.build.tabs.portfolio
+const LIVE = {
+  company: 'Synthetic Homes',
+  today: '2026-11-14',
+  jobs: {
+    available: true,
+    rows: [
+      { name: 'SCJ-1', customer: 'Synthetic Buyer', site: 'Plot 4', status: 'In Progress', point: [9.56, 44.06], current_contract_value: '20000.00', approved_variations: '800.00', start: '2026-01-01', end: '2026-12-31', progress: 40, stages: 3, stages_completed: 1, stages_overdue: 1 },
+      { name: 'SCJ-2', customer: 'Synthetic Client', site: null, status: 'Quoted', point: null, current_contract_value: null, approved_variations: null, start: null, end: null, progress: null, stages: 0, stages_completed: 0, stages_overdue: 0 },
+    ],
+  },
+  variations: { available: false, reason: 'Your role does not include variation orders.', rows: [] },
+  inspections: { available: true, rows: [] },
+}
+
+test('live portfolio shows recorded figures only', () => {
+  const page = livePage('portfolio', LIVE, sample)
+  const tile = (label) => page.kpis.find((k) => k.label === label).value
+  assert.equal(tile('Jobs'), 2)
+  assert.equal(tile('Active'), 1)
+  assert.equal(tile('Current contract value'), 20000) // a job with no recorded value is left out, not counted as 0
+  assert.equal(tile('Average progress'), 40) // a job without stages has no progress
+  const map = page.widgets.find((w) => w.type === 'map')
+  assert.deepEqual(map.pins.map((p) => p.point), [[9.56, 44.06]])
+  const gantt = page.widgets.find((w) => w.type === 'gantt')
+  assert.equal(gantt.rows.length, 1)
+  assert.match(page.subtitle, /Synthetic Homes/)
+})
+
+test('an unavailable or empty live group says why instead of showing zero', () => {
+  const vo = livePage('variations', LIVE, MODULES.build.tabs.variations)
+  assert.equal(vo.kpis.length, 0)
+  assert.equal(vo.widgets[0].items[0].text, 'Your role does not include variation orders.')
+  const ir = livePage('quality', LIVE, MODULES.build.tabs.quality)
+  assert.match(ir.widgets[0].items[0].text, /No inspection reports are recorded for Synthetic Homes/)
+  assert.deepEqual(LIVE_TABS.build, ['portfolio', 'variations', 'quality'])
+})
+
+test('a missing value is a dash, never zero', () => {
+  for (const fn of [money]) assert.equal(fn(null), '—')
+  assert.equal(pct(undefined), '—')
+})

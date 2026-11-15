@@ -4,6 +4,15 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.38 — live Construction records and a Finance overview, after the demonstration; decision G25)
+- **Live records on Construction** (step 1 after the demonstration): Portfolio, Variations and Quality & inspections get a **Sample data / Live records** switch. Sample data stays the default. Live records come from the new read-only method `api.construction_live.get_construction_live`:
+  - construction jobs with their recorded stages (progress is the average of recorded stage completion; overdue stages; location; contract value and approved variations);
+  - variation orders;
+  - inspection reports.
+  Everything is permission-filtered through `frappe.get_list`. A group the role cannot read says why, never shows zero; a missing amount shows a dash, never $0. Each row links to its record.
+- **Finance overview** (sample data, same style): income and expenses with net profit, where the money goes, cash and bank at month end, owed to Sidra and owed by Sidra by age, bank and cash accounts. The Finance menu item opens it for the users who could already see Finance; the live ledger screen is one click away.
+- Tests: `api/test_construction_live.py` (project manager view, unreadable groups unavailable, outsiders and unknown Companies refused); frontend live-builder and missing-value tests.
+
 ### Changed (v0.1.37 — Sidra's own projects in the sample screens, 14 Nov 2026; decision G25)
 - Sample screens now use Sidra Homes' public project names: **Masalaha Hagbad** (land offer), **Rayan Gardens**, **Safa Housing** and **Berbera Townhouses** (off-plan, stone walls, raised foundations, insulation). They replace the invented Hargeisa North Ridge, Hagbad East, Berbera Coastal, Burao Central Plaza and Masalaha Gardens.
 - Masalaha Hagbad uses 9 m × 24 m plots at the standard price, 30% above the friends-and-family offer ($11,000 / $5,500): $14,300 full and $7,150 half, interest-free from $325 a month over 22 months; a "22 months, interest-free" payment plan appears in Contracts and collections.

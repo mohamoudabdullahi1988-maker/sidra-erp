@@ -16,7 +16,8 @@ const ticks = computed(() =>
     .map((d) => ({ d, left: datePosition(d, w.value.from, w.value.until) }))
     .filter((_, i) => width.value >= 560 || i % 2 === 0),
 )
-const today = computed(() => datePosition(TODAY, w.value.from, w.value.until))
+const todayDate = computed(() => w.value.today ?? TODAY)
+const today = computed(() => datePosition(todayDate.value, w.value.from, w.value.until))
 const bar = (row) => {
   const left = datePosition(row.start, w.value.from, w.value.until)
   return { left: `${left}%`, width: `${Math.max(1.2, datePosition(row.end, w.value.from, w.value.until) - left)}%` }
@@ -43,7 +44,7 @@ const bar = (row) => {
           <span class="today" :style="{ left: today + '%' }" />
         </span>
       </RouterLink>
-      <p class="gantt__legend"><i />Today, {{ date(TODAY) }}</p>
+      <p class="gantt__legend"><i />Today, {{ date(todayDate) }}</p>
     </div>
   </Card>
 </template>

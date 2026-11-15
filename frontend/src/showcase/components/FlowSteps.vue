@@ -4,7 +4,7 @@ import { recordAction } from '../link'
 
 // The right-hand panel on a sample screen: the business process as steps, and buttons to the
 // screens that hold its real records (shown only when the session may open them).
-const props = defineProps({ flow: { type: Object, required: true }, records: { type: Array, default: () => [] } })
+const props = defineProps({ flow: { type: Object, required: true }, records: { type: Array, default: () => [] }, sample: { type: Boolean, default: true } })
 const actions = computed(() => [...(props.flow.actions ?? []), ...props.records].map(recordAction).filter(Boolean).filter((a, i, all) => all.findIndex((b) => b.label === a.label) === i))
 const ICON = { done: 'lucide-circle-check-big', current: 'lucide-circle-dot', next: 'lucide-circle-dashed' }
 const WORD = { done: 'Done', current: 'In progress', next: 'Next' }
@@ -13,13 +13,15 @@ const WORD = { done: 'Done', current: 'In progress', next: 'Next' }
 <template>
   <section class="flow" aria-label="Workflow">
     <p class="flow__title">{{ flow.title }}</p>
-    <p class="flow__sample"><span class="lucide-flask-conical" aria-hidden="true" />Illustrative process, sample data</p>
+    <p class="flow__sample"><span class="lucide-flask-conical" aria-hidden="true" />{{ sample ? 'Illustrative process, sample data' : 'The usual steps; each record shows its own stage' }}</p>
     <ol class="steps">
-      <li v-for="step in flow.steps" :key="step.label" class="step" :class="'step--' + step.state">
-        <span class="step__icon" :class="ICON[step.state]" aria-hidden="true" />
+      <!-- With live records the steps are the usual process only: no step is shown as done. -->
+      <li v-for="(step, i) in flow.steps" :key="step.label" class="step" :class="sample ? 'step--' + step.state : 'step--plain'">
+        <span v-if="sample" class="step__icon" :class="ICON[step.state]" aria-hidden="true" />
+        <span v-else class="step__num" aria-hidden="true">{{ i + 1 }}</span>
         <div>
           <p class="step__label">{{ step.label }}</p>
-          <p class="step__word">{{ WORD[step.state] }}</p>
+          <p v-if="sample" class="step__word">{{ WORD[step.state] }}</p>
           <p v-if="step.note" class="step__note">{{ step.note }}</p>
         </div>
       </li>
@@ -44,6 +46,7 @@ const WORD = { done: 'Done', current: 'In progress', next: 'Next' }
 .step--done .step__icon { color: var(--bj-state-completed); }
 .step--current .step__icon { color: var(--bj-state-current); }
 .step--next .step__icon { color: var(--bj-state-pending); }
+.step__num { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--bj-state-pending); font-size: 11px; font-weight: 600; color: var(--bj-muted); }
 .step__label { margin: 1px 0 0; font-size: 14px; font-weight: 500; }
 .step__word { margin: 1px 0 0; font-size: 12px; color: var(--bj-muted); }
 .step--current .step__word { color: var(--bj-state-current); font-weight: 600; }

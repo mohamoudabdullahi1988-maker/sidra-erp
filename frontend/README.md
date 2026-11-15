@@ -35,7 +35,8 @@ link to the Desk form ("Open in Desk") and lists offer "New in Desk" when the se
 
 | Route | Reads |
 | --- | --- |
-| `/berjaya` (home) → `/executive`; `/build/<tab>`, `/design/<tab>`, `/real-estate/<tab>`, `/brokerage`, `/sample/<list>` | Sample data only: `src/showcase/` (G25) |
+| `/berjaya` (home) → `/executive`; `/build/<tab>`, `/design/<tab>`, `/real-estate/<tab>`, `/brokerage`, `/finance-overview`, `/sample/<list>` | Sample data: `src/showcase/` (G25) |
+| `/berjaya/build/portfolio`, `/variations`, `/quality` with `?source=live` | `api.construction_live.get_construction_live` (`src/showcase/live.js`) |
 | `/berjaya/dashboard` | `api.staff_dashboard.get_dashboard` |
 | `/berjaya/properties`, `/properties/price-history` | Sidra Unit; Sidra Unit Price History |
 | `/berjaya/customers`, `/customers/kyc` | Customer (with related records); Sidra Customer KYC |

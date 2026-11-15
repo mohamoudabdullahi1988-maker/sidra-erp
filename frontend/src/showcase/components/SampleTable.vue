@@ -25,10 +25,11 @@ const RAG = { G: 'Good', A: 'Watch', R: 'Problem' }
       </thead>
       <tbody>
         <tr v-for="(row, i) in rows" :key="i">
-          <td v-for="c in columns" :key="c.key" :class="'k-' + c.kind">
-            <span v-if="c.kind === 'rag'" class="rag" :class="'rag--' + row[c.key]" :title="RAG[row[c.key]]"><span class="sr">{{ RAG[row[c.key]] }}</span></span>
+          <td v-for="(c, ci) in columns" :key="c.key" :class="'k-' + c.kind">
+            <RouterLink v-if="ci === 0 && row._to" :to="row._to" class="cell-link">{{ formatValue(row[c.key], c.kind) }}</RouterLink>
+            <span v-else-if="c.kind === 'rag'" class="rag" :class="'rag--' + row[c.key]" :title="RAG[row[c.key]]"><span class="sr">{{ RAG[row[c.key]] }}</span></span>
             <span v-else-if="c.kind === 'chip'" class="chip" :class="'chip--' + chip(row[c.key])">{{ row[c.key] }}</span>
-            <span v-else-if="c.kind === 'progress'" class="progress"><span class="progress__bar"><span :style="{ width: row[c.key] + '%' }" /></span>{{ row[c.key] }}%</span>
+            <span v-else-if="c.kind === 'progress' && row[c.key] !== null && row[c.key] !== undefined" class="progress"><span class="progress__bar"><span :style="{ width: row[c.key] + '%' }" /></span>{{ row[c.key] }}%</span>
             <template v-else>{{ formatValue(row[c.key], c.kind) }}</template>
           </td>
         </tr>
@@ -46,6 +47,8 @@ tbody tr:nth-child(even) td { background: rgb(244 246 243 / 0.55); }
 tbody tr:hover td { background: var(--bj-terracotta-tint); }
 .k-money, .k-moneyFull, .k-count, .k-pct { text-align: right; font-variant-numeric: tabular-nums; }
 .k-rag { text-align: center; }
+.cell-link { color: var(--bj-terracotta); font-weight: 500; text-decoration: none; }
+.cell-link:hover { text-decoration: underline; }
 .rag { display: inline-block; width: 12px; height: 12px; border-radius: 50%; }
 .rag--G { background: var(--bj-c-green); }
 .rag--A { background: var(--bj-c-amber); }

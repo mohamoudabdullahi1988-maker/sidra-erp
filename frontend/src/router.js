@@ -52,6 +52,7 @@ const routes = [
   { path: '/design/:tab?', name: 'design', component: Showcase, meta: { showcase: 'design' } },
   { path: '/real-estate/:tab?', name: 'realestate', component: Showcase, meta: { showcase: 'realestate' } },
   { path: '/brokerage', name: 'brokerage', component: Showcase, meta: { showcase: 'brokerage' } },
+  { path: '/finance-overview', name: 'finance-hub', component: Showcase, meta: { showcase: 'finance' } },
   { path: '/sample/:set', name: 'sample', component: () => import('./pages/SampleList.vue'), meta: { showcase: 'sample' } },
   { path: '/dashboard', name: 'dashboard', component: () => import('./pages/Dashboard.vue') },
   { path: '/properties', name: 'properties', component: () => import('./pages/Properties.vue'), meta: { list: 'units', section: 'properties' } },

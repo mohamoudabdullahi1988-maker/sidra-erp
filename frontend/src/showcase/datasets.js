@@ -97,6 +97,12 @@ export const DATASETS = {
     columns: [['contract', 'Contract'], ['customer', 'Customer'], ['community', 'Community'], ['bucket', 'Overdue for', 'chip'], ['overdue', 'Overdue amount', 'moneyFull'], ['installments_late', 'Installments late', 'count'], ['officer', 'Officer']],
     rows: D.OVERDUE,
   },
+  bank_accounts: {
+    title: 'Bank and cash accounts',
+    section: 'finance',
+    columns: [['account', 'Account'], ['kind', 'Type', 'chip'], ['currency', 'Currency'], ['balance', 'Balance', 'money']],
+    rows: D.BANK_ACCOUNTS,
+  },
   listings: {
     title: 'Brokerage listings',
     section: 'brokerage',

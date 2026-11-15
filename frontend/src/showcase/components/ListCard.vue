@@ -10,11 +10,11 @@ const ICON = { red: 'lucide-octagon-alert', amber: 'lucide-triangle-alert', blue
   <Card :title="widget.title" :note="widget.note">
     <ul class="items">
       <li v-for="item in widget.items" :key="item.text">
-        <RouterLink :to="linkTo(item.to)" class="item" :class="'item--' + item.tone">
+        <component :is="item.to ? 'RouterLink' : 'div'" :to="linkTo(item.to) ?? undefined" class="item" :class="'item--' + item.tone">
           <span class="item__icon" :class="ICON[item.tone]" aria-hidden="true" />
           <span>{{ item.text }}</span>
-          <span class="item__go lucide-chevron-right" aria-hidden="true" />
-        </RouterLink>
+          <span v-if="item.to" class="item__go lucide-chevron-right" aria-hidden="true" />
+        </component>
       </li>
     </ul>
   </Card>

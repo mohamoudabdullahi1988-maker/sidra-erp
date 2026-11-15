@@ -620,6 +620,70 @@ const executive = {
   },
 }
 
+// ---------------------------------------------------------------- finance
+
+const incomeByMonth = seriesTotal(Object.values(D.INCOME))
+const expenseByMonth = seriesTotal(Object.values(D.EXPENSES))
+const netByMonth = incomeByMonth.map((v, i) => v - expenseByMonth[i])
+const finance = {
+  overview: {
+    title: 'Finance overview',
+    subtitle: 'Income, expenses, cash and what is owed, December 2025 to November 2026',
+    kpis: [
+      { label: 'Income (12 months)', value: D.sum(incomeByMonth) * 1000, kind: 'money', tone: 'blue', to: { name: 'finance' } },
+      { label: 'Expenses (12 months)', value: D.sum(expenseByMonth) * 1000, kind: 'money', tone: 'orange', to: { name: 'finance' } },
+      { label: 'Net profit', value: D.sum(netByMonth) * 1000, kind: 'money', tone: 'green', to: { name: 'finance' } },
+      { label: 'Cash and bank', value: D.sum(D.BANK_ACCOUNTS, 'balance'), kind: 'money', tone: 'teal', to: set('bank_accounts') },
+      { label: 'Owed to Sidra', value: D.sum(D.RECEIVABLES, 'amount'), kind: 'money', tone: 'sky', to: set('overdue') },
+      { label: 'Sidra owes', value: D.sum(D.PAYABLES, 'amount'), kind: 'money', tone: 'rose', to: set('subcontractors') },
+    ],
+    widgets: [
+      {
+        type: 'bars', title: 'Income and expenses', note: 'Monthly, with net profit', span: 8, kind: 'money', labels: M,
+        series: [
+          { name: 'Income', values: thousands(incomeByMonth), tone: 'blue' },
+          { name: 'Expenses', values: thousands(expenseByMonth), tone: 'orange' },
+          { name: 'Net profit', values: thousands(netByMonth), tone: 'green', type: 'line', axis: 'right' },
+        ],
+      },
+      {
+        type: 'donut', title: 'Where the money goes', span: 4, centre: '12 months', kind: 'money',
+        segments: [
+          ...Object.entries(D.SPEND).map(([label, values], i) => ({ label, value: D.sum(values) * 1000, tone: ['blue', 'teal', 'purple', 'amber'][i], to: set('cost') })),
+          { label: 'Salaries & admin', value: D.sum(D.EXPENSES['Salaries & admin']) * 1000, tone: 'slate' },
+          { label: 'Sales & marketing', value: D.sum(D.EXPENSES['Sales & marketing']) * 1000, tone: 'rose' },
+        ],
+      },
+      {
+        type: 'bars', title: 'Cash and bank at month end', span: 6, kind: 'money', labels: M,
+        series: [{ name: 'Balance', values: thousands(D.CASH_BALANCE), tone: 'teal' }],
+      },
+      {
+        type: 'hbars', title: 'Owed to Sidra, by age', note: 'Installments and client billings', span: 6, kind: 'money',
+        series: [{ name: 'Receivable', tone: 'sky' }],
+        rows: D.RECEIVABLES.map((r, i) => ({ label: r.age, values: [r.amount], tone: ['green', 'amber', 'orange', 'rose', 'purple'][i], to: i ? set('overdue', { bucket: r.age }) : set('sale_contracts') })),
+      },
+      {
+        type: 'hbars', title: 'Sidra owes, by age', note: 'Suppliers and subcontractors', span: 6, kind: 'money',
+        series: [{ name: 'Payable', tone: 'rose' }],
+        rows: D.PAYABLES.map((r, i) => ({ label: r.age, values: [r.amount], tone: ['green', 'amber', 'orange', 'rose'][i], to: set('subcontractors') })),
+      },
+      { type: 'table', title: 'Bank and cash accounts', span: 6, set: 'bank_accounts', columns: ['account', 'kind', 'balance'] },
+    ],
+    workflow: {
+      title: 'Money in and out',
+      steps: [
+        { label: 'Invoice or installment falls due', state: 'done' },
+        { label: 'Payment received and receipted', state: 'done' },
+        { label: 'Allocated to the installment or invoice', state: 'current' },
+        { label: 'Reconciled with the bank', state: 'next' },
+        { label: 'Month-end close', state: 'next', note: 'ERPNext is the only ledger (decision G4)' },
+      ],
+      actions: [{ label: 'Ledger and invoices (live)', to: { name: 'finance' }, section: 'finance' }],
+    },
+  },
+}
+
 /** Each sample module: its menu label, route name, tabs (key -> page), and links to real records. */
 export const MODULES = {
   executive: { label: 'Executive', route: 'executive', icon: 'lucide-gauge', tabs: executive, tabLabels: { overview: 'Overview' } },
@@ -647,4 +711,8 @@ export const MODULES = {
     ],
   },
   brokerage: { label: 'Brokerage', route: 'brokerage', icon: 'lucide-key-round', tabs: brokerage, tabLabels: { overview: 'Overview' } },
+  finance: {
+    label: 'Finance', route: 'finance-hub', icon: 'lucide-landmark', tabs: finance, tabLabels: { overview: 'Overview' },
+    records: [{ label: 'Ledger and invoices (live)', to: { name: 'finance' }, section: 'finance' }],
+  },
 }

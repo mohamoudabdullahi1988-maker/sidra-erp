@@ -39,7 +39,7 @@ const RAG = { G: 'Good', A: 'Watch', R: 'Problem' }
 </template>
 
 <style scoped>
-.table-wrap { overflow-x: auto; }
+.table-wrap { position: relative; overflow-x: auto; } /* contains the hidden .sr labels, so they scroll with the table and never widen the page */
 .sample-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th { position: sticky; top: 0; background: var(--bj-card); padding: 8px 10px; text-align: left; font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: var(--bj-muted); border-bottom: 1px solid var(--bj-line); white-space: nowrap; }
 td { padding: 8px 10px; border-bottom: 1px solid var(--bj-line); white-space: nowrap; color: var(--bj-ink); }

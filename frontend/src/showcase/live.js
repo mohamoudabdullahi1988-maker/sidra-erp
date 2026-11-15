@@ -293,6 +293,15 @@ export function executiveExtras({ construction, realestate }) {
       const failed = c.inspections.rows.filter((r) => r.result === 'Fail').length
       if (failed) attention.push({ tone: 'amber', text: `${failed} ${failed === 1 ? 'inspection' : 'inspections'} failed`, to: { name: listRoute('inspections') } })
     }
+    if (c.risks?.available) {
+      // The risk register (G26): open High risks, and open risks whose review date has passed.
+      const open = c.risks.rows.filter((row) => row.status !== 'Closed')
+      const high = open.filter((row) => row.rating === 'High').length
+      const late = open.filter((row) => row.review_date && row.review_date < c.today).length
+      const risks = { name: 'construction-hub', params: { tab: 'risk' }, query: { source: 'live' } }
+      if (high) attention.push({ tone: 'red', text: `${high} high ${high === 1 ? 'risk is' : 'risks are'} open`, to: risks })
+      if (late) attention.push({ tone: 'amber', text: `${late} ${late === 1 ? 'risk is' : 'risks are'} past ${late === 1 ? 'its' : 'their'} review date`, to: risks })
+    }
   }
   const r = realestate?.data
   if (!r) widgets.push(notice('Real estate sales', realestate?.error || 'Real estate records could not be loaded.', 6))

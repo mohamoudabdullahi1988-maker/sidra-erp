@@ -289,3 +289,19 @@ test('live Risk register counts open risks only and says why when missing', () =
   assert.match(empty.widgets[0].items[0].text, /No risks are recorded for Synthetic Homes/)
   assert.match(liveMethod('build', 'risk'), /construction_live/)
 })
+
+test('live Executive lists open high risks and risks past their review date', () => {
+  const data = { company: 'Synthetic Homes', today: '2026-11-15', jobs: { available: true, rows: [] }, variations: { available: true, rows: [] }, inspections: { available: true, rows: [] },
+    risks: { available: true, rows: [
+      { rating: 'High', status: 'Open', review_date: '2026-11-10' },
+      { rating: 'High', status: 'Mitigating', review_date: '2026-12-01' },
+      { rating: 'Low', status: 'Monitoring', review_date: '2026-11-01' },
+      { rating: 'High', status: 'Closed', review_date: '2026-10-01' },
+    ] } }
+  const items = executiveExtras({ construction: { data }, realestate: { error: 'y' } }).widgets.find((w) => w.title === 'Needs attention').items
+  assert.deepEqual(items.map((i) => i.text), ['2 high risks are open', '2 risks are past their review date'])
+  assert.equal(items[0].to.params.tab, 'risk')
+  // An older server without the risk register adds nothing and breaks nothing.
+  const { risks, ...older } = data
+  assert.equal(executiveExtras({ construction: { data: older }, realestate: { error: 'y' } }).widgets.find((w) => w.title === 'Needs attention').items[0].text, 'Nothing recorded needs attention.')
+})

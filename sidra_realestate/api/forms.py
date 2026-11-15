@@ -277,8 +277,8 @@ CONSTRUCTION_CLOSED = ("Closed", "Cancelled")
 
 
 def _job_actions(doc):
-	"""Desk's job buttons: create the job's quotation, BOQ revision, variation order or inspection
-	report (opens that form with the job filled in), and Certify Stage for a Project Manager."""
+	"""Desk's job buttons: create the job's quotation, BOQ revision, variation order, inspection
+	report or risk (opens that form with the job filled in), and Certify Stage for a Project Manager."""
 	if doc.get("status") in CONSTRUCTION_CLOSED:
 		return []
 	actions = []
@@ -287,13 +287,17 @@ def _job_actions(doc):
 		("Sidra BOQ Revision", _("New BOQ revision"), True),
 		("Sidra Variation Order", _("New variation order"), bool(doc.contract_quotation)),
 		("Sidra Inspection Report", _("New inspection report"), True),
+		("Sidra Project Risk", _("New risk"), True),
 	):
 		if wanted and frappe.has_permission(doctype, "create"):
+			values = {"job": doc.name}
+			if doctype == "Sidra Project Risk":
+				values["company"] = doc.company  # a risk names its Company; the job's is the one
 			actions.append(
 				{
 					"key": "new_" + frappe.scrub(doctype),
 					"label": label,
-					"navigate": {"doctype": doctype, "values": {"job": doc.name}},
+					"navigate": {"doctype": doctype, "values": values},
 					"tone": "secondary",
 				}
 			)

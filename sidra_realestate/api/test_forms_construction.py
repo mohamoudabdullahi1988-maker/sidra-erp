@@ -52,7 +52,17 @@ class TestFormsConstruction(IntegrationTestCase):
 		self.assertEqual([row["stage_name"] for row in form["values"]["stages"]], ["Foundation", "Structure"])
 		self.assertEqual(
 			keys(form),
-			["new_sidra_construction_quotation", "new_sidra_boq_revision", "new_sidra_inspection_report"],
+			[
+				"new_sidra_construction_quotation",
+				"new_sidra_boq_revision",
+				"new_sidra_inspection_report",
+				"new_sidra_project_risk",
+			],
+		)
+		# A risk opens with the job and its Company filled in (G26).
+		self.assertEqual(
+			form["actions"][3]["navigate"],
+			{"doctype": "Sidra Project Risk", "values": {"job": created["name"], "company": COMPANY}},
 		)
 		quotation = form["actions"][0]
 		self.assertEqual(

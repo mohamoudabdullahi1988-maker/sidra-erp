@@ -4,6 +4,11 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.45 — CRM conversion in Berjaya, 15 Nov 2026; issue #81)
+- Create opportunities with permission-checked Lead, Customer or Prospect party links. The picker follows its dependent type and clears stale suggestions when that type changes.
+- Lead actions open a prefilled Opportunity form or save ERPNext's native mapped Customer. Repeated customer conversion opens the existing linked record.
+- Integration tests cover conversion, disallowed party types and outsiders; frontend tests cover dynamic picker targets.
+
 ### Added (v0.1.42 — demo-ready live data: real project names and the missing records, 15 Nov 2026; decision G16)
 - **Live records on Real Estate Sales**: Inventory, Pipeline and Contracts & collections get the Sample data / Live records switch. They read the new read-only `api.realestate_live.get_realestate_live`:
   - units by project and status, and the value available;

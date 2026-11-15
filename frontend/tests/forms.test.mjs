@@ -93,3 +93,13 @@ test('a field whose read-only rule the server could not read stays read-only', (
   const field = { fieldname: 'x', fieldtype: 'Data', editable: true, unparsed: ['read_only_depends_on'] }
   assert.equal(isEditable(field, {}), false)
 })
+
+test('dynamic picker resolves the dependent field and refuses other doctypes', async () => {
+  const { linkTarget } = await import('../src/forms.js')
+  const field = { fieldtype: 'Dynamic Link', options: 'opportunity_from', allowed_doctypes: ['Lead', 'Customer', 'Prospect'] }
+  for (const target of field.allowed_doctypes) assert.equal(linkTarget(field, { opportunity_from: target }), target)
+  for (const target of ['User', 'Company', '', null]) assert.equal(linkTarget(field, { opportunity_from: target }), null)
+  assert.equal(linkTarget(field, {}), null)
+  assert.equal(linkTarget({ ...field, allowed_doctypes: undefined }, { opportunity_from: 'Lead' }), null)
+  assert.equal(linkTarget({ fieldtype: 'Link', options: 'Company' }), 'Company')
+})

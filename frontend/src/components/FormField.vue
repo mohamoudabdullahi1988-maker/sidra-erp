@@ -1,14 +1,15 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
 import { apiGet, apiUpload } from '../api'
 import { dateText, dateTimeText, fileLink, money, percentText } from '../format'
-import { LONG_TEXT, NUMERIC } from '../forms'
+import { linkTarget, LONG_TEXT, NUMERIC } from '../forms'
 
 // One field of a record form. It draws the value and an input that fits the field's type; it
 // checks nothing itself (the server does, on save).
 const props = defineProps({
   field: { type: Object, required: true },
+  values: { type: Object, default: () => ({}) },
   modelValue: { default: null },
   editable: { type: Boolean, default: false },
   required: { type: Boolean, default: false },
@@ -35,17 +36,20 @@ const value = computed({
 })
 
 // Link suggestions from Frappe's own permission-checked search; the server validates the value.
+const target = computed(() => linkTarget(props.field, props.values))
 const suggestions = ref([])
 let searchTimer = null
 let searchRequest = 0
 function search(text) {
-  if (type.value !== 'Link' || !props.field.options) return
   clearTimeout(searchTimer)
+  const id = ++searchRequest
+  suggestions.value = []
+  if (!target.value) return
+  const doctype = target.value
   searchTimer = setTimeout(async () => {
-    const id = ++searchRequest
     try {
       const response = await apiGet('/api/method/frappe.desk.search.search_link', {
-        doctype: props.field.options,
+        doctype,
         txt: text || '',
         page_length: 20,
         filters: props.field.link_filters || undefined,
@@ -56,6 +60,14 @@ function search(text) {
     }
   }, 200)
 }
+
+watch(target, (next, previous) => {
+  clearTimeout(searchTimer)
+  ++searchRequest
+  suggestions.value = []
+  if (type.value === 'Dynamic Link' && previous && next !== previous) value.value = null
+})
+onBeforeUnmount(() => { clearTimeout(searchTimer); ++searchRequest })
 
 // Datetime: Frappe sends "YYYY-MM-DD HH:MM:SS"; the browser's box uses "YYYY-MM-DDTHH:MM".
 const datetimeBox = computed({
@@ -110,12 +122,13 @@ const display = computed(() => {
         <option v-if="!options.some((option) => option.value === '')" value="" disabled>Choose…</option>
         <option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>
       </select>
-      <template v-else-if="type === 'Link'">
+      <template v-else-if="type === 'Link' || type === 'Dynamic Link'">
         <input
           :id="id"
           v-model="value"
           class="bj-input ff__input"
           :list="`${id}-list`"
+          :disabled="!target"
           :aria-label="name"
           :required="required"
           autocomplete="off"

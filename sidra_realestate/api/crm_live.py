@@ -1,8 +1,8 @@
 # Copyright (c) 2026, Mohamoud Abdullahi Sheikh
 """Live records for the Berjaya CRM dashboard (15 Nov 2026).
 
-Read only, from ERPNext's own CRM records: Lead (with its Lead Source, the channel the lead came
-through: WhatsApp, Email, Phone Call, ...), Opportunity, Customer and Sidra Customer KYC. Every list
+Read only, from ERPNext's own CRM records: Lead (with its channel, ERPNext's UTM Source: WhatsApp,
+Email, Phone Call, ...), Opportunity, Customer and Sidra Customer KYC. Every list
 goes through `frappe.get_list`, so role permissions and Company User Permissions are the boundary.
 A group the role cannot read comes back unavailable with a reason, never as zero. Opportunity
 amounts are exact two-place decimal strings. Nothing is changed.
@@ -15,6 +15,7 @@ from frappe import _
 from frappe.utils import add_months, getdate, nowdate
 
 from sidra_realestate.api.staff_dashboard import _staff_only, total
+from sidra_realestate.services.crm_channels import channel_field
 
 MONTHS = 12
 NO_CHANNEL = "Not recorded"
@@ -48,10 +49,12 @@ def get_crm_live(company: str) -> dict:
 def _leads(company, today):
 	if not _readable("Lead"):
 		return _unavailable(_("Your role does not include leads."), total=0, rows=[])
+	channel = channel_field("Lead")
 	rows = frappe.get_list(
 		"Lead",
 		filters={"company": company},
-		fields=["name", "lead_name", "company_name", "source", "status", "creation"],
+		fields=["name", "lead_name", "company_name", "status", "creation"]
+		+ ([f"{channel} as channel"] if channel else []),
 		order_by="creation desc",
 		limit_page_length=0,
 	)
@@ -62,14 +65,14 @@ def _leads(company, today):
 		"available": True,
 		"reason": None,
 		"total": len(rows),
-		"by_channel": dict(Counter(r.source or NO_CHANNEL for r in rows).most_common()),
+		"by_channel": dict(Counter(r.get("channel") or NO_CHANNEL for r in rows).most_common()),
 		"by_status": dict(Counter(r.status or NO_CHANNEL for r in rows).most_common()),
 		"months": [{"month": m, "count": per_month.get(m, 0)} for m in months],
 		"rows": [
 			{
 				"name": r.name,
 				"lead": r.lead_name or r.company_name or r.name,
-				"channel": r.source or NO_CHANNEL,
+				"channel": r.get("channel") or NO_CHANNEL,
 				"status": r.status,
 				"created": str(r.creation)[:10],
 			}

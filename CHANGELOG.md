@@ -9,7 +9,7 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
   - Shows leads by channel, new leads per month, opportunities by stage, open opportunity value, customers and verified KYC.
   - Buttons open Leads, Opportunities, Customers, Contacts and KYC.
   - Live data comes from `api.crm_live.get_crm_live`: read only, from ERPNext's Lead, Opportunity, Customer and Sidra Customer KYC, filtered by permission. A group the role can't read says why. KYC counts stay hidden from roles that may not read KYC (G12).
-- **Lead channels.** WhatsApp, Email, Phone Call, Facebook, Instagram, Website, Walk In and Reference, as ERPNext Lead Sources. The sample screens use the same channels.
+- **Lead channels.** WhatsApp, Email, Phone Call, Facebook, Instagram, Website, Walk In and Reference. ERPNext v16 stores a lead's channel in `utm_source`, a link to UTM Source; versions before v15 used Lead Source. `services/crm_channels.py` picks whichever field the site has. The Leads and Opportunities screens show it as **Channel**, and Real Estate → Pipeline now counts it too, where it previously read the old field. The sample screens use the same channels.
 - **`pilot_approvals.approve_pilot_documents`** (test site only, same guards as the pilot) approves the pilot's draft documents through their own rules, keeping two of each as drafts for the live approval steps:
   - construction quotations are issued, the client's acceptance is recorded, and the General Manager approves them as contracts;
   - the General Manager approves variation orders;

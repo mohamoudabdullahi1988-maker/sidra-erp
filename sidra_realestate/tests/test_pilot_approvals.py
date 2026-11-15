@@ -63,9 +63,11 @@ class PilotApprovalsChecks:
 					doctype = "Sidra Variation Order" if kind == "variations" else "Sidra Inspection Report"
 					self.assertEqual(frappe.db.get_value(doctype, name, "docstatus"), 0)
 
-			channels = set(frappe.get_all("Lead Source", pluck="name"))
+			from sidra_realestate.services.crm_channels import channel_doctype, channel_field
+
+			channels = set(frappe.get_all(channel_doctype(), pluck="name"))
 			self.assertTrue(set(CHANNELS) <= channels)
-			self.assertTrue(frappe.db.exists("Lead", {"company": COMPANY, "source": "WhatsApp"}))
+			self.assertTrue(frappe.db.exists("Lead", {"company": COMPANY, channel_field(): "WhatsApp"}))
 
 			again = approve_pilot_documents()
 			self.assertFalse(again["created"])

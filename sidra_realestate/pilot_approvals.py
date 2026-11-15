@@ -11,7 +11,7 @@ its top-up, this loader once:
 - issues the draft sale quotations that are still valid and quotable, with any discount approved by
   the Sales Manager or General Manager first (G13); expired ones and ones whose plot has since been
   sold stay as they are;
-- adds lead channels (ERPNext Lead Sources: WhatsApp, Email, Phone Call, Facebook, Instagram,
+- adds lead channels (ERPNext's UTM Sources, Lead Sources on older versions: WhatsApp, Email, Phone Call, Facebook, Instagram,
   Website) and spreads the top-up's leads across them.
 
 Every step goes through the same controller rules as a user's click: nothing is forced, and a
@@ -227,15 +227,16 @@ def _sale_quotations(names, today):
 
 
 def _channels(leads):
-	"""ERPNext Lead Sources for the channels Sidra uses, and the top-up's leads spread across them."""
+	"""The channels Sidra uses, and the top-up's leads spread across them (services.crm_channels)."""
+	from sidra_realestate.services.crm_channels import channel_field, ensure_channel
+
 	frappe.set_user("Administrator")
-	added = []
-	for channel in CHANNELS:
-		if not frappe.db.exists("Lead Source", channel):
-			frappe.get_doc({"doctype": "Lead Source", "source_name": channel}).insert(ignore_permissions=True)
-			added.append(channel)
+	field = channel_field("Lead")
+	if not field:
+		return {"channels_added": [], "leads": 0, "previous": {}, "note": "Lead has no channel field"}
+	added = [channel for channel in CHANNELS if ensure_channel(channel)]
 	previous = {}
 	for index, name in enumerate(n for n in leads if frappe.db.exists("Lead", n)):
-		previous[name] = frappe.db.get_value("Lead", name, "source")
-		frappe.db.set_value("Lead", name, "source", CHANNELS[index % len(CHANNELS)], update_modified=False)
-	return {"lead_sources_added": added, "leads": len(previous), "previous_sources": previous}
+		previous[name] = frappe.db.get_value("Lead", name, field)
+		frappe.db.set_value("Lead", name, field, CHANNELS[index % len(CHANNELS)], update_modified=False)
+	return {"field": field, "channels_added": added, "leads": len(previous), "previous": previous}

@@ -215,11 +215,10 @@ def _crm(add):
 		f"{leads} leads, {opportunities} opportunities",
 		f"{BENCH} execute sidra_realestate.pilot_extras.create_pilot_extras'",
 	)
-	channels = (
-		frappe.db.count("Lead", {"company": COMPANY, "source": "WhatsApp"})
-		if frappe.db.exists("DocType", "Lead")
-		else 0
-	)
+	from sidra_realestate.services.crm_channels import channel_field
+
+	field = channel_field("Lead") if frappe.db.exists("DocType", "Lead") else None
+	channels = frappe.db.count("Lead", {"company": COMPANY, field: "WhatsApp"}) if field else 0
 	add(
 		"Leads with channels",
 		channels >= 1,

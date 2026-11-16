@@ -43,7 +43,7 @@
 | G32 | 16 Nov 2026 | **Identity access needs General Manager approval** (Mohamoud, #40). Granting access to buyer identity information requires GM approval. Whether approval is per user/role or per record, and whether export needs separate approval, are not specified yet. This does not approve contract cancellation, amendment, refunds or the other items in #40. | Identity-access part of #40 |
 | G33 | 16 Nov 2026 | **First installment rule confirmed** (Mohamoud, #1): retain the current AT-compatible rule described in the issue: choose the due day in signing month plus grace months; if that date is on or before signing, move it one month forward. Signing on the due day therefore starts next month. Installment due days stay 1–28; cash contracts have no installment schedule. | #1; AT-01/AT-03 |
 | G34 | 16 Nov 2026 | **Collections settings configurable by Sidra** (Mohamoud, #3). Sidra selects the collections/profile settings; preserve G9's configurable settings and contract snapshots. This answer does not supply numerical values for settings still marked Pending Decision or authorise applying/posting penalties, refunds or compensation. | #3; G9 retained |
-| G35 | 16 Nov 2026 | **Down payment before a plot hold** (Mohamoud): no reservation or plot hold without a down payment. A draft with no down payment cannot hold a plot. The payment-verification evidence, approving role and treatment of cancellation/refunds still require definition before changing reservation behavior; no receipt is fabricated and no ledger entry is posted by this decision. | Replaces the open question about unpaid drafts holding plots |
+| G35 | 16 Nov 2026 | **Down payment before a plot hold** (Mohamoud): no reservation or plot hold without a down payment. A draft with no down payment cannot hold a plot. The down payment must be evidenced by an **ERPNext receipt verified by Finance** before the plot can be reserved or held (Mohamoud selects the first option). Uploaded evidence approved by the GM alone does not meet this requirement. Implementation must check the real receipt and its applicability to the buyer/plot; no receipt is fabricated and this decision does not authorise posting a voucher. Cancellation/release/refund handling remains to be specified. | Replaces the open question about unpaid drafts holding plots |
 
 ## 2. Gates still open
 
@@ -53,5 +53,5 @@ These are not decided by an implementer. Open a `spec-question` issue when work 
 | --- | --- |
 | Buyer late penalties: Sidra income or charity; legal / Sharia enforceability (SRS v2.0 §9 item 2) | Applying and posting penalties |
 | Finance posting matrix and controls (handover v1.0 §5, Phase 5) | Posting vouchers, refunds |
-| Down-payment evidence/verification and release/refund handling (G35) | Enforcing paid reservations |
+| Paid-reservation cancellation/release/refund handling (G35) | Cancelling/releasing a paid reservation and any refund behavior |
 | GM identity-access approval granularity and export policy (G32) | New identity-access approval workflow |

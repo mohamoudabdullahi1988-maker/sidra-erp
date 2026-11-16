@@ -112,7 +112,8 @@ class TestDiscoveryActivity(IntegrationTestCase):
 		self.assertEqual(_csv_value("plain"), "plain")
 
 	def test_native_accounting_reports_keep_native_permissions(self):
-		from sidra_realestate.api.native_reports import catalogue as native_catalogue, run_report
+		from sidra_realestate.api.native_reports import catalogue as native_catalogue
+		from sidra_realestate.api.native_reports import run_report
 		from sidra_realestate.tests.helpers import COMPANY
 
 		with as_user("Administrator"):

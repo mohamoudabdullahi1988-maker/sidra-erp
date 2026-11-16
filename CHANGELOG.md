@@ -4,6 +4,11 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Decisions (v0.1.60 — Design and Brokerage approvals, 16 Nov 2026)
+- Record G27: approved Design discipline proposal #100.
+- Record G28: commission includes fees; Sidra receives journey A first payment; commission rate freezes at contract confirmation (#95). Record/snapshot work is unblocked; financial posting remains gated.
+
+
 ### Fixed (v0.1.59 — Executive live layout, 16 Nov 2026)
 - Arrange live inventory/project charts, sites/attention and schedule/leads in complete rows; keep details below. Four KPI columns on wide screens and two on phones.
 - Keep all live attention/site records accessible in bounded, keyboard-scrollable cards; show the attention count and explain the job-table preview. Correct rose warning colours and singular stage labels.

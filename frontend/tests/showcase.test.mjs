@@ -415,3 +415,19 @@ test('dashboard period: presets, custom range, fallbacks, and the range sent to 
   assert.equal(byMethod.get_construction_live.from_date, '2026-09-01')
   assert.equal(byMethod.get_realestate_live.to_date, '2026-11-15')
 })
+
+test('Executive live cohorts use complete rows and bounded record cards', async () => {
+  const { arrangeExecutiveWidgets } = await import('../src/showcase/live.js')
+  const widgets = [
+    { title: 'Units by status' }, { title: 'Needs attention', items: Array.from({ length: 60 }, (_, i) => ({ text: `Item ${i}` })) },
+    { title: 'Job sites', pins: Array.from({ length: 25 }, (_, i) => ({ label: `Job ${i}` })) },
+    { title: 'Construction jobs', rows: Array.from({ length: 25 }, (_, i) => ({ name: `J${i}` })) },
+    { title: 'Units by project' }, { title: 'Installments scheduled per month' }, { title: 'Leads by status' }, { title: 'Reporting period' },
+  ]
+  const result = arrangeExecutiveWidgets(widgets)
+  assert.deepEqual(result.map(w => w.span), [4, 8, 6, 6, 8, 4, 12, 12])
+  assert.equal(result.find(w => w.title === 'Needs attention').items.length, 60)
+  assert.equal(result.find(w => w.title === 'Needs attention').compact, true)
+  assert.equal(result.find(w => w.title === 'Job sites').pins.length, 25)
+  assert.equal(result.find(w => w.title === 'Job sites').compact, true)
+})

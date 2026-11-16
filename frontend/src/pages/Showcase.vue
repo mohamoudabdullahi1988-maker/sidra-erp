@@ -102,7 +102,7 @@ onBeforeUnmount(() => { ++request; releasePanel() })
 </script>
 
 <template>
-  <div class="page sc">
+  <div class="page sc" :class="{ 'sc--live-executive': live && route.meta.showcase === 'executive' }">
     <header class="sc__head">
       <div class="sc__titles">
         <p class="sc__module">{{ module.label }}</p>
@@ -146,7 +146,7 @@ onBeforeUnmount(() => { ++request; releasePanel() })
     </section>
 
     <section v-if="showWidgets" class="sc__grid">
-      <div v-for="(widget, i) in page.widgets" :key="tab + i" class="sc__cell" :style="{ '--span': widget.span ?? 6 }">
+      <div v-for="(widget, i) in page.widgets" :key="tab + i" class="sc__cell" :class="{ 'sc__cell--full': widget.span === 12 }" :style="{ '--span': widget.span ?? 6 }">
         <component :is="WIDGETS[widget.type]" :widget="widget" />
       </div>
     </section>
@@ -196,5 +196,17 @@ onBeforeUnmount(() => { ++request; releasePanel() })
 @media (max-width: 640px) {
   .sc__kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .page__title { font-size: 20px; }
+}
+</style>
+
+<style scoped>
+.sc--live-executive .sc__kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.sc--live-executive .sc__grid { grid-auto-flow: row dense; align-items: stretch; }
+@media (min-width: 901px) and (max-width: 1280px) {
+  .sc--live-executive .sc__cell { grid-column: span 6; }
+  .sc--live-executive .sc__cell--full { grid-column: span 12; }
+}
+@media (max-width: 640px) {
+  .sc--live-executive .sc__kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 </style>

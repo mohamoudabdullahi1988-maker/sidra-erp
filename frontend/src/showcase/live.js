@@ -260,10 +260,29 @@ export function executivePage(data, samplePage) {
     // Rows of 12: inventory, sites and attention side by side, then sales, then the job table.
     if (widgets[0].type === 'donut') widgets[0] = { ...widgets[0], span: 4 }
     widgets.splice(widgets.length - 1, 0, ...extra.widgets)
+    arrangeExecutiveWidgets(widgets)
     // The usual process, shown with numbered steps and no state on live records (FlowSteps).
     return { title: samplePage.title, subtitle: `Live records for ${data.scope.company_name}`, kpis, widgets, workflow: samplePage.workflow }
   }
   return { title: samplePage.title, subtitle: `Live records for ${data.scope.company_name}`, kpis, widgets }
+}
+
+/** Pack complete rows before the detailed records; large live cohorts stay inside their cards. */
+export function arrangeExecutiveWidgets(widgets) {
+  const order = ['Units by status', 'Units by project', 'Job sites', 'Needs attention', 'Installments scheduled per month', 'Leads by status', 'Construction jobs']
+  const spans = [4, 8, 6, 6, 8, 4, 12]
+  for (const widget of widgets) {
+    const index = order.indexOf(widget.title)
+    widget.span = index < 0 ? 12 : spans[index]
+    if (['Job sites', 'Needs attention'].includes(widget.title)) widget.compact = true
+    if (widget.title === 'Needs attention') widget.note = `${widget.items.length} recorded attention ${widget.items.length === 1 ? 'item' : 'items'} · scroll to review all`
+    if (widget.title === 'Construction jobs') widget.note = `Showing up to 10 of ${widget.rows.length} jobs. Open the list for all records.`
+  }
+  widgets.sort((a, b) => {
+    const rank = (w) => { const i = order.indexOf(w.title); return i < 0 ? order.length : i }
+    return rank(a) - rank(b)
+  })
+  return widgets
 }
 
 /** Every source and permission group keeps its own result; totals come from the server. */
@@ -284,7 +303,7 @@ export function executiveExtras({ construction, realestate }) {
       widgets.push({ type: 'table', title: 'Construction jobs', span: 12,
         columnDefs: [{ key: 'name', label: 'Job' }, { key: 'site', label: 'Site' }, { key: 'status', label: 'Status', kind: 'chip' }, { key: 'progress', label: 'Recorded progress', kind: 'progress' }, { key: 'stages_overdue', label: 'Overdue stages', kind: 'count' }],
         rows: jobs.map((r) => ({ ...r, site: jobLabel(r), _to: jobLink(r.name) })) })
-      for (const job of jobs.filter((r) => r.stages_overdue > 0)) attention.push({ tone: 'rose', text: `${jobLabel(job)}: ${job.stages_overdue} overdue stages`, to: jobLink(job.name) })
+      for (const job of jobs.filter((r) => r.stages_overdue > 0)) attention.push({ tone: 'rose', text: `${jobLabel(job)}: ${job.stages_overdue} overdue ${job.stages_overdue === 1 ? 'stage' : 'stages'}`, to: jobLink(job.name) })
     }
     if (!c.variations.available) missing('Variation orders', c.variations.reason)
     else for (const row of c.variations.rows.filter((r) => r.status === 'Draft')) attention.push({ tone: 'amber', text: `${row.name}: variation awaiting approval`, to: { name: detailRoute('variations'), params: { name: row.name } } })

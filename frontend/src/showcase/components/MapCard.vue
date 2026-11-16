@@ -47,7 +47,7 @@ const open = (pin) => pin.to && router.push(linkTo(pin.to))
       </svg>
     </div>
     <p v-if="!widget.pins.length && widget.empty" class="empty">{{ widget.empty }}</p>
-    <ul class="pins">
+    <ul class="pins" :class="{ 'pins--compact': widget.compact }" :tabindex="widget.compact ? 0 : undefined" :aria-label="widget.compact ? 'Job site records' : undefined">
       <li v-for="pin in widget.pins" :key="pin.label">
         <RouterLink :to="linkTo(pin.to) ?? ''"><i :style="{ background: tone(pin.tone) }" /><span>{{ pin.label }}</span><small>{{ pin.sub }}</small></RouterLink>
       </li>
@@ -70,4 +70,8 @@ svg { display: block; }
 .pins i { width: 10px; height: 10px; border-radius: 50%; }
 .pins span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pins small { color: var(--bj-muted); white-space: nowrap; }
+</style>
+
+<style scoped>
+.pins--compact { max-height: 150px; overflow-y: auto; overscroll-behavior-y: contain; }
 </style>

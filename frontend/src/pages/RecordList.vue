@@ -1,4 +1,5 @@
 <script setup>
+import BulkActions from '../components/BulkActions.vue'
 import TransactionGuide from '../components/TransactionGuide.vue'
 import ListInsights from '../components/ListInsights.vue'
 import { computed, ref, watch } from 'vue'
@@ -70,6 +71,7 @@ function clear() {
 }
 
 watch(company, reload, { immediate: true })
+const selected = ref([])
 </script>
 
 <template>
@@ -95,6 +97,7 @@ watch(company, reload, { immediate: true })
       </div>
     </header>
     <ListInsights :rows="rows" :columns="config.list" :group="config.list.find(c => c.field === 'status' || c.field === 'docstatus')?.field || config.list.find(c => c.type === 'select')?.field || config.list[1]?.field || 'name'" :busy="loading || !!error" />
+    <BulkActions v-model="selected" :doctype="config.doctype" :rows="rows" :loading="loading" @changed="reload" />
 
     <SectionTabs :section="config.section" :current="key" />
 
@@ -129,11 +132,13 @@ watch(company, reload, { immediate: true })
           <table class="bj-table bj-table--stack">
             <thead>
               <tr>
+                <th scope="col">Select</th>
                 <th v-for="column in config.list" :key="column.field" scope="col" :class="{ 'bj-right': right(column) }">{{ column.label }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="row in rows" :key="row.name">
+                <td data-label="Select"><input v-model="selected" type="checkbox" :value="row.name" :aria-label="`Select ${row.name}`" :disabled="loading" /></td>
                 <td v-for="column in config.list" :key="column.field" :data-label="column.label" :class="{ 'bj-right': right(column) }">
                   <FieldValue
                     :value="row[column.field]"

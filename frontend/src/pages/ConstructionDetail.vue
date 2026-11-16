@@ -1,5 +1,5 @@
 <script setup>
-import TransactionGuide from '../components/TransactionGuide.vue'
+import RecordWorkflow from '../components/RecordWorkflow.vue'
 import LocationPanel from '../components/LocationPanel.vue'
 import RecordExtras from '../components/RecordExtras.vue'
 import RelatedList from '../components/RelatedList.vue'
@@ -47,7 +47,7 @@ onBeforeUnmount(() => ++request)
 </script>
 
 <template>
-  <TransactionGuide />
+  <RecordWorkflow :doctype="JOB_DOCTYPE" :name="route.params.name" :reload-key="doc?.modified" />
   <section class="page">
     <nav class="bj-crumb" aria-label="Breadcrumb">
       <RouterLink class="bj-link" :to="{ name: 'construction' }">Construction</RouterLink>

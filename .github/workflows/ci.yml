@@ -15,6 +15,30 @@ env:
   ERPNEXT_VERSION: v16.53.0
 
 jobs:
+  record-ui:
+    name: Record UI build and browser flows
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: npm install --no-package-lock
+        working-directory: frontend
+      - run: npm test && npm run build
+        working-directory: frontend
+      - run: pip install playwright
+      - name: Desktop and phone record flows
+        run: |
+          npm --prefix frontend run dev -- --host 127.0.0.1 --port 8080 > /tmp/berjaya-vite.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8080/berjaya >/dev/null && break
+            sleep 1
+          done
+          python frontend/tests/record_operations_browser.py
   lint:
     name: Lint and pure tests
     runs-on: ubuntu-24.04

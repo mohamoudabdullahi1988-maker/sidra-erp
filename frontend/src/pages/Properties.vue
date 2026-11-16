@@ -1,4 +1,5 @@
 <script setup>
+import BulkActions from '../components/BulkActions.vue'
 import TransactionGuide from '../components/TransactionGuide.vue'
 import ListInsights from '../components/ListInsights.vue'
 import { computed, onMounted, ref } from 'vue'
@@ -110,6 +111,7 @@ const STATUS_TONE = {
   Sold: 'muted',
   Blocked: 'blocked',
 }
+const selected = ref([])
 </script>
 
 <template>
@@ -130,6 +132,7 @@ const STATUS_TONE = {
       </div>
     </header>
     <ListInsights :rows="rows" :columns="COLUMNS.map(c=>({field:c.field,label:c.label}))" :busy="loading || !!error" />
+    <BulkActions v-model="selected" :doctype="DOCTYPE" :rows="rows" :loading="loading" @changed="reload" />
 
     <SectionTabs section="properties" current="units" />
 
@@ -168,6 +171,7 @@ const STATUS_TONE = {
           <table class="table">
             <thead>
               <tr>
+                <th scope="col">Select</th>
                 <th v-for="col in COLUMNS" :key="col.field" :class="{ 'is-right': col.align === 'right' }" scope="col">
                   {{ col.label }}
                 </th>
@@ -175,6 +179,7 @@ const STATUS_TONE = {
             </thead>
             <tbody>
               <tr v-for="row in rows" :key="row.name">
+                <td data-label="Select"><input v-model="selected" type="checkbox" :value="row.name" :aria-label="`Select ${row.name}`" :disabled="loading" /></td>
                 <td v-for="col in COLUMNS" :key="col.field" :class="{ 'is-right': col.align === 'right' }" :data-label="col.label">
                   <template v-for="c in [cell(row, col.field)]" :key="col.field">
                     <span v-if="c.kind === 'unavailable'" class="unavailable" title="Your account may not see this value">

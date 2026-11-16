@@ -1,4 +1,5 @@
 <script setup>
+import BulkActions from '../components/BulkActions.vue'
 import TransactionGuide from '../components/TransactionGuide.vue'
 import ListInsights from '../components/ListInsights.vue'
 import { ref, watch } from 'vue'
@@ -23,6 +24,7 @@ const { rows, hasMore, loading, error, count, state, reload, loadMore } = useLis
 })
 
 watch([company, status], reload, { immediate: true })
+const selected = ref([])
 </script>
 
 <template>
@@ -48,6 +50,7 @@ watch([company, status], reload, { immediate: true })
       </div>
     </header>
     <ListInsights :rows="rows" :columns="[{field:'name',label:'Job'},{field:'customer',label:'Customer'},{field:'status',label:'Status'},{field:'engineer',label:'Engineer'}]" :busy="loading || !!error" />
+    <BulkActions v-model="selected" :doctype="JOB_DOCTYPE" :rows="rows" :loading="loading" @changed="reload" />
 
     <SectionTabs section="construction" current="jobs" />
 
@@ -57,6 +60,7 @@ watch([company, status], reload, { immediate: true })
           <table class="bj-table bj-table--stack">
             <thead>
               <tr>
+                <th scope="col">Select</th>
                 <th scope="col">Job</th>
                 <th scope="col">Client</th>
                 <th scope="col">Service</th>
@@ -68,6 +72,7 @@ watch([company, status], reload, { immediate: true })
             </thead>
             <tbody>
               <tr v-for="row in rows" :key="row.name">
+                <td data-label="Select"><input v-model="selected" type="checkbox" :value="row.name" :aria-label="`Select ${row.name}`" :disabled="loading" /></td>
                 <td data-label="Job">
                   <RouterLink class="bj-link" :to="{ name: 'construction-detail', params: { name: row.name } }">{{ row.name }}</RouterLink>
                 </td>

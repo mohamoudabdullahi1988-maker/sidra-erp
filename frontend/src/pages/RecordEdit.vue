@@ -4,7 +4,7 @@ import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { LoadingIndicator } from 'frappe-ui'
 
-import { ApiError } from '../api'
+import { ApiError, apiGet } from '../api'
 import { currencyOf } from '../company'
 import FormNotes from '../components/FormNotes.vue'
 import RecordForm from '../components/RecordForm.vue'
@@ -37,6 +37,8 @@ const docName = computed(() => route.params.name || (config.single ? config.doct
 const isNew = computed(() => !docName.value)
 const title = computed(() => {
   if (config.single) return config.title
+  if (isNew.value && route.query.amend) return `Amend ${route.query.amend}`
+  if (isNew.value && route.query.duplicate) return `Duplicate ${route.query.duplicate}`
   return isNew.value ? `New ${config.noun ? config.noun.replace(/s$/, '') : config.title}` : `Edit ${route.params.name}`
 })
 const currency = computed(() => values.currency || form.value?.values?.currency || currencyOf(values.company || form.value?.values?.company))
@@ -50,7 +52,13 @@ async function load() {
   loadError.value = null
   saveError.value = null
   try {
-    const result = await loadForm(config.doctype, docName.value)
+    const copying = isNew.value && (route.query.duplicate || route.query.amend)
+    const result = copying
+      ? (await apiGet('/api/method/sidra_realestate.api.record_operations.prepare_copy', {
+          doctype: config.doctype, name: copying, operation: route.query.amend ? 'amend' : 'duplicate',
+        })).message
+      : await loadForm(config.doctype, docName.value)
+    if (result.is_new && ['Contact', 'Address'].includes(config.doctype) && typeof route.query.link_customer === 'string') result.link_customer = route.query.link_customer
     if (id !== request) return
     form.value = result
     for (const name of Object.keys(values)) delete values[name]
@@ -92,7 +100,7 @@ async function save() {
 }
 
 watch(
-  () => route.params.name,
+  () => [route.params.name, route.query.duplicate, route.query.amend, route.query.link_customer],
   () => {
     note.value = ''
     load()

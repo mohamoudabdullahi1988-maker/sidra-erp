@@ -12,6 +12,11 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 - Native staff sharing and tags on record tools. No automatic share/assignment notifications and no public-share control.
 - Integration coverage for permissions, stale batches, connections, copy retries, amendment lineage, rename, tags and sharing; pure workflow evidence tests and desktop/phone browser scenarios.
 
+### Decisions (v0.1.60 — Design and Brokerage approvals, 16 Nov 2026)
+- Record G27: approved Design discipline proposal #100.
+- Record G29–G35: all confirmed sales, existing average progress, configurable signing/collections settings, GM-approved identity access separately for each buyer, current first-due-date rule, and a Finance-verified ERPNext down-payment receipt required before plot holds. Outstanding verification/access details remain explicit.
+- Record G28: commission includes fees; Sidra receives journey A first payment; commission rate freezes at contract confirmation (#95). Record/snapshot work is unblocked; financial posting remains gated.
+
 
 ### Fixed (v0.1.59 — Executive live layout, 16 Nov 2026)
 - Arrange live inventory/project charts, sites/attention and schedule/leads in complete rows; keep details below. Four KPI columns on wide screens and two on phones.

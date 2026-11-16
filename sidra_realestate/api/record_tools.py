@@ -20,7 +20,7 @@ def get_tools(doctype, name):
 			limit_page_length=50,
 		)
 	return {
-		"can_share": bool(doc.has_permission("share")),
+		"can_share": bool(doc.has_permission("share") and doctype != "Sidra Customer KYC"),
 		"can_tag": bool(doc.has_permission("write") and not doc.meta.issingle),
 		"tags": [t for t in (doc.get("_user_tags") or "").split(",") if t],
 		"shares": frappe.get_all(
@@ -94,6 +94,8 @@ def set_share(doctype, name, user, write=0, remove=0):
 	import frappe.share
 
 	_record(doctype, name, "share")
+	if doctype == "Sidra Customer KYC":
+		frappe.throw(_("Identity access requires General Manager approval for this buyer (G32)"), frappe.PermissionError)
 	if not frappe.db.exists("User", {"name": user, "enabled": 1, "user_type": "System User"}):
 		frappe.throw(_("Choose an enabled staff user"))
 	frappe.share.validate_user_access(user, _("User"))

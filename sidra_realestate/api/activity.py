@@ -120,6 +120,51 @@ def timeline(doctype, name, start=0):
 					"text": row.file_name,
 				}
 			)
+	if doc.modified != doc.creation:
+		events.append(
+			{
+				"key": "modified",
+				"kind": "Last updated",
+				"on": doc.modified,
+				"by": doc.modified_by,
+				"text": name,
+			}
+		)
+	if doc.meta.track_views:
+		for row in frappe.get_all(
+			"View Log",
+			filters={"reference_doctype": doctype, "reference_name": name},
+			fields=["name", "creation", "owner"],
+			order_by="creation desc, name desc",
+			limit_page_length=limit,
+		):
+			events.append(
+				{
+					"key": "view:" + row.name,
+					"kind": "Viewed",
+					"on": row.creation,
+					"by": row.owner,
+					"text": name,
+				}
+			)
+	visible = list(_visible(doc.meta))
+	if visible:
+		for row in frappe.get_all(
+			"Milestone",
+			filters={"reference_type": doctype, "reference_name": name, "track_field": ["in", visible]},
+			fields=["name", "creation", "owner", "track_field", "value"],
+			order_by="creation desc, name desc",
+			limit_page_length=limit,
+		):
+			events.append(
+				{
+					"key": "milestone:" + row.name,
+					"kind": "Milestone",
+					"on": row.creation,
+					"by": row.owner,
+					"text": f"{row.track_field}: {row.value}",
+				}
+			)
 	events.sort(key=lambda row: (str(row["on"]), row["key"]), reverse=True)
 	return {
 		"rows": events[start : start + 50],

@@ -25,7 +25,7 @@ above 10,000 rows are refused with instructions to narrow filters, never silentl
 Spreadsheet formula prefixes are escaped. No new ledger, totals, posting or business policy.
 
 The activity timeline pages through retained comments (including native workflow/assignment
-comments), Communications, attachments, versions and record creation. Version detail retains
+comments), Communications, attachments, versions, milestones, tracked views and record creation/last update. Version detail retains
 its existing write-access requirement and removes fields outside the readable schema, including
 child fields. Additions, removals and edits are shown. History cannot reconstruct changes made
 before tracking was enabled or deleted source events. Email bodies remain in Conversations.

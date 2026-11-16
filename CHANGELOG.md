@@ -4,6 +4,11 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Fixed (v0.1.59 — Executive live layout, 16 Nov 2026)
+- Arrange live inventory/project charts, sites/attention and schedule/leads in complete rows; keep details below. Four KPI columns on wide screens and two on phones.
+- Keep all live attention/site records accessible in bounded, keyboard-scrollable cards; show the attention count and explain the job-table preview. Correct rose warning colours and singular stage labels.
+
+
 ### Added (v0.1.58 — staff record tools, 15 Nov 2026)
 - My work: personal native tasks and notification inbox, task completion and mark-read with user ownership checks. Sign-out control. Generic transaction lists support server filters/sorts and browser-saved view preferences.
 - Workflow guides throughout transaction pages. Contact and Address forms in Berjaya; Lead Company, phone, WhatsApp and contact preferences; Customer primary Contact/Address fields.

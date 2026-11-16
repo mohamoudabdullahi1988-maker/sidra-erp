@@ -3,12 +3,12 @@ import Card from './Card.vue'
 import { linkTo } from '../link'
 
 defineProps({ widget: { type: Object, required: true } })
-const ICON = { red: 'lucide-octagon-alert', amber: 'lucide-triangle-alert', blue: 'lucide-info' }
+const ICON = { red: 'lucide-octagon-alert', rose: 'lucide-octagon-alert', amber: 'lucide-triangle-alert', blue: 'lucide-info' }
 </script>
 
 <template>
   <Card :title="widget.title" :note="widget.note">
-    <ul class="items">
+    <ul class="items" :class="{ 'items--compact': widget.compact }" :tabindex="widget.compact ? 0 : undefined" :aria-label="widget.compact ? widget.title : undefined">
       <li v-for="item in widget.items" :key="item.text">
         <component :is="item.to ? 'RouterLink' : 'div'" :to="linkTo(item.to) ?? undefined" class="item" :class="'item--' + item.tone">
           <span class="item__icon" :class="ICON[item.tone]" aria-hidden="true" />
@@ -26,10 +26,14 @@ const ICON = { red: 'lucide-octagon-alert', amber: 'lucide-triangle-alert', blue
 .item:hover { background: var(--bj-terracotta-tint); }
 .item__icon, .item__go { width: 16px; height: 16px; }
 .item__go { color: var(--bj-muted); }
-.item--red { border-color: var(--bj-c-rose); }
-.item--red .item__icon { color: var(--bj-c-rose); }
+.item--rose, .item--red { border-color: var(--bj-c-rose); }
+.item--rose .item__icon, .item--red .item__icon { color: var(--bj-c-rose); }
 .item--amber { border-color: var(--bj-c-amber); }
 .item--amber .item__icon { color: var(--bj-c-orange); }
 .item--blue { border-color: var(--bj-c-blue); }
 .item--blue .item__icon { color: var(--bj-c-blue); }
+</style>
+
+<style scoped>
+.items--compact { max-height: 360px; overflow-y: auto; overscroll-behavior-y: contain; padding-right: 4px; }
 </style>

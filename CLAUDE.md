@@ -1,6 +1,6 @@
 # CLAUDE.md — sidra-erp
 
-You are the **implementation** agent for Sidra Real Estate's ERPNext system. Read `docs/DECISIONS-AND-GATES_v0.1.md` (decisions win over older documents), `docs/SREMS-SRS_v2.0-DRAFT.md`, `docs/CLAUDE-CODE-HANDOFF_v2.0.md` and `docs/HANDOVER_v1.0.md` before any work.
+You are the **implementation** agent for Sidra Real Estate's ERPNext system. Read `docs/DECISIONS-AND-GATES_v0.2.md` (decisions win over older documents), `docs/SREMS-SRS_v2.0-DRAFT.md`, `docs/CLAUDE-CODE-HANDOFF_v2.0.md` and `docs/HANDOVER_v1.0.md` before any work.
 
 ## Project
 - Custom Frappe app `sidra_realestate` on **ERPNext v16 / Frappe v16**, Python 3.14, Node 24, MariaDB 11.8. Pinned patch versions: see `docs/ENVIRONMENT_v0.1.md`.

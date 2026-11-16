@@ -6,7 +6,7 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ### Decisions (v0.1.60 — Design and Brokerage approvals, 16 Nov 2026)
 - Record G27: approved Design discipline proposal #100.
-- Record G29–G35: all confirmed sales, existing average progress, configurable signing/collections settings, GM-approved identity access, current first-due-date rule, and a Finance-verified ERPNext down-payment receipt required before plot holds. Outstanding verification/access details remain explicit.
+- Record G29–G35: all confirmed sales, existing average progress, configurable signing/collections settings, GM-approved identity access separately for each buyer, current first-due-date rule, and a Finance-verified ERPNext down-payment receipt required before plot holds. Outstanding verification/access details remain explicit.
 - Record G28: commission includes fees; Sidra receives journey A first payment; commission rate freezes at contract confirmation (#95). Record/snapshot work is unblocked; financial posting remains gated.
 
 

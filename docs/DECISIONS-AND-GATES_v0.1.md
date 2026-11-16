@@ -1,5 +1,7 @@
 # Sidra ERP — Decisions and Gates v0.1
 
+Superseded by [v0.2](DECISIONS-AND-GATES_v0.2.md), which adds approved decisions G27–G28.
+
 7 Nov 2026 · decisions by Mohamoud Abdullahi Sheikh, recorded by Claude Code. This is the `DECISIONS-AND-GATES.md` that `docs/CLAUDE-CODE-HANDOFF_v2.0.md` lists as an input. Where it conflicts with `docs/SREMS-SRS_v2.0-DRAFT.md`, `docs/SREMS-SRS_v1.6.md` or `docs/HANDOVER_v1.0.md`, this document wins. A new decision gets a new version of this file.
 
 ## 1. Decisions

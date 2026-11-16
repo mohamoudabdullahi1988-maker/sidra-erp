@@ -235,10 +235,11 @@ export const EXECUTIVE_METHOD = '/api/method/sidra_realestate.api.staff_dashboar
 /** Present the server's counts without substituting sample figures or calculating business totals. */
 export function executivePage(data, samplePage) {
   const summary = data.summary
+  const contractPeriod = ({ this_month: 'this month', last_30_days: 'last 30 days', last_90_days: 'last 90 days' })[data.period] || 'reporting period'
   const tiles = [
     ['Units available', 'units_available', 'properties', 'green'],
     ['Active reservations', 'active_reservations', 'reservations', 'blue'],
-    ['Contracts confirmed this month', 'confirmed_contracts', 'contracts', 'purple'],
+    [`Contracts confirmed (${contractPeriod})`, 'confirmed_contracts', 'contracts', 'purple'],
   ]
   const property = data.property
   const widgets = property.total == null
@@ -248,7 +249,7 @@ export function executivePage(data, samplePage) {
       : [{ type: 'donut', title: 'Units by status', span: 6, kind: 'count', centre: 'units',
           segments: property.counts.map((row) => ({ label: row.status, value: row.count, tone: UNIT_TONE[row.status] ?? 'blue', to: { name: 'properties' } })) }]
   if (data.dashboard_error) widgets.push(notice('Dashboard summary', data.dashboard_error))
-  widgets.push(notice('Reporting period', `Confirmed contracts are for this month. Inventory and reservations are current. Snapshot: ${data.as_of || 'unavailable'}.`))
+  widgets.push(notice('Reporting period', `Confirmed contracts are for ${contractPeriod}. Inventory and reservations are current. Snapshot: ${data.as_of || 'unavailable'}.`))
   const kpis = tiles.map(([label, key, route, tone]) => ({ label, value: summary[key] ?? null, kind: 'count', tone,
     to: { name: route === 'reservations' ? listRoute(route) : route } }))
   // The whole business (issue #83): construction and real estate from their own read-only

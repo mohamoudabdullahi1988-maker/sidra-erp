@@ -40,6 +40,8 @@ function firstList(section) {
 }
 
 const routes = [
+  { path: '/search', name: 'global-search', component: () => import('./pages/GlobalSearch.vue') },
+  { path: '/reports', name: 'reports', component: () => import('./pages/Reports.vue') },
   { path: '/my-work', name: 'my-work', component: () => import('./pages/WorkQueue.vue') },
   {
     path: '/',
@@ -84,7 +86,7 @@ const router = createRouter({
   routes,
 })
 
-const OPEN_TO_ALL = new Set(['home', 'no-access', 'not-found', 'my-work'])
+const OPEN_TO_ALL = new Set(['home', 'no-access', 'not-found', 'my-work', 'global-search', 'reports'])
 
 // Convenience only: the server refuses the data whatever this guard does. A list page needs the
 // server's read permission for that list; any other page needs its section in the navigation.

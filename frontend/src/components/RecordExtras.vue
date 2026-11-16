@@ -1,5 +1,7 @@
 <script setup>
 import RecordTools from './RecordTools.vue'
+import Conversations from './Conversations.vue'
+import ActivityTimeline from './ActivityTimeline.vue'
 import { ref, watch } from 'vue'
 
 import { apiGet, apiPost, apiUpload } from '../api'
@@ -135,6 +137,8 @@ watch(() => [props.doctype, props.name, props.reloadKey], load, { immediate: tru
       <p v-else class="bj-muted" role="status">Loading…</p>
     </div>
     <RecordTools :doctype="doctype" :name="name" :reload-key="reloadKey" />
+    <Conversations :doctype="doctype" :name="name" />
+    <ActivityTimeline :doctype="doctype" :name="name" :reload-key="reloadKey" />
   </section>
 </template>
 

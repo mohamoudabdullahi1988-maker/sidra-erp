@@ -28,6 +28,8 @@ def _report(name):
 def catalogue():
 	result = []
 	for name, fields in REPORTS.items():
+		if frappe.db.get_value("Report", name, "disabled"):
+			continue
 		try:
 			doc = _report(name)
 		except frappe.PermissionError, frappe.DoesNotExistError:

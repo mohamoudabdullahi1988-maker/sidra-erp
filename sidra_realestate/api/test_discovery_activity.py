@@ -58,13 +58,13 @@ class TestDiscoveryActivity(IntegrationTestCase):
 			changes = version_changes(
 				job.doctype,
 				{
-					"added": [[field.fieldname, {child_field: "visible", "secret_unknown": "SECRET"}]],
+					"added": [[field.fieldname, {child_field: "visible", "unreadable_field": "SECRET"}]],
 					"row_changed": [
 						[
 							field.fieldname,
 							1,
 							"ROW",
-							[[child_field, "old", "new"], ["secret_unknown", "SECRET", "SECRET2"]],
+							[[child_field, "old", "new"], ["unreadable_field", "SECRET", "SECRET2"]],
 						]
 					],
 				},
@@ -110,3 +110,26 @@ class TestDiscoveryActivity(IntegrationTestCase):
 		for value in ("=1+1", "+SUM(A1)", "@call", "  =1"):
 			self.assertTrue(_csv_value(value).startswith("'"))
 		self.assertEqual(_csv_value("plain"), "plain")
+
+	def test_native_accounting_reports_keep_native_permissions(self):
+		from sidra_realestate.api.native_reports import catalogue as native_catalogue, run_report
+		from sidra_realestate.tests.helpers import COMPANY
+
+		with as_user("Administrator"):
+			available = native_catalogue()
+			self.assertEqual(len(available), 3)
+			for name in ("General Ledger", "Accounts Receivable", "Accounts Payable"):
+				filters = {"company": COMPANY}
+				if name == "General Ledger":
+					filters.update(from_date="2026-01-01", to_date="2026-12-31")
+				else:
+					filters["report_date"] = "2026-12-31"
+				result = run_report(name, filters)
+				self.assertIsInstance(result["rows"], list)
+				self.assertTrue(result["columns"])
+		with as_user(OUTSIDER):
+			self.assertFalse(native_catalogue())
+			with self.assertRaises(frappe.PermissionError):
+				run_report(
+					"General Ledger", {"company": COMPANY, "from_date": "2026-01-01", "to_date": "2026-12-31"}
+				)

@@ -16,7 +16,7 @@ async function load(append = false) {
 function replyTo(row) { reply.value = row.name; recipients.value = row.direction === 'Received' ? row.sender : row.recipients; subject.value = /^re:/i.test(row.subject) ? row.subject : 'Re: '+row.subject; cc.value = ''; content.value = ''; selected.value = [] }
 async function send() {
  busy.value = true; error.value = ''; notice.value = ''
- try { const result = (await apiPost('sidra_realestate.api.conversations.send',{doctype:props.doctype,name:props.name,recipients:recipients.value,cc:cc.value,subject:subject.value,content:content.value,attachments:selected.value,in_reply_to:reply.value})).message; notice.value = 'Email submitted to the outgoing queue. Refresh to check delivery.' + (result.emails_not_sent_to ? ` Not sent to: ${result.emails_not_sent_to}` : ''); content.value = ''; reply.value = null; selected.value = []; await load() }
+ try { const result = (await apiPost('sidra_realestate.api.conversations.send',{doctype:props.doctype,name:props.name,recipients:recipients.value,cc:cc.value,subject:subject.value,content:content.value,attachments:selected.value,in_reply_to:reply.value})); notice.value = 'Email submitted to the outgoing queue. Refresh to check delivery.' + (result.emails_not_sent_to ? ` Not sent to: ${result.emails_not_sent_to}` : ''); content.value = ''; reply.value = null; selected.value = []; await load() }
  catch(e) { error.value = e.message } finally { busy.value = false }
 }
 async function upload(event) {

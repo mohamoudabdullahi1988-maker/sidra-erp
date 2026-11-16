@@ -22,7 +22,11 @@ def _schema(doctype, permission="read"):
 	fields += [
 		{"fieldname": f.fieldname, "label": f.label, "fieldtype": f.fieldtype, "options": f.options}
 		for f in meta.fields
-		if f.fieldname in permitted and not f.hidden and f.fieldtype in SAFE_TYPES and f.options != "Password"
+		if f.fieldname in permitted
+		and not f.hidden
+		and not f.is_virtual
+		and f.fieldtype in SAFE_TYPES
+		and f.options != "Password"
 	]
 	return fields
 

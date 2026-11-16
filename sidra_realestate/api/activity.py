@@ -40,7 +40,9 @@ def version_changes(doctype, data):
 			continue
 		child_fields = _visible(frappe.get_meta(meta.get_field(field).options), doctype)
 		result.extend(
-			f"{field}, row {index}: {f}: {old} → {new}" for f, old, new in changes if f in child_fields
+			f"{field}, row {cint(index) + 1}: {f}: {old} → {new}"
+			for f, old, new in changes
+			if f in child_fields
 		)
 	return result
 

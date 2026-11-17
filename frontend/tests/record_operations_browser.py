@@ -105,7 +105,7 @@ def main():
 				page.get_by_role("button", name="Open workflow").click()
 			expect(page.get_by_text("Record created", exact=True)).to_be_visible()
 			if width < 1100:
-				page.get_by_role("button", name="Close workflow").click()
+				page.get_by_role("button", name="Close side panel").click()
 			page.get_by_label("Link Contact", exact=True).fill("SYN-CONTACT")
 			page.get_by_label("Make primary for customer").check()
 			page.get_by_role("button", name="Link", exact=True).click()

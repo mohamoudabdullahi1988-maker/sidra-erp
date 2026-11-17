@@ -12,6 +12,14 @@ All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; 
 
 ## [Unreleased]
 
+### Added (v0.1.61 — record workflows and operations, 16 Nov 2026)
+- Saved-record workflow panels show native status, approval evidence, submission/cancellation and construction stage certification. Registered contracts keep their detailed validation timeline.
+- Link and unlink native Contacts and Addresses from either side of a customer connection, choose primary records, and create a linked record from a customer. Primary pickers reject unrelated records.
+- Select up to 50 loaded records on generic, property, contract and construction lists for assignment, validated field updates or a combined print preview. Permission/version checks apply to every selected record; failed writes roll back the request.
+- Review unsaved duplicate and amendment forms, preserving amendment lineage; rename with native linked-record updates when permitted. Contracts keep their existing controlled revision path. Approval evidence and attachments are not copied.
+- Native staff sharing and tags on record tools. No automatic share/assignment notifications and no public-share control.
+- Integration coverage for permissions, stale batches, connections, copy retries, amendment lineage, rename, tags and sharing; pure workflow evidence tests and desktop/phone browser scenarios.
+
 ### Decisions (v0.1.60 — Design and Brokerage approvals, 16 Nov 2026)
 - Record G27: approved Design discipline proposal #100.
 - Record G29–G35: all confirmed sales, existing average progress, configurable signing/collections settings, GM-approved identity access separately for each buyer, current first-due-date rule, and a Finance-verified ERPNext down-payment receipt required before plot holds. Outstanding verification/access details remain explicit.

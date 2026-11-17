@@ -180,6 +180,11 @@ export const isDirty = (form, values, start) => Object.keys(payload(form, values
 
 export function saveForm(form, values, start, requestKey) {
   const args = { doctype: form.doctype, data: payload(form, values, start) }
+  if (form.copy_source) return apiPost('sidra_realestate.api.record_operations.save_copy', {
+    ...args, name: form.copy_source.name, operation: form.copy_source.operation,
+    expected_modified: form.copy_source.modified, request_key: requestKey,
+  })
+  if (form.link_customer) args.link_customer = form.link_customer
   if (form.is_new) args.request_key = requestKey
   else Object.assign(args, { name: form.name, expected_modified: form.modified })
   return apiPost(FORM_METHODS.save, args)

@@ -3,7 +3,7 @@ import { apiGet } from './api.js'
 export { fileLink, isAmount as numeric, money, recordLink, textValue } from './format.js'
 
 // The one place the timeline method is named.
-export const TIMELINE_METHOD = 'sidra_realestate.api.workflow.get_contract_timeline'
+export const TIMELINE_METHOD = 'sidra_realestate.api.record_workflow.get_timeline'
 export const CONTRACT_DOCTYPE = 'Sidra Sale Contract'
 export const CONTRACT = '/api/resource/' + encodeURIComponent(CONTRACT_DOCTYPE)
 
@@ -18,7 +18,7 @@ export function sourceText(row) {
 }
 
 export async function timeline(name) {
-  const response = await apiGet('/api/method/' + TIMELINE_METHOD, { contract: name })
+  const response = await apiGet('/api/method/' + TIMELINE_METHOD, { doctype: CONTRACT_DOCTYPE, name })
   if (!response.message || !Array.isArray(response.message.stages)) throw new Error('Unexpected workflow response.')
   return response.message
 }

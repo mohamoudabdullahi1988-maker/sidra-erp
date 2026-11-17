@@ -2,7 +2,7 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { ApiError } from '../api'
+import { ApiError, apiPost } from '../api'
 import FormField from './FormField.vue'
 import FormNotes from './FormNotes.vue'
 import { changeState, fieldsOf, loadForm, runAction } from '../forms'
@@ -29,6 +29,8 @@ const error = ref(null)
 const done = ref('')
 const doneDetail = ref('') // e.g. an import's log
 const doneFailed = ref(false)
+const newName = ref('')
+const recordKey = computed(() => Object.keys(RECORDS).find(key => RECORDS[key].doctype === props.doctype && RECORDS[key].form))
 let request = 0
 
 const canEdit = computed(() => form.value?.permissions.write && fieldsOf(form.value).some((field) => field.editable))
@@ -38,6 +40,13 @@ const STEPS = {
   delete: { label: 'Delete', icon: 'lucide-trash-2', tone: 'danger', message: 'Deleting removes this record. This cannot be undone.' },
 }
 const steps = computed(() => Object.keys(STEPS).filter((step) => form.value?.permissions[step]))
+function copyRecord(operation) {
+  router.push({ name: `${recordKey.value}-new`, query: { [operation]: props.name } })
+}
+function askRename() {
+  error.value = null; newName.value = props.name
+  pending.value = { kind: 'rename', title: 'Rename', message: 'The new identifier will replace this name in linked records. Existing records will not be merged.' }
+}
 
 async function load() {
   const id = ++request
@@ -79,7 +88,12 @@ async function go() {
   busy.value = true
   error.value = null
   try {
-    if (pending.value.kind === 'action') {
+    if (pending.value.kind === 'rename') {
+      const result = await apiPost('sidra_realestate.api.record_operations.rename', { doctype: props.doctype, name: props.name, new_name: newName.value, expected_modified: form.value.modified })
+      pending.value = null
+      await router.push(recordRoute(recordKey.value, result.name))
+      return
+    } else if (pending.value.kind === 'action') {
       const result = await runAction(form.value, pending.value.action, { ...askValues })
       done.value = result?.message || `${pending.value.title}: done.`
       doneDetail.value = result?.detail || ''
@@ -122,7 +136,7 @@ defineExpose({ reload: load })
 </script>
 
 <template>
-  <div class="ra">
+  <div id="record-actions" class="ra">
     <div v-if="form && (canEdit || steps.length || form.actions.length)" class="bj-toolbar">
       <RouterLink v-if="canEdit && editRoute" class="bj-btn" :to="editRoute"><span class="lucide-pencil" aria-hidden="true" />Edit</RouterLink>
       <button
@@ -141,6 +155,12 @@ defineExpose({ reload: load })
       </button>
     </div>
 
+    <div v-if="form && recordKey" class="bj-toolbar">
+      <button v-if="form.permissions.duplicate" class="bj-btn" :disabled="busy" @click="copyRecord('duplicate')">Duplicate</button>
+      <button v-if="form.permissions.amend" class="bj-btn" :disabled="busy" @click="copyRecord('amend')">Amend</button>
+      <button v-if="form.permissions.rename" class="bj-btn" :disabled="busy" @click="askRename">Rename</button>
+    </div>
+
     <FormNotes v-if="form" :notes="form.notes" />
     <div v-if="done" class="bj-note ra__ok" :class="{ 'ra__ok--failed': doneFailed }" role="status">
       <span :class="doneFailed ? 'lucide-triangle-alert' : 'lucide-circle-check-big'" aria-hidden="true" />
@@ -153,6 +173,7 @@ defineExpose({ reload: load })
     <section v-if="pending" class="page__card bj-card ra__panel" :class="{ 'ra__panel--danger': pending.tone === 'danger' }" aria-labelledby="ra-title">
       <h2 id="ra-title">{{ pending.title }}: {{ name }}</h2>
       <p v-if="pending.message">{{ pending.message }}</p>
+      <label v-if="pending.kind === 'rename'">New name<input v-model="newName" class="bj-input" maxlength="140" /></label>
       <div v-if="pending.kind === 'action' && pending.action.ask.length" class="ra__ask">
         <FormField
           v-for="field in pending.action.ask"

@@ -511,8 +511,8 @@ RUNNERS = {
 # fields the DocType marks read-only that its controller reads on insert; `create`/`edit`: False
 # when the record changes only through actions.
 FORMS = {
-	"Contact": {},
-	"Address": {},
+	"Contact": {"locked": lambda doc: {"links"}},
+	"Address": {"locked": lambda doc: {"links"}},
 	"Customer": {
 		"fields": (
 			"customer_name",
@@ -648,6 +648,7 @@ def save_form(
 	name: str | None = None,
 	expected_modified: str | None = None,
 	request_key: str | None = None,
+	link_customer: str | None = None,
 ) -> dict:
 	"""Create (no `name`) or update a record with the fields its form allows this user to change."""
 	config = _config(doctype)
@@ -665,6 +666,10 @@ def save_form(
 		doc = frappe.new_doc(doctype)
 		_apply(doc, values, config)
 		doc.insert()
+		if link_customer:
+			from sidra_realestate.api.customer_connections import link_customer as connect
+
+			connect(link_customer, doctype, doc.name)
 		_remember(doctype, request_key, doc.name)
 		return _result(doc)
 
@@ -920,11 +925,14 @@ def _readable_values(doc):
 
 
 def _permissions(doc, config, is_new):
+	from sidra_realestate.api.record_operations import capabilities
+
 	meta = frappe.get_meta(doc.doctype)
 	if is_new:
 		return {"write": True, "submit": False, "cancel": False, "delete": False}
 	editable_type = config.get("edit", True)
 	return {
+		**capabilities(doc),
 		# A submitted record stays editable where its DocType lets fields change after submission
 		# (e.g. a construction quotation's client acceptance).
 		"write": bool(
@@ -989,6 +997,10 @@ def _apply(doc, values, config):
 			continue
 		if _comparable(doc.get(fieldname)) != _comparable(original[fieldname]):
 			frappe.throw(_("{0} is read-only for these values").format(_(field.label)))
+	if doc.doctype == "Customer" and {"customer_primary_contact", "customer_primary_address"} & set(values):
+		from sidra_realestate.api.customer_connections import validate_primary_connections
+
+		validate_primary_connections(doc)
 
 
 def _comparable(value):

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.61 — 16 Nov 2026
+
+- Add record email conversations, compose/reply and private attachments through native Frappe email delivery.
+- Add permission-filtered cross-module search and an operational report catalogue with filters, drill-down and full matching CSV exports.
+- Add native General Ledger, Accounts Receivable and Accounts Payable reports inside Berjaya.
+- Add paginated activity including child-table additions, removals and changes with field-level redaction.
+
+
 All notable changes to `sidra_realestate`. Versions follow `MAJOR.MINOR.PATCH`; each release is tagged in Git.
 
 ## [Unreleased]

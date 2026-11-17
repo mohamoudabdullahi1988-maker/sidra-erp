@@ -116,6 +116,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
             >{{ child.label }}</RouterLink>
           </div>
         </template>
+        <RouterLink class="nav__item" :to="{name: 'reports'}"><span class="nav__icon lucide-chart-no-axes-combined" aria-hidden="true" /><span class="nav__label">Reports</span></RouterLink>
         <p v-if="!items.length" class="nav__none">No sections are available to your account.</p>
       </nav>
 
@@ -147,6 +148,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         </button>
         <span class="bar__wordmark">{{ PRODUCT_NAME }}</span>
         <span class="bar__spacer" />
+        <RouterLink class="bar__btn" :to="{name: 'global-search'}" aria-label="Search all modules" title="Search all modules"><span class="lucide-search" aria-hidden="true" /></RouterLink>
         <RouterLink class="bar__btn" :to="{ name: 'my-work' }" title="Tasks and notifications" aria-label="My work"><span class="lucide-bell" aria-hidden="true" /></RouterLink>
         <a class="bar__btn" href="/api/method/logout" title="Sign out" aria-label="Sign out"><span class="lucide-log-out" aria-hidden="true" /></a>
         <!-- The company using Berjaya (decision G19): its own logo, supplied by the server. -->

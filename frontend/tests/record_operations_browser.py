@@ -61,6 +61,8 @@ def main():
 				elif method == "get_tools":
 					body = {"message": {"can_print": True, "can_assign": True, "can_share": True, "can_tag": True,
 						"tags": tags, "shares": shares, "assignments": [], "versions": []}}
+				elif method == "messages":
+					body = {"message": {"rows": [], "has_more": False, "can_send": False}}
 				elif method == "get_extras":
 					body = {"message": {"attachments": [], "comments": [], "can_attach": True, "can_comment": True}}
 				elif method == "set_tag":

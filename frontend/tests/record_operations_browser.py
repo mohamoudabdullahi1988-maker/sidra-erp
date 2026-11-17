@@ -26,7 +26,7 @@ def main():
 				boot["lists"][key] = {"read": True, "create": True}
 			page.add_init_script("window.berjaya_boot = " + json.dumps(boot))
 			calls, errors = [], []
-			page.on("pageerror", lambda e: errors.append(str(e)))
+			page.on("pageerror", lambda e: errors.append(e.stack))
 			tags, shares, connections = [], [], []
 			docs = [{"name": f"SYN-{i}", "customer_name": f"Synthetic Buyer {i}", "modified": "2026-11-16", "docstatus": 0} for i in (1, 2)]
 
@@ -126,8 +126,10 @@ def main():
 			page.get_by_label("New name", exact=True).fill("SYN-RENAMED")
 			page.get_by_role("button", name="Rename", exact=True).last.click()
 			expect(page).to_have_url(BASE + "/customers/SYN-RENAMED")
+			page.wait_for_load_state("networkidle")
 			assert not errors, errors
 			print(f"PASS {width}px bulk update/print, workflow, customer link, tags, sharing, duplicate and rename")
+			page.unroute_all(behavior="wait")
 			page.close()
 		browser.close()
 

@@ -9,6 +9,7 @@ import frappe
 
 from sidra_realestate.branding import apply_branding
 from sidra_realestate.desk_setup import repair_desk
+from sidra_realestate.payment_providers import ensure_payment_providers
 from sidra_realestate.sidra_installments.doctype.sidra_contract_profile.sidra_contract_profile import (
 	COLLECTION_RULE_DEFAULTS,
 )
@@ -101,6 +102,7 @@ ROLE_PROFILES = {
 
 
 def after_install():
+	ensure_payment_providers()
 	ensure_contract_profiles()
 	ensure_contract_clauses()
 	ensure_role_profiles()
@@ -110,6 +112,7 @@ def after_install():
 
 
 def after_migrate():
+	ensure_payment_providers()
 	ensure_contract_profiles()
 	ensure_contract_clauses()
 	ensure_role_profiles()

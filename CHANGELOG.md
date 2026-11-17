@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.62 — 17 Nov 2026
+
+- Add approved bank masters and payment methods: Dahabshiil International Bank, Salam Bank, Premier Bank, Edahab and Zaad. Preserve existing configuration; Finance supplies company ledger mappings.
+
+
 ## 0.1.61 — 16 Nov 2026
 
 - Add record email conversations, compose/reply and private attachments through native Frappe email delivery.

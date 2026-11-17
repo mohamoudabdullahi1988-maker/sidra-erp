@@ -9,6 +9,16 @@ from sidra_realestate.api.record_extras import _record
 
 def _visible(meta, parenttype=None):
 	permitted = set(meta.get_permitted_fieldnames(user=frappe.session.user, parenttype=parenttype))
+	# Frappe's scalar field list excludes Table fields. Check their permission level
+	# explicitly before exposing any child history; child fields are checked separately.
+	levels = set(
+		meta.get_permlevel_access(permission_type="read", parenttype=parenttype, user=frappe.session.user)
+	)
+	permitted.update(
+		f.fieldname
+		for f in meta.fields
+		if f.fieldtype in ("Table", "Table MultiSelect") and (f.permlevel or 0) in levels
+	)
 	return {
 		f.fieldname
 		for f in meta.fields

@@ -54,17 +54,16 @@ def link_customer(customer, doctype, name, operation="link", primary=0):
 	doc.check_permission("write")
 	existing = [r for r in doc.get("links") or [] if r.link_doctype == "Customer" and r.link_name == customer]
 	if operation == "unlink":
-		if buyer.get(TYPES[doctype]) == name:
-			buyer.set(TYPES[doctype], None)
-			buyer.save()
-			# Customer hooks may update the linked Contact/Address. Reload under our row lock.
-			doc.reload()
 		for row in list(doc.get("links") or []):
 			if row.link_doctype == "Customer" and row.link_name == customer:
 				doc.remove(row)
 	elif not existing:
 		doc.append("links", {"link_doctype": "Customer", "link_name": customer})
 	doc.save()
+	if operation == "unlink" and buyer.get(TYPES[doctype]) == name:
+		# Saving Customer with an empty primary creates a replacement Contact.
+		# Clear only the validated pointer after native link hooks have finished.
+		buyer.db_set(TYPES[doctype], None)
 	if operation == "link" and frappe.utils.cint(primary):
 		buyer.reload()
 		buyer.set(TYPES[doctype], name)
